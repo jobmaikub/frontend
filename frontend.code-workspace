@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "frontend",
+			"path": "."
+		},
+		{
+			"name": "lib",
+			"path": "../../../Desktop/lib"
+		}
+	],
+	"settings": {}
+}
