@@ -20,6 +20,7 @@ export function UsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // State for side sheets
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -29,7 +30,11 @@ export function UsersTable() {
   useEffect(() => {
     fetchUsers()
       .then(setUsers)
-      .catch(console.error)
+      .catch((err) => {
+        const errorMsg = err.response?.data?.message || err.message || "Failed to fetch users";
+        setError(errorMsg);
+        console.error("Error fetching users:", err);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -74,6 +79,40 @@ export function UsersTable() {
 
   if (loading) {
     return <div className="p-6">Loading users...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 space-y-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="font-semibold text-red-800 mb-2">Error Loading Users</h3>
+          <p className="text-red-700 text-sm">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">No users found</p>
+          <Button
+            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
+            onClick={() => setIsAddSheetOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add New
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (

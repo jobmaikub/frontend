@@ -1,11 +1,6 @@
-import axios from "axios";
+import { createApiClient } from "./axios";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/majors",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+const api = createApiClient("/majors");
 
 export interface Major {
   major_id: number;
