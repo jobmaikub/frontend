@@ -1,64 +1,7 @@
-// careers.api.ts
-// import axios from "axios";
-
-// export const api = axios.create({
-//   baseURL: import.meta.env.VITE_API_URL + "/careers",
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
-
-// /* ===== GET ===== */
-// export async function fetchCareers(industry?: string) {
-//   const res = await api.get("/", {
-//     params: industry ? { industry } : {},
-//   });
-//   return res.data;
-// }
-
-// /* ===== CREATE ===== */
-// export async function createCareer(data: {
-//   title: string;
-//   description: string;
-//   industry: string;
-//   min_salary?: number;
-//   max_salary?: number;
-//   growth_rate?: number;
-//   image_url?: string;
-//   required_skills?: string[];
-//   responsibilities?: string[];
-//   interest?: string;
-// }) {
-//   const res = await api.post("/", data);
-//   return res.data;
-// }
-
-// /* ===== UPDATE ===== */
-// export async function updateCareer(
-//   id: number,
-//   data: any
-// ) {
-//   const res = await api.patch(`/${id}`, data);
-//   return res.data;
-// }
-
-// export async function fetchIndustries() {
-//   const res = await axios.get(
-//     import.meta.env.VITE_API_URL + "/industries"
-//   );
-//   return res.data;
-// }
-
-// /* ===== DELETE ===== */
-// export async function deleteCareer(id: number) {
-//   const res = await api.delete(`/${id}`);
-//   return res.data;
-// }
-
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL + "/careers",
   headers: {
     "Content-Type": "application/json",
   },
@@ -66,32 +9,40 @@ export const api = axios.create({
 
 /* ===== GET ===== */
 export async function fetchCareers(industry?: string) {
-  const res = await api.get("/careers", {
+  const res = await api.get("/", {
     params: industry ? { industry } : {},
   });
   return res.data;
 }
 
 /* ===== CREATE ===== */
-export async function createCareer(data: any) {
-  const res = await api.post("/careers", data);
+export async function createCareer(data: {
+  title: string;
+  description: string;
+  industry: string;
+  min_salary?: number;
+  max_salary?: number;
+  growth_rate?: number;
+  image_url?: string;
+  required_skills?: string[];
+  responsibilities?: string[];
+  interest?: string;
+}) {
+  const res = await api.post("/", data);
   return res.data;
 }
 
 /* ===== UPDATE ===== */
-export async function updateCareer(id: number, data: any) {
-  const res = await api.patch(`/careers/${id}`, data);
-  return res.data;
-}
-
-export async function fetchIndustries() {
-  const res = await api.get("/industries");
+export async function updateCareer(
+  id: number,
+  data: any
+) {
+  const res = await api.patch(`/${id}`, data);
   return res.data;
 }
 
 /* ===== DELETE ===== */
 export async function deleteCareer(id: number) {
-  const res = await api.delete(`/careers/${id}`);
+  const res = await api.delete(`/${id}`);
   return res.data;
 }
-
