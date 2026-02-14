@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { fetchIndustries } from "@/lib/industries.api";
 import {
   Sheet,
   SheetContent,
@@ -28,7 +29,7 @@ export function EditCareerSheet({ open, onOpenChange, onSubmit, career }: EditCa
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    industry: "",
+    industryId: 0,
     minSalary: 30000,
     maxSalary: 100000,
     growth: "" as "High" | "Medium" | "Stable" | "",
@@ -36,37 +37,25 @@ export function EditCareerSheet({ open, onOpenChange, onSubmit, career }: EditCa
     responsibilities: "",
     skills: "",
     interests: "",
-    learningOutcome: "", // New Field included
+    learningOutcome: "",
   });
 
   useEffect(() => {
-    if (career) {
-      setFormData({
-        title: career.title || "",
-        description: career.description || "",
-        industry: career.industry || "", // ✅ ตรง enum DB
-        minSalary: career.minSalary || 30000,
-        maxSalary: career.maxSalary || 100000,
-        growth: career.growth || "",
-        image: career.image || "",
-        responsibilities: career.responsibilities || "",
-        skills: career.skills || "",
-        interests: career.interests || "",
-        learningOutcome: career.learningOutcome || "",
-      });
-    }
-  }, [career]);
+    fetchIndustries().then(setIndustries);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (career) {
       onSubmit({
         ...career,
-        ...formData
+        ...formData,
+        industry_id: formData.industryId,
       });
     }
     onOpenChange(false);
   };
+  const [industries, setIndustries] = useState<any[]>([]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -101,19 +90,27 @@ export function EditCareerSheet({ open, onOpenChange, onSubmit, career }: EditCa
           <div className="space-y-2">
             <Label htmlFor="edit-industry">Industry <span className="text-destructive">*</span></Label>
             <Select
-              value={formData.industry}
-              onValueChange={(value) => setFormData({ ...formData, industry: value })}
-              required
+              value={formData.industryId?.toString()}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  industryId: Number(value),
+                })
+              }
             >
               <SelectTrigger className="bg-white">
-                <SelectValue />
+                <SelectValue placeholder="Select industry" />
               </SelectTrigger>
+
               <SelectContent className="bg-white">
-                <SelectItem value="Technology">Technology</SelectItem>
-                <SelectItem value="Design & Creative">Design & Creative</SelectItem>
-                <SelectItem value="Business & Management">Business & Management</SelectItem>
-                <SelectItem value="Healthcare">Healthcare</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
+                {industries.map((ind) => (
+                  <SelectItem
+                    key={ind.industry_id}
+                    value={ind.industry_id.toString()}
+                  >
+                    {ind.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
