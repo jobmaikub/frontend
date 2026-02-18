@@ -8,6 +8,8 @@
 
     "moduleResolution": "node",
     "allowImportingTsExtensions": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
 
     "isolatedModules": true,
     "moduleDetection": "force",
