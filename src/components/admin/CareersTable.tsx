@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Career } from "@/data/careersData";
-import { AddCareerSheet } from "./AddCareerSheet";
+import { AddCareerSheet, CareerFormData } from "./AddCareerSheet";
 import { EditCareerSheet } from "./EditCareerSheet";
 
 export function CareersTable() {
@@ -23,7 +23,24 @@ export function CareersTable() {
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
 
   useEffect(() => {
-    reloadCareers();
+    fetch("http://localhost:3000/careers")
+      .then(res => res.json())
+      .then(data => {
+        const mapped = data.map((c: any) => ({
+          id: c.career_id,
+          title: c.title,
+          industry: c.industry,
+          minSalary: c.min_salary ?? 0,
+          growth:
+            c.growth_rate === 3 ? "High" :
+              c.growth_rate === 2 ? "Medium" : "Stable",
+          image: c.image_url,
+          interests: c.interest,
+          responsibilities: c.responsibilities?.join("\n") ?? "",
+          skills: c.required_skills?.join("\n") ?? "",
+        }));
+        setCareers(mapped);
+      });
   }, []);
 
   const filteredCareers = careers.filter(
@@ -32,40 +49,48 @@ export function CareersTable() {
       career.industry.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddCareer = async (data: any) => {
+  const handleAddCareer = async (data: CareerFormData) => {
     const res = await fetch("http://localhost:3000/careers", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        title: data.title,
+        description: data.description,
+        industry: data.industry,
+
+        minSalary: data.minSalary ?? 0,
+        maxSalary: data.maxSalary ?? 0,
+        image: data.image || "",
+
+        growth:
+          data.growth === "High" ? 3 :
+            data.growth === "Medium" ? 2 : 1,
+
+        interest: data.interests,
+        required_skills: data.skills.split("\n"),
+        responsibilities: data.responsibilities.split("\n"),
+      }),
     });
 
     if (!res.ok) {
-      console.error(await res.json());
+      const err = await res.json();
+      console.error("POST /careers error:", err);
       return;
     }
 
-    reloadCareers();
-  };
-
-  const reloadCareers = async () => {
-    const res = await fetch("http://localhost:3000/careers");
-    const data = await res.json();
-
+    // reload
+    const careers = await (await fetch("http://localhost:3000/careers")).json();
     setCareers(
-      data.map((c: any) => ({
+      careers.map((c: any) => ({
         id: c.career_id,
         title: c.title,
         industry: c.industry,
-        industryId: c.industry_id,
         minSalary: c.min_salary ?? 0,
         growth:
-          c.growth_rate === 3
-            ? "High"
-            : c.growth_rate === 2
-              ? "Medium"
-              : "Stable",
+          c.growth_rate === 3 ? "High" :
+            c.growth_rate === 2 ? "Medium" : "Stable",
         image: c.image_url,
         interests: c.interest,
         responsibilities: c.responsibilities?.join("\n") ?? "",
@@ -83,18 +108,14 @@ export function CareersTable() {
       body: JSON.stringify({
         title: data.title,
         description: data.description,
-
-        industry_id: data.industryId,
+        industry: data.industry,
 
         minSalary: data.minSalary,
         maxSalary: data.maxSalary,
 
         growth:
-          data.growth === "High"
-            ? 3
-            : data.growth === "Medium"
-              ? 2
-              : 1,
+          data.growth === "High" ? 3 :
+            data.growth === "Medium" ? 2 : 1,
 
         image: data.image,
 
@@ -102,10 +123,31 @@ export function CareersTable() {
 
         required_skills: data.skills.split("\n"),
         responsibilities: data.responsibilities.split("\n"),
+
+        learningOutcome: data.learningOutcome,
       }),
     });
 
-    reloadCareers();
+    // reload list
+    const res = await fetch("http://localhost:3000/careers");
+    const careers = await res.json();
+
+    setCareers(
+      careers.map((c: any) => ({
+        id: c.career_id,
+        title: c.title,
+        industry: c.industry,
+        minSalary: c.min_salary ?? 0,
+        growth:
+          c.growth_rate === 3 ? "High" :
+            c.growth_rate === 2 ? "Medium" : "Stable",
+        image: c.image_url,
+        interests: c.interest,
+        responsibilities: c.responsibilities?.join("\n") ?? "",
+        skills: c.required_skills?.join("\n") ?? "",
+        learningOutcome: c.learning_outcome ?? "",
+      }))
+    );
   };
 
   const handleEditClick = (career: Career) => {
