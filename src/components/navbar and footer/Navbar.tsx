@@ -147,7 +147,7 @@ import {
 const navItems = [
   { name: "Home", path: "/not-found" },
   { name: "Career", path: "/not-found" },
-  { name: "News", path: "/not-found" },
+  { name: "News", path: "/news" },
   { name: "AI Match", path: "/ai-match" },
   { name: "Learning Path", path: "/learning-path" }, // Updated Path
   { name: "Track Progress", path: "/not-found" },
