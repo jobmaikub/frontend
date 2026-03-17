@@ -9,11 +9,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import CareerCard from '@/components/CareerCard';
-import { careers, industries } from '@/data/mockData';
+import { useCareers } from '@/hooks/useCareers';
+import { industries } from '@/data/mockData';
 
 const growthRates = ['All Growth Rates', 'High', 'Medium', 'Stable'];
 
 const CareerList = () => {
+  const { careers, loading, error } = useCareers();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('All Industries');
   const [selectedGrowth, setSelectedGrowth] = useState('All Growth Rates');
@@ -33,7 +35,7 @@ const CareerList = () => {
         (selectedGrowth === 'Stable' && career.growthRate === 'stable');
       return matchesSearch && matchesIndustry && matchesGrowth;
     });
-  }, [searchQuery, selectedIndustry, selectedGrowth]);
+  }, [careers, searchQuery, selectedIndustry, selectedGrowth]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,13 +95,27 @@ const CareerList = () => {
         </div>
 
         {/* Grid */}
-        <div className="mt-8 grid grid-cols-3 gap-6">
-          {filteredCareers.map((career) => (
-            <CareerCard key={career.id} career={career} />
-          ))}
-        </div>
+        {loading && (
+          <div className="mt-8 text-center text-muted-foreground">
+            Loading careers...
+          </div>
+        )}
 
-        {filteredCareers.length === 0 && (
+        {error && (
+          <div className="mt-8 text-center text-red-500">
+            Error loading careers: {error.message}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="mt-8 grid grid-cols-3 gap-6">
+            {filteredCareers.map((career) => (
+              <CareerCard key={career.id} career={career} />
+          ))}
+          </div>
+        )}
+
+        {!loading && !error && filteredCareers.length === 0 && (
           <div className="mt-12 text-center text-muted-foreground">
             No careers found matching your criteria.
           </div>

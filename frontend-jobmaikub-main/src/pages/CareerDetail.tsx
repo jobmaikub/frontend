@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/tabs';
 import IndustryNewsDialog from '@/components/IndustryNewsDialog';
 import ReviewSection from '@/components/ReviewSection';
-import { careers, industryNews, getCareerStats } from '@/data/mockData';
+import { useCareers } from '@/hooks/useCareers';
+import { industryNews, getCareerStats } from '@/data/mockData';
 
 const growthConfig = {
   high: {
@@ -47,9 +48,26 @@ const skillIconColors: Record<string, string> = {
 const CareerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { careers, loading, error } = useCareers();
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
 
   const career = careers.find((c) => c.id === id);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading career details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-red-500">Error loading career: {error.message}</p>
+      </div>
+    );
+  }
 
   if (!career) {
     return (

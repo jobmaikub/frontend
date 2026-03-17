@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CareerCard from '@/components/CareerCard';
-import { careers } from '@/data/mockData';
+import { useCareers } from '@/hooks/useCareers';
 import heroImage from '@/assets/hero-career.jpg';
 
 const journeySteps = [
@@ -43,6 +43,7 @@ const journeySteps = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const { careers } = useCareers();
   const trendingCareers = careers.slice(0, 3);
 
   return (

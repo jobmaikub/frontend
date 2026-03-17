@@ -47,6 +47,31 @@ export interface Career {
   reviews: Review[];
 }
 
+interface SupabaseCareer {
+  id: string;
+  title: string;
+  description: string;
+  required_skills: string[];
+  responsibilities: string[];
+}
+
+async function fetchCareersFromSupabase(): Promise<SupabaseCareer[]> {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${apiUrl}/careers`);
+    
+    if (!response.ok) {
+      console.warn('Failed to fetch careers from Supabase, using mock data');
+      return [];
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.warn('Error fetching careers from Supabase:', error);
+    return [];
+  }
+}
+
 export interface NewsArticle {
   id: string;
   title: string;
@@ -142,32 +167,82 @@ export function getCareerStats(career: Career) {
   return { totalCourses, totalHours };
 }
 
-export const careers: Career[] = [
+// Fetch Supabase career data
+async function fetchCareerDataFromSupabase(): Promise<Map<string, { title: string; description: string; keyResponsibilities: string[]; requiredSkills: RequiredSkill[] }>> {
+  const dataMap = new Map<string, { title: string; description: string; keyResponsibilities: string[]; requiredSkills: RequiredSkill[] }>();
+  
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    console.log('[Supabase] Fetching from:', `${apiUrl}/home/all-careers`);
+    const response = await fetch(`${apiUrl}/home/all-careers`);
+    console.log('[Supabase] Response status:', response.status, response.ok);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('[Supabase] Received data:', data);
+      if (Array.isArray(data)) {
+        data.forEach((career: Record<string, unknown>, index: number) => {
+          // Use index as key (0-based) to match careersMockBase ordering
+          console.log('[Supabase] Processing career:', index, career.title);
+          
+          // Parse required_skills from JSON strings
+          let parsedSkills: RequiredSkill[] = [];
+          if (Array.isArray(career.required_skills)) {
+            parsedSkills = career.required_skills
+              .map((skill: unknown) => {
+                // If it's a JSON string, parse it
+                if (typeof skill === 'string') {
+                  try {
+                    const parsed = JSON.parse(skill);
+                    return {
+                      name: parsed.name || '',
+                      type: parsed.type as 'Soft' | 'Technical' | 'Analytical'
+                    };
+                  } catch (e) {
+                    // If parse fails, treat as plain string
+                    return { name: skill, type: 'Soft' as const };
+                  }
+                }
+                // If it's an object, use directly
+                return {
+                  name: (skill as any).name || '',
+                  type: (skill as any).type as 'Soft' | 'Technical' | 'Analytical'
+                };
+              });
+          }
+          
+          dataMap.set(String(index), {
+            title: (career.title as string) || '',
+            description: (career.description as string) || '',
+            keyResponsibilities: Array.isArray(career.responsibilities) ? (career.responsibilities as string[]) : [],
+            requiredSkills: parsedSkills
+          });
+        });
+      }
+    } else {
+      console.warn('[Supabase] Response not ok:', response.status);
+    }
+  } catch (error) {
+    console.warn('[Supabase] Failed to fetch careers data:', error);
+  }
+  
+  console.log('[Supabase] Final map size:', dataMap.size);
+  return dataMap;
+}
+
+// Base mock careers data structure
+export const careersMockBase = [
   {
     id: 'ux-ui-designer',
-    title: 'UX/UI Designer',
     image: careerTech,
     track: 'Technology',
-    description:
-      'Create intuitive and engaging user experiences for digital products. UX Designers research user needs, create wireframes and prototypes, and work closely with development teams to bring designs to life.',
+    title: '',
+    description: '',
     salaryMin: 45,
     salaryMax: 120,
     growthRate: 'high',
-    keyResponsibilities: [
-      'Conduct user research and usability testing',
-      'Create wireframes and interactive prototypes',
-      'Design intuitive user interfaces',
-      'Collaborate with developers and stakeholders',
-      'Iterate based on feedback and data',
-      'Develop and maintain design systems',
-      'Create user journey maps and personas',
-    ],
-    requiredSkills: [
-      { name: 'Communication', type: 'Soft' },
-      { name: 'Problem Solving', type: 'Analytical' },
-      { name: 'Technical Proficiency', type: 'Technical' },
-      { name: 'Team Collaboration', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -251,28 +326,15 @@ export const careers: Career[] = [
   },
   {
     id: 'data-scientists',
-    title: 'Data Scientists',
     image: careerData,
     track: 'Technology',
-    description:
-      'Analyze complex data sets to help organizations make better decisions. Data Scientists use statistical methods, machine learning, and programming to extract insights from large datasets.',
+    title: '',
+    description: '',
     salaryMin: 60,
     salaryMax: 180,
     growthRate: 'high',
-    keyResponsibilities: [
-      'Collect, clean, and preprocess large datasets',
-      'Build predictive models using machine learning algorithms',
-      'Create data visualizations and dashboards',
-      'Communicate findings to non-technical stakeholders',
-      'Collaborate with engineering teams on data pipelines',
-      'Research and implement new analytical methods',
-    ],
-    requiredSkills: [
-      { name: 'Python Programming', type: 'Technical' },
-      { name: 'Statistical Analysis', type: 'Analytical' },
-      { name: 'Machine Learning', type: 'Technical' },
-      { name: 'Data Visualization', type: 'Analytical' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -307,28 +369,15 @@ export const careers: Career[] = [
   },
   {
     id: 'project-manager',
-    title: 'Project Manager',
     image: careerBusiness,
     track: 'Technology',
-    description:
-      'Lead the development of products from concept to launch. Product Managers work cross-functionally to define product vision, prioritize features, and ensure successful delivery.',
+    title: '',
+    description: '',
     salaryMin: 70,
     salaryMax: 200,
     growthRate: 'high',
-    keyResponsibilities: [
-      'Define project scope, timeline, and deliverables',
-      'Coordinate cross-functional teams and resources',
-      'Manage project budgets and risk assessment',
-      'Facilitate agile ceremonies and sprint planning',
-      'Report progress to senior stakeholders',
-      'Identify and resolve project blockers',
-    ],
-    requiredSkills: [
-      { name: 'Leadership', type: 'Soft' },
-      { name: 'Agile Methodology', type: 'Technical' },
-      { name: 'Risk Analysis', type: 'Analytical' },
-      { name: 'Stakeholder Management', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -362,28 +411,15 @@ export const careers: Career[] = [
   },
   {
     id: 'software-engineering',
-    title: 'Software Engineering',
     image: careerTech,
     track: 'Technology',
-    description:
-      'Design, develop, and maintain software applications. Software Engineers write clean, efficient code and collaborate with teams to build scalable systems.',
+    title: '',
+    description: '',
     salaryMin: 50,
     salaryMax: 150,
     growthRate: 'high',
-    keyResponsibilities: [
-      'Write clean, maintainable, and efficient code',
-      'Design software architecture and system components',
-      'Participate in code reviews and quality assurance',
-      'Debug and resolve software defects',
-      'Collaborate with product and design teams',
-      'Implement automated testing and CI/CD pipelines',
-    ],
-    requiredSkills: [
-      { name: 'Programming Languages', type: 'Technical' },
-      { name: 'System Design', type: 'Technical' },
-      { name: 'Problem Solving', type: 'Analytical' },
-      { name: 'Version Control', type: 'Technical' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -418,27 +454,15 @@ export const careers: Career[] = [
   },
   {
     id: 'digital-marketing-specialist',
-    title: 'Digital Marketing Specialist',
     image: careerBusiness,
     track: 'Marketing',
-    description:
-      'Plan and execute digital marketing campaigns across various channels. Digital Marketing Specialists analyze data to optimize marketing strategies and drive business growth.',
+    title: '',
+    description: '',
     salaryMin: 35,
     salaryMax: 80,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Develop and execute digital marketing strategies',
-      'Manage social media accounts and content calendars',
-      'Analyze campaign performance with analytics tools',
-      'Optimize SEO and SEM campaigns for maximum ROI',
-      'Create engaging content for multiple platforms',
-    ],
-    requiredSkills: [
-      { name: 'Content Creation', type: 'Soft' },
-      { name: 'Analytics', type: 'Analytical' },
-      { name: 'SEO/SEM', type: 'Technical' },
-      { name: 'Social Media', type: 'Technical' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -472,27 +496,15 @@ export const careers: Career[] = [
   },
   {
     id: 'influencer-strategy-manager',
-    title: 'Influencer Strategy Manager',
     image: careerBusiness,
     track: 'Marketing',
-    description:
-      'Develop influencer marketing plans across all tiers—from Mega to Nano. Influencer Strategy Managers build relationships, negotiate contracts, and measure campaign impact.',
+    title: '',
+    description: '',
     salaryMin: 45,
     salaryMax: 110,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Identify and recruit influencers aligned with brand values',
-      'Develop influencer campaign strategies and briefs',
-      'Negotiate contracts and manage partnerships',
-      'Track campaign performance and ROI metrics',
-      'Stay current with social media trends and platforms',
-    ],
-    requiredSkills: [
-      { name: 'Negotiation', type: 'Soft' },
-      { name: 'Social Media Analytics', type: 'Analytical' },
-      { name: 'Content Strategy', type: 'Technical' },
-      { name: 'Relationship Building', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -526,27 +538,15 @@ export const careers: Career[] = [
   },
   {
     id: 'performance-marketer',
-    title: 'Performance Marketer',
     image: careerBusiness,
     track: 'Marketing',
-    description:
-      'Optimize ad spend using predictive analytics across TikTok, LINE, and other platforms. Performance Marketers focus on driving measurable results through data-driven campaigns.',
+    title: '',
+    description: '',
     salaryMin: 45,
     salaryMax: 110,
     growthRate: 'stable',
-    keyResponsibilities: [
-      'Manage paid advertising campaigns across platforms',
-      'Optimize campaign budgets for maximum ROAS',
-      'Conduct A/B testing on ad creatives and landing pages',
-      'Analyze conversion funnels and user acquisition costs',
-      'Report on campaign performance and insights',
-    ],
-    requiredSkills: [
-      { name: 'Paid Media', type: 'Technical' },
-      { name: 'Data Analysis', type: 'Analytical' },
-      { name: 'A/B Testing', type: 'Analytical' },
-      { name: 'Budget Management', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -580,28 +580,15 @@ export const careers: Career[] = [
   },
   {
     id: 'registered-nurse',
-    title: 'Registered Nurse',
     image: careerHealth,
     track: 'Health',
-    description:
-      'Provide ongoing patient care in hospitals, clinics, and community settings. Registered Nurses assess patient conditions, administer medications, and coordinate with healthcare teams.',
+    title: '',
+    description: '',
     salaryMin: 65,
     salaryMax: 140,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Assess patient health conditions and vital signs',
-      'Administer medications and treatments',
-      'Coordinate with doctors and healthcare specialists',
-      'Educate patients on health management and prevention',
-      'Maintain accurate patient medical records',
-      'Respond to medical emergencies',
-    ],
-    requiredSkills: [
-      { name: 'Patient Care', type: 'Soft' },
-      { name: 'Clinical Assessment', type: 'Technical' },
-      { name: 'Critical Thinking', type: 'Analytical' },
-      { name: 'Communication', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -635,27 +622,15 @@ export const careers: Career[] = [
   },
   {
     id: 'occupational-therapist',
-    title: 'Occupational Therapist',
     image: careerHealth,
     track: 'Health',
-    description:
-      'Assist patients in developing skills for daily living and work activities. Occupational Therapists evaluate patient needs and create personalized treatment plans.',
+    title: '',
+    description: '',
     salaryMin: 60,
     salaryMax: 135,
     growthRate: 'high',
-    keyResponsibilities: [
-      'Evaluate patients functional abilities and limitations',
-      'Develop personalized treatment plans',
-      'Guide patients through therapeutic exercises',
-      'Recommend adaptive equipment and home modifications',
-      'Document patient progress and outcomes',
-    ],
-    requiredSkills: [
-      { name: 'Empathy', type: 'Soft' },
-      { name: 'Assessment Skills', type: 'Analytical' },
-      { name: 'Therapeutic Techniques', type: 'Technical' },
-      { name: 'Patient Education', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -689,27 +664,15 @@ export const careers: Career[] = [
   },
   {
     id: 'psychiatrist',
-    title: 'Psychiatrist',
     image: careerHealth,
     track: 'Health',
-    description:
-      'Diagnose and treat mental health conditions. Psychiatrists combine medical knowledge with psychological understanding to help patients achieve mental wellness.',
+    title: '',
+    description: '',
     salaryMin: 120,
     salaryMax: 250,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Diagnose mental health disorders through clinical assessment',
-      'Prescribe and manage psychiatric medications',
-      'Provide psychotherapy and counseling sessions',
-      'Develop comprehensive treatment plans',
-      'Collaborate with multidisciplinary healthcare teams',
-    ],
-    requiredSkills: [
-      { name: 'Clinical Diagnosis', type: 'Technical' },
-      { name: 'Empathy & Listening', type: 'Soft' },
-      { name: 'Pharmacology', type: 'Technical' },
-      { name: 'Research Analysis', type: 'Analytical' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -743,27 +706,15 @@ export const careers: Career[] = [
   },
   {
     id: '3d-designer-3d-artist',
-    title: '3D Designer / 3D Artist',
     image: careerCreative,
     track: 'Design & Creative',
-    description:
-      'Create 3D models and visuals for games, ads, or product visualization. 3D Artists combine artistic skills with technical software knowledge to bring concepts to life.',
+    title: '',
+    description: '',
     salaryMin: 80,
     salaryMax: 180,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Create 3D models, textures, and animations',
-      'Render high-quality visual assets for projects',
-      'Collaborate with creative directors and art teams',
-      'Optimize 3D assets for various platforms',
-      'Stay updated with latest 3D software and techniques',
-    ],
-    requiredSkills: [
-      { name: '3D Modeling', type: 'Technical' },
-      { name: 'Artistic Vision', type: 'Soft' },
-      { name: 'Texturing & Lighting', type: 'Technical' },
-      { name: 'Attention to Detail', type: 'Analytical' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -797,27 +748,15 @@ export const careers: Career[] = [
   },
   {
     id: 'visual-designer',
-    title: 'Visual Designer',
     image: careerCreative,
     track: 'Design & Creative',
-    description:
-      'Design cohesive visual systems across web, mobile, and marketing. Visual Designers create compelling graphics that communicate brand messages effectively.',
+    title: '',
+    description: '',
     salaryMin: 30,
     salaryMax: 150,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Create visual designs for digital and print media',
-      'Develop brand visual identity systems',
-      'Design marketing materials and campaigns',
-      'Collaborate with UX designers and developers',
-      'Maintain brand consistency across all touchpoints',
-    ],
-    requiredSkills: [
-      { name: 'Visual Design', type: 'Technical' },
-      { name: 'Brand Identity', type: 'Soft' },
-      { name: 'Typography', type: 'Technical' },
-      { name: 'Color Theory', type: 'Analytical' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -851,27 +790,15 @@ export const careers: Career[] = [
   },
   {
     id: 'brand-designer',
-    title: 'Brand Designer',
     image: careerCreative,
     track: 'Design & Creative',
-    description:
-      'Develop brand identities, logos, and visual guidelines. Brand Designers create the visual foundation that shapes how audiences perceive and connect with brands.',
+    title: '',
+    description: '',
     salaryMin: 55,
     salaryMax: 140,
     growthRate: 'stable',
-    keyResponsibilities: [
-      'Design logos and brand identity elements',
-      'Create comprehensive brand guidelines',
-      'Design packaging and marketing collateral',
-      'Conduct brand research and competitor analysis',
-      'Ensure brand consistency across all media',
-    ],
-    requiredSkills: [
-      { name: 'Brand Strategy', type: 'Analytical' },
-      { name: 'Logo Design', type: 'Technical' },
-      { name: 'Creative Thinking', type: 'Soft' },
-      { name: 'Presentation Skills', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -905,27 +832,15 @@ export const careers: Career[] = [
   },
   {
     id: 'cybersecurity-analyst',
-    title: 'Cybersecurity Analyst',
     image: careerTech,
     track: 'Technology',
-    description:
-      'Protect systems, networks, and data from cyber threats and attacks. Cybersecurity Analysts monitor security infrastructure and respond to incidents.',
+    title: '',
+    description: '',
     salaryMin: 60,
     salaryMax: 180,
     growthRate: 'high',
-    keyResponsibilities: [
-      'Monitor network traffic for security threats',
-      'Conduct vulnerability assessments and penetration testing',
-      'Respond to and investigate security incidents',
-      'Implement security policies and procedures',
-      'Stay current with emerging cyber threats',
-    ],
-    requiredSkills: [
-      { name: 'Network Security', type: 'Technical' },
-      { name: 'Threat Analysis', type: 'Analytical' },
-      { name: 'Incident Response', type: 'Technical' },
-      { name: 'Communication', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -959,27 +874,15 @@ export const careers: Career[] = [
   },
   {
     id: 'devops-engineer',
-    title: 'DevOps Engineer',
     image: careerTech,
     track: 'Technology',
-    description:
-      'Automate deployments and improve CI/CD pipelines for faster delivery. DevOps Engineers bridge development and operations to ensure reliable software delivery.',
+    title: '',
+    description: '',
     salaryMin: 60,
     salaryMax: 210,
     growthRate: 'medium',
-    keyResponsibilities: [
-      'Design and maintain CI/CD pipelines',
-      'Manage cloud infrastructure and deployments',
-      'Automate repetitive tasks and processes',
-      'Monitor system performance and reliability',
-      'Collaborate with development teams on deployment strategies',
-    ],
-    requiredSkills: [
-      { name: 'Cloud Platforms', type: 'Technical' },
-      { name: 'Automation', type: 'Technical' },
-      { name: 'Problem Solving', type: 'Analytical' },
-      { name: 'Collaboration', type: 'Soft' },
-    ],
+    keyResponsibilities: [],
+    requiredSkills: [],
     learningPath: [
       {
         level: 'Beginner',
@@ -1012,3 +915,37 @@ export const careers: Career[] = [
     ],
   },
 ];
+
+// Initialize and export careers with Supabase data
+export let careers: Career[] = careersMockBase.map((baseCareers) => ({
+  ...baseCareers,
+  growthRate: baseCareers.growthRate as 'stable' | 'medium' | 'high',
+  title: baseCareers.title || '',
+  description: baseCareers.description || '',
+  keyResponsibilities: baseCareers.keyResponsibilities || [],
+  requiredSkills: baseCareers.requiredSkills || [],
+} as Career));
+
+// Function to fetch and merge Supabase data into careers
+export async function initializeCareers(): Promise<Career[]> {
+  const supabaseData = await fetchCareerDataFromSupabase();
+  
+  careers = careersMockBase.map((baseCareers, index) => {
+    // Match by index since both arrays are ordered
+    const data = supabaseData.get(String(index));
+    const growthRate = (baseCareers.growthRate as 'stable' | 'medium' | 'high');
+    return {
+      ...baseCareers,
+      growthRate,
+      title: data?.title || baseCareers.title || '',
+      description: data?.description || baseCareers.description || '',
+      keyResponsibilities: data?.keyResponsibilities || baseCareers.keyResponsibilities || [],
+      requiredSkills: data?.requiredSkills || baseCareers.requiredSkills || [],
+    } as Career;
+  });
+  
+  return careers;
+}
+
+// Initialize careers on module load
+initializeCareers().catch((error) => console.error('Failed to initialize careers:', error));
