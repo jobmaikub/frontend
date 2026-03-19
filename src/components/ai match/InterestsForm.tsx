@@ -1,53 +1,45 @@
 import React, { useState } from "react";
 import { Search, Heart, ArrowLeft, Sparkles, X } from "lucide-react";
 
-// Expanded list of interests/industries
-const interestsList = [
-  "Technology", 
-  "Design & Creative", 
-  "Business & Finance", 
-  "Healthcare", 
-  "Education", 
-  "Science & Research",
-  "Marketing & Advertising",
-  "Media & Communications",
-  "Environmental Sustainability",
-  "Artificial Intelligence",
-  "E-commerce",
-  "Real Estate",
-  "Automotive",
-  "Entertainment & Gaming",
-  "Travel & Hospitality",
-  "Law & Public Policy",
-  "Non-profit & Social Work"
-];
 
 interface InterestsFormProps {
-  onNext: () => void;
+  initialInterestIds: number[];
+  onSubmit: (interestIds: number[]) => void;
   onBack: () => void;
+  isLoading: boolean;
 }
 
-export function InterestsForm({ onNext, onBack }: InterestsFormProps) {
+export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading }: InterestsFormProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [selectedInterestIds, setSelectedInterestIds] = useState<number[]>(initialInterestIds || []);
+  const [interests, setInterests] = useState<any[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+
+  React.useEffect(() => {
+    fetch("http://localhost:3000/ai/interests")
+      .then(res => res.json())
+      .then(data => { setInterests(data); setIsFetching(false); })
+      .catch(err => { console.error(err); setIsFetching(false); });
+  }, []);
 
   // Filter the interests based on the search query
-  const filteredInterests = interestsList.filter((interest) =>
-    interest.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredInterests = interests.filter((interest) => {
+    const name = interest.interest_name || interest.name || "";
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
-  const toggleInterest = (interest: string) => {
-    if (selectedInterests.includes(interest)) {
+  const toggleInterest = (interestId: number) => {
+    if (selectedInterestIds.includes(interestId)) {
       // Remove if already selected
-      setSelectedInterests(selectedInterests.filter((i) => i !== interest));
-    } else if (selectedInterests.length < 3) {
+      setSelectedInterestIds(selectedInterestIds.filter((i) => i !== interestId));
+    } else if (selectedInterestIds.length < 3) {
       // Add if under the limit of 3
-      setSelectedInterests([...selectedInterests, interest]);
+      setSelectedInterestIds([...selectedInterestIds, interestId]);
     }
   };
 
-  const removeInterest = (interest: string) => {
-      setSelectedInterests(selectedInterests.filter((i) => i !== interest));
+  const removeInterest = (interestId: number) => {
+      setSelectedInterestIds(selectedInterestIds.filter((i) => i !== interestId));
   };
 
   return (
@@ -78,22 +70,24 @@ export function InterestsForm({ onNext, onBack }: InterestsFormProps) {
 
         {/* Interests Grid with Custom Scrollbar */}
         <div className="grid grid-cols-2 gap-4 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
-          {filteredInterests.length > 0 ? (
+          {isFetching ? (
+            <div className="col-span-2 text-center text-gray-500 py-4">Loading interests...</div>
+          ) : filteredInterests.length > 0 ? (
             filteredInterests.map((interest) => (
               <button 
-                key={interest} 
-                onClick={() => toggleInterest(interest)}
+                key={interest.interest_id} 
+                onClick={() => toggleInterest(interest.interest_id)}
                 // Disabled styling if limit reached and item not selected
-                disabled={selectedInterests.length >= 3 && !selectedInterests.includes(interest)}
+                disabled={selectedInterestIds.length >= 3 && !selectedInterestIds.includes(interest.interest_id)}
                 className={`flex w-full items-center justify-start rounded-xl border px-6 py-4 text-[18px] font-medium transition-all ${
-                  selectedInterests.includes(interest)
+                  selectedInterestIds.includes(interest.interest_id)
                     ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
-                    : selectedInterests.length >= 3 
+                    : selectedInterestIds.length >= 3 
                       ? "border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed" // Disabled state
                       : "border-gray-200 text-gray-700 bg-white hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
                 }`}
               >
-                {interest}
+                {interest.interest_name || interest.name}
               </button>
             ))
           ) : (
@@ -105,11 +99,11 @@ export function InterestsForm({ onNext, onBack }: InterestsFormProps) {
 
         {/* Selected Counter & Bubbles */}
         <div className="mt-6 flex flex-wrap items-center gap-2 text-[14px] font-medium text-gray-500">
-          <span>Selected: {selectedInterests.length}/3 Interests</span>
-          {selectedInterests.map((interest) => (
-             <div key={interest} className="flex items-center gap-1 rounded-full bg-[#F0F4FF] px-3 py-1 text-[#4A5DF9]">
-                <span>{interest}</span>
-                <button onClick={() => removeInterest(interest)} className="hover:text-[#3b4cc4] focus:outline-none">
+          <span>Selected: {selectedInterestIds.length}/3 Interests</span>
+          {interests.filter(i => selectedInterestIds.includes(i.interest_id)).map((interest) => (
+             <div key={interest.interest_id} className="flex items-center gap-1 rounded-full bg-[#F0F4FF] px-3 py-1 text-[#4A5DF9]">
+                <span>{interest.interest_name || interest.name}</span>
+                <button onClick={() => removeInterest(interest.interest_id)} className="hover:text-[#3b4cc4] focus:outline-none">
                     <X size={14} />
                 </button>
              </div>
@@ -127,12 +121,20 @@ export function InterestsForm({ onNext, onBack }: InterestsFormProps) {
           Back
         </button>
         <button 
-          onClick={onNext}
-          // Optional: You could add `disabled={selectedInterests.length === 0}` if you want to require at least 1 selection before moving forward!
-          className="flex items-center gap-2 rounded-xl bg-[#4A5DF9] px-8 py-3 text-[16px] font-medium text-white transition-opacity hover:opacity-90 shadow-sm"
+          onClick={() => selectedInterestIds.length > 0 && onSubmit(selectedInterestIds)}
+          disabled={selectedInterestIds.length === 0 || isLoading}
+          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
+            selectedInterestIds.length > 0 && !isLoading ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          }`}
         >
-          <Sparkles size={16} />
-          Get Career Match
+          {isLoading ? (
+            "Matching..."
+          ) : (
+            <>
+              <Sparkles size={16} />
+              Get Career Match
+            </>
+          )}
         </button>
       </div>
     </>

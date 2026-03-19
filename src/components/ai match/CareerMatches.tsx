@@ -1,43 +1,35 @@
-import React from "react";
-import { Check, ArrowLeft, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { Check, ArrowLeft, ArrowRight, X } from "lucide-react";
 
 interface CareerMatchesProps {
   onStartOver: () => void;
+  matches: any[];
 }
 
-export function CareerMatches({ onStartOver }: CareerMatchesProps) {
-  const matches = [
-    {
-      title: "Data Scientists",
-      industry: "Technology",
-      matchScore: "95%",
-      description: "Data Scientist is a perfect fit for someone with a major in Data Science and skills in Python programming, as it requires strong analytical and programming skills to analyze complex datasets and derive insights.",
-      matchingSkills: ["Data Analysis"],
-      skillsToDevelop: ["Machine Learning", "Statistical Modeling", "Data Visualization"],
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: "Software Engineer",
-      industry: "Technology",
-      matchScore: "85%",
-      description: "With a background in Data Science and Python, transitioning to Software Engineering is a strong fit, leveraging solid programming and development skills.",
-      matchingSkills: ["Data Analysis"],
-      skillsToDevelop: ["Programming Languages", "Software Development Methodologies"],
-      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: "Product Manager",
-      industry: "Technology",
-      matchScore: "80%",
-      description: "Product Management benefits from strong technology awareness and data-driven decision making. A background in Data Science provides analytical skills that support effective product decisions.",
-      matchingSkills: ["Data Analysis"],
-      skillsToDevelop: ["Project Management", "Market Research", "Business Strategy"],
-      image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
+export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
+  const [selectedCareer, setSelectedCareer] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+  const handleViewDetails = async (careerId: number) => {
+    setIsModalOpen(true);
+    setIsLoadingDetails(true);
+    setSelectedCareer(null);
+    try {
+      const response = await fetch(`http://localhost:3000/ai/careers/${careerId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedCareer(data);
+      }
+    } catch (err) {
+      console.error("Error fetching career details:", err);
+    } finally {
+      setIsLoadingDetails(false);
     }
-  ];
+  };
 
   return (
-    <div className="w-full font-['Inter'] flex flex-col items-center">
+    <div className="w-full font-['Inter'] flex flex-col items-center relative">
       
       {/* Success Header */}
       <div className="mb-10 flex flex-col items-center text-center mt-4">
@@ -56,8 +48,12 @@ export function CareerMatches({ onStartOver }: CareerMatchesProps) {
             
             {/* 1. Left Image - Added `self-center` to perfectly center it vertically against the text on the right! */}
             <div className="w-full md:w-[340px] shrink-0 self-center">
-              <div className="w-full aspect-square rounded-2xl overflow-hidden">
-                <img src={match.image} alt={match.title} className="w-full h-full object-cover" />
+              <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                {match.image_url ? (
+                  <img src={match.image_url} alt={match.title} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-400">No Image</span>
+                )}
               </div>
             </div>
 
@@ -74,7 +70,7 @@ export function CareerMatches({ onStartOver }: CareerMatchesProps) {
                     <span className="text-[16px] font-medium text-[#4A5DF9] block mt-1">{match.industry}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[32px] font-bold text-[#4A5DF9] leading-none">{match.matchScore}</span>
+                    <span className="text-[32px] font-bold text-[#4A5DF9] leading-none">{match.match_score ?? match.score ?? "N/A"}%</span>
                     {/* 4. Match text - Font Size 14 */}
                     <p className="text-[14px] text-gray-500 font-medium mt-1">match</p>
                   </div>
@@ -82,7 +78,7 @@ export function CareerMatches({ onStartOver }: CareerMatchesProps) {
 
                 {/* 5. Description texts - Font Size 16 */}
                 <p className="text-[16px] text-gray-600 leading-relaxed mb-6 pr-4">
-                  {match.description}
+                  {match.explanation || match.description}
                 </p>
 
                 {/* Skills Grid */}
@@ -91,24 +87,30 @@ export function CareerMatches({ onStartOver }: CareerMatchesProps) {
                     {/* 6. Matching Skills Header - Font Size 16 */}
                     <h3 className="text-[16px] font-medium text-gray-500 mb-3">Matching Skills</h3>
                     <div className="flex flex-wrap gap-2">
-                      {match.matchingSkills.map(skill => (
-                        // 7. Data Analysis tag - Font Size 12
-                        <span key={skill} className="bg-[#E5F7ED] text-[#22C55E] text-[12px] font-medium px-4 py-2 rounded-full">
-                          {skill}
-                        </span>
-                      ))}
+                      {(match.matching_skills || match.matchingSkills || []).length > 0 ? (
+                        (match.matching_skills || match.matchingSkills || []).map((skill: string) => (
+                          <span key={skill} className="bg-[#E5F7ED] text-[#22C55E] text-[12px] font-medium px-4 py-2 rounded-full">
+                            {skill}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[14px] text-gray-400 italic">None identified</span>
+                      )}
                     </div>
                   </div>
                   <div>
                     {/* 6. Skills to Develop Header - Font Size 16 */}
                     <h3 className="text-[16px] font-medium text-gray-500 mb-3">Skills to Develop</h3>
                     <div className="flex flex-wrap gap-2">
-                      {match.skillsToDevelop.map(skill => (
-                        // 8. Skills to develop tag - Font Size 12
-                        <span key={skill} className="border border-gray-200 text-gray-600 text-[12px] font-medium px-4 py-2 rounded-full">
-                          {skill}
-                        </span>
-                      ))}
+                      {(match.skills_to_develop || match.skillsToDevelop || []).length > 0 ? (
+                        (match.skills_to_develop || match.skillsToDevelop || []).map((skill: string) => (
+                          <span key={skill} className="border border-gray-200 text-gray-600 text-[12px] font-medium px-4 py-2 rounded-full">
+                            {skill}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[14px] text-gray-400 italic">Not specified</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -117,7 +119,10 @@ export function CareerMatches({ onStartOver }: CareerMatchesProps) {
               {/* View Career Details Container */}
               <div>
                 {/* 9. View Career Details text - Font Size 14 */}
-                <button className="flex items-center justify-center gap-2 rounded-xl bg-[#4A5DF9] px-6 py-3 text-[14px] font-medium text-white transition-opacity hover:opacity-90 w-max">
+                <button 
+                  onClick={() => handleViewDetails(match.career_id || match.id)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#4A5DF9] px-6 py-3 text-[14px] font-medium text-white transition-opacity hover:opacity-90 w-max"
+                >
                   View Career Details
                   <ArrowRight size={16} />
                 </button>
@@ -136,6 +141,63 @@ export function CareerMatches({ onStartOver }: CareerMatchesProps) {
         <ArrowLeft size={16} />
         Start Over
       </button>
+
+      {/* Modal / Dialog for Career Details */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-[32px] p-8 w-full max-w-2xl shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
+            
+            {isLoadingDetails ? (
+              <div className="py-20 text-center text-gray-500 flex flex-col items-center gap-4">
+                <div className="w-8 h-8 rounded-full border-4 border-t-[#4A5DF9] border-gray-200 animate-spin"></div>
+                Loading career details...
+              </div>
+            ) : selectedCareer ? (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedCareer.title}</h2>
+                <span className="text-[16px] font-medium text-[#4A5DF9] block mb-6">{selectedCareer.industry}</span>
+                
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Description</h3>
+                <p className="text-gray-600 mb-6">{selectedCareer.description || "No description available."}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Required Skills</h3>
+                    <ul className="list-disc pl-5 text-gray-600">
+                      {selectedCareer.skills_required && Array.isArray(selectedCareer.skills_required) 
+                        ? selectedCareer.skills_required.map((s: string, i: number) => <li key={i}>{s}</li>)
+                        : <li>Information coming soon...</li>}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Salary Estimate</h3>
+                    <p className="text-gray-600">{selectedCareer.salary_estimate || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-20 text-center text-gray-500">
+                Failed to load career details.
+              </div>
+            )}
+            
+            <div className="mt-8 flex justify-end">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-xl border border-gray-200 px-6 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

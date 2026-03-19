@@ -1,41 +1,32 @@
 import React, { useState } from "react";
 import { Search, BookOpen, ArrowLeft, ArrowRight } from "lucide-react";
 
-// Expanded list of Science faculty majors to ensure the scrollbar is visible
-const majors = [
-  "Mathematics", 
-  "Biology", 
-  "Computer Science", 
-  "Physics", 
-  "Chemistry", 
-  "Food Technology",
-  "Environmental Science",
-  "Statistics",
-  "Biochemistry",
-  "Microbiology",
-  "Earth Science",
-  "Data Science",
-  "Applied Mathematics",
-  "Genetics",
-  "Astronomy",
-  "Zoology",
-  "Botany"
-];
-
 interface MajorFormProps {
-  onNext: () => void;
+  facultyId: number;
+  initialMajorId: number | null;
+  onNext: (majorId: number) => void;
   onBack: () => void;
 }
 
-export function MajorForm({ onNext, onBack }: MajorFormProps) {
+export function MajorForm({ facultyId, initialMajorId, onNext, onBack }: MajorFormProps) {
   // State for search input and the currently selected major
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMajor, setSelectedMajor] = useState<string | null>(null);
+  const [selectedMajorId, setSelectedMajorId] = useState<number | null>(initialMajorId);
+  const [majors, setMajors] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetch(`http://localhost:3000/ai/majors/${facultyId}`)
+      .then(res => res.json())
+      .then(data => { setMajors(data); setIsLoading(false); })
+      .catch(err => { console.error(err); setIsLoading(false); });
+  }, [facultyId]);
 
   // Filter the majors based on the search query
-  const filteredMajors = majors.filter((major) =>
-    major.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMajors = majors.filter((major) => {
+    const name = major.eng_name || major.th_name || "";
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <>
@@ -65,18 +56,20 @@ export function MajorForm({ onNext, onBack }: MajorFormProps) {
 
         {/* Major Grid with Custom Scrollbar */}
         <div className="grid grid-cols-2 gap-4 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
-          {filteredMajors.length > 0 ? (
+          {isLoading ? (
+            <div className="col-span-2 text-center text-gray-500 py-4">Loading majors...</div>
+          ) : filteredMajors.length > 0 ? (
             filteredMajors.map((m) => (
               <button 
-                key={m} 
-                onClick={() => setSelectedMajor(m)}
+                key={m.major_id} 
+                onClick={() => setSelectedMajorId(m.major_id)}
                 className={`flex w-full items-center justify-start rounded-xl border px-6 py-4 text-[18px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] ${
-                  selectedMajor === m 
+                  selectedMajorId === m.major_id 
                     ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]" // Active state styling
                     : "border-gray-200 text-gray-700 bg-white"      // Default state styling
                 }`}
               >
-                {m}
+                {m.eng_name || m.th_name}
               </button>
             ))
           ) : (
@@ -97,8 +90,11 @@ export function MajorForm({ onNext, onBack }: MajorFormProps) {
           Back
         </button>
         <button 
-          onClick={onNext}
-          className="flex items-center gap-2 rounded-xl bg-[#4A5DF9] px-8 py-3 text-[16px] font-medium text-white transition-opacity hover:opacity-90 shadow-sm"
+          onClick={() => selectedMajorId && onNext(selectedMajorId)}
+          disabled={!selectedMajorId}
+          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
+            selectedMajorId ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          }`}
         >
           Continue
           <ArrowRight size={16} />

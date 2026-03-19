@@ -1,47 +1,41 @@
 import React, { useState } from "react";
 import { Search, Lightbulb, ArrowLeft, ArrowRight, X } from "lucide-react";
 
-const skillsList = [
-  "Python", "JavaScript", "HTML/CSS", "React", "Node.js", 
-  "SQL", "MongoDB", "Firebase", "Software Architecture", "NumPy", 
-  "Unit Testing", "Operating Systems", "Linux", "Machine Learning", 
-  "TensorFlow", "Docker", "AWS", "Cybersecurity", "Communication", 
-  "Problem Solving", "Data Analysis", "Teamwork", "Agile", "Scrum",
-  "Java", "C++", "C#", "Ruby", "PHP", "Swift", "Kotlin", "Go", "Rust",
-  "TypeScript", "Angular", "Vue.js", "Express.js", "Django", "Flask",
-  "Spring Boot", "ASP.NET", "GraphQL", "REST API", "Git", "GitHub",
-  "GitLab", "CI/CD", "Jenkins", "Kubernetes", "Azure", "Google Cloud",
-  "Big Data", "Hadoop", "Spark", "Blockchain", "IoT", "Artificial Intelligence",
-  "Deep Learning", "Natural Language Processing", "Computer Vision",
-  "Robotics", "Virtual Reality", "Augmented Reality", "Game Development",
-  "Unity", "Unreal Engine", "Mobile App Development", "Web Development",
-  "DevOps", "Database Management", "Network Security", "Ethical Hacking",
-  "Cloud Computing", "UI/UX Design" 
-];
 
 interface SkillsFormProps {
-  onNext: () => void;
+  initialSkillIds: number[];
+  onNext: (skillIds: number[]) => void;
   onBack: () => void;
 }
 
-export function SkillsForm({ onNext, onBack }: SkillsFormProps) {
+export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>(initialSkillIds || []);
+  const [skills, setSkills] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredSkills = skillsList.filter((skill) =>
-    skill.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  React.useEffect(() => {
+    fetch("http://localhost:3000/ai/skills")
+      .then(res => res.json())
+      .then(data => { setSkills(data); setIsLoading(false); })
+      .catch(err => { console.error(err); setIsLoading(false); });
+  }, []);
 
-  const toggleSkill = (skill: string) => {
-    if (selectedSkills.includes(skill)) {
-      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+  const filteredSkills = skills.filter((skill) => {
+    const name = skill.name || skill.name_th || "";
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const toggleSkill = (skillId: number) => {
+    if (selectedSkillIds.includes(skillId)) {
+      setSelectedSkillIds(selectedSkillIds.filter((id) => id !== skillId));
     } else {
-      setSelectedSkills([...selectedSkills, skill]);
+      setSelectedSkillIds([...selectedSkillIds, skillId]);
     }
   };
 
-  const removeSkill = (skill: string) => {
-      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+  const removeSkill = (skillId: number) => {
+      setSelectedSkillIds(selectedSkillIds.filter((id) => id !== skillId));
   }
 
   return (
@@ -72,30 +66,36 @@ export function SkillsForm({ onNext, onBack }: SkillsFormProps) {
 
         {/* Skills Flex Wrap with Custom Scrollbar */}
         <div className="flex flex-wrap gap-3 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
-          {filteredSkills.map((skill) => (
-            <button 
-              key={skill} 
-              onClick={() => toggleSkill(skill)}
-              className={`rounded-full border px-5 py-2.5 text-[16px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] ${
-                selectedSkills.includes(skill)
-                  ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
-                  : "border-gray-200 text-gray-700 bg-white"
-              }`}
-            >
-              {skill}
-            </button>
-          ))}
+          {isLoading ? (
+            <div className="w-full text-center text-gray-500 py-4">Loading skills...</div>
+          ) : filteredSkills.length > 0 ? (
+            filteredSkills.map((skill) => (
+              <button 
+                key={skill.skill_id} 
+                onClick={() => toggleSkill(skill.skill_id)}
+                className={`rounded-full border px-5 py-2.5 text-[16px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] ${
+                  selectedSkillIds.includes(skill.skill_id)
+                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
+                    : "border-gray-200 text-gray-700 bg-white"
+                }`}
+              >
+                {skill.name || skill.name_th}
+              </button>
+            ))
+          ) : (
+            <div className="w-full text-center text-gray-500 py-4">
+              No skills found matching "{searchQuery}"
+            </div>
+          )}
         </div>
 
         {/* Selected Counter */}
         <div className="mt-6 flex flex-wrap items-center gap-2 text-[14px] font-medium text-gray-500">
-          <span>Selected: {selectedSkills.length} Skills</span>
-          {selectedSkills.map((skill) => (
-             // Updated colors to blue
-             <div key={skill} className="flex items-center gap-1 rounded-full bg-[#F0F4FF] px-3 py-1 text-[#4A5DF9]">
-                <span>{skill}</span>
-                {/* Updated hover color for the X button */}
-                <button onClick={() => removeSkill(skill)} className="hover:text-[#3b4cc4] focus:outline-none">
+          <span>Selected: {selectedSkillIds.length} Skills</span>
+          {skills.filter(s => selectedSkillIds.includes(s.skill_id)).map((skill) => (
+             <div key={skill.skill_id} className="flex items-center gap-1 rounded-full bg-[#F0F4FF] px-3 py-1 text-[#4A5DF9]">
+                <span>{skill.name || skill.name_th}</span>
+                <button onClick={() => removeSkill(skill.skill_id)} className="hover:text-[#3b4cc4] focus:outline-none">
                     <X size={14} />
                 </button>
              </div>
@@ -113,8 +113,11 @@ export function SkillsForm({ onNext, onBack }: SkillsFormProps) {
           Back
         </button>
         <button 
-          onClick={onNext}
-          className="flex items-center gap-2 rounded-xl bg-[#4A5DF9] px-8 py-3 text-[16px] font-medium text-white transition-opacity hover:opacity-90 shadow-sm"
+          onClick={() => selectedSkillIds.length > 0 && onNext(selectedSkillIds)}
+          disabled={selectedSkillIds.length === 0}
+          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
+            selectedSkillIds.length > 0 ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          }`}
         >
           Continue
           <ArrowRight size={16} />

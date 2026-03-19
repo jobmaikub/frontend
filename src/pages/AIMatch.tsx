@@ -12,10 +12,65 @@ import React from "react";
 
 export default function AIMatch() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [facultyId, setFacultyId] = useState<number | null>(null);
+  const [majorId, setMajorId] = useState<number | null>(null);
+  const [skills, setSkills] = useState<number[]>([]);
+  const [interests, setInterests] = useState<number[]>([]);
+  const [matchResults, setMatchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNext = () => setCurrentStep((prev) => prev + 1);
   const handleBack = () => setCurrentStep((prev) => prev - 1);
-  const handleStartOver = () => setCurrentStep(0); 
+  const handleStartOver = () => {
+    setCurrentStep(0);
+    setFacultyId(null);
+    setMajorId(null);
+    setSkills([]);
+    setInterests([]);
+    setMatchResults([]);
+  };
+
+  const handleFacultyNext = (id: number) => {
+    setFacultyId(id);
+    setCurrentStep(1);
+  };
+
+  const handleMajorNext = (id: number) => {
+    setMajorId(id);
+    setCurrentStep(2);
+  };
+
+  const handleSkillsNext = (selectedSkills: number[]) => {
+    setSkills(selectedSkills);
+    setCurrentStep(3);
+  };
+
+  const handleInterestsSubmit = async (selectedInterests: number[]) => {
+    setInterests(selectedInterests);
+    setIsLoading(true);
+    try {
+      const response = await fetch("http://localhost:3000/ai/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          faculty_id: facultyId,
+          major_id: majorId,
+          skills: skills,
+          interests: selectedInterests,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMatchResults(data);
+        setCurrentStep(4);
+      } else {
+        console.error("Failed to fetch matches");
+      }
+    } catch (error) {
+      console.error("Error submitting match:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }; 
 
   const steps = [
     { name: "Faculty", icon: <GraduationCap size={20} /> },
@@ -79,13 +134,13 @@ export default function AIMatch() {
 
               {!isComplete ? (
                 <>
-                  {currentStep === 0 && <FacultyForm onNext={handleNext} />}
-                  {currentStep === 1 && <MajorForm onNext={handleNext} onBack={handleBack} />}
-                  {currentStep === 2 && <SkillsForm onNext={handleNext} onBack={handleBack} />}
-                  {currentStep === 3 && <InterestsForm onNext={handleNext} onBack={handleBack} />}
+                  {currentStep === 0 && <FacultyForm initialFacultyId={facultyId} onNext={handleFacultyNext} />}
+                  {currentStep === 1 && <MajorForm facultyId={facultyId!} initialMajorId={majorId} onNext={handleMajorNext} onBack={handleBack} />}
+                  {currentStep === 2 && <SkillsForm initialSkillIds={skills} onNext={handleSkillsNext} onBack={handleBack} />}
+                  {currentStep === 3 && <InterestsForm initialInterestIds={interests} onSubmit={handleInterestsSubmit} onBack={handleBack} isLoading={isLoading} />}
                 </>
               ) : (
-                <CareerMatches onStartOver={handleStartOver} />
+                <CareerMatches onStartOver={handleStartOver} matches={matchResults} />
               )}
               
             </div>
