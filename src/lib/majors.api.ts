@@ -1,16 +1,13 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/majors",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/majors"
+);
 
 export interface Major {
   major_id: number;
-  name: string;
-  name_th?: string;
+  eng_name: string;
+  th_name?: string;
   description?: string;
   faculty_id: number;
 }

@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getFaculties, Faculty } from "@/lib/faculties.api";
-import { getMajors, Major } from "@/lib/majors.api";
 import {
   Table,
   TableBody,
@@ -27,28 +25,24 @@ import { EditSkillsSheet } from "./EditSkillsSheet";
 export function SkillsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
-  const [majors, setMajors] = useState<Major[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   /* 🔹 load skills */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [skillsData, facultiesData, majorsData] =
-          await Promise.all([
-            getSkills(),
-            getFaculties(),
-            getMajors(),
-          ]);
-
-        setSkills(skillsData);
-        setFaculties(facultiesData);
-        setMajors(majorsData);
+        const skillsData = await getSkills();
+        setSkills(skillsData || []);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load skills:", err);
+        setSkills([]);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -57,35 +51,33 @@ export function SkillsTable() {
 
   const filteredSkills = skills.filter((skill) => {
     const q = searchQuery.toLowerCase();
-
-    const facultyName =
-      faculties.find(
-        (f) => f.faculty_id === skill.category?.faculty_id
-      )?.name ?? "";
-
-    const majorName =
-      majors.find(
-        (m) => m.major_id === skill.category?.major_id
-      )?.name ?? "";
-
-    return (
-      skill.name?.toLowerCase().includes(q) ||
-      facultyName.toLowerCase().includes(q) ||
-      majorName.toLowerCase().includes(q)
-    );
+    return skill.name?.toLowerCase().includes(q);
   });
 
-  const handleAddSkill = async (data: SkillFormData) => {
+  // Pagination
+  const totalPages = Math.ceil(filteredSkills.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSkills = filteredSkills.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handleAddSkill = async (data: Partial<Skill>) => {
     try {
-      const newSkill = await createSkill({
-        name: data.name,
-        category: {
-          faculty_id: data.faculty_id,
-          major_id: data.major_id,
-        },
+      await createSkill({
+        name: data.name || "",
+        category: {},
       });
 
-      setSkills((prev) => [newSkill, ...prev]);
+      // Reload all skills to maintain database order
+      const updatedSkills = await getSkills();
+      setSkills(updatedSkills || []);
+      setCurrentPage(1); // Reset to first page
     } catch (error) {
       console.error("Create skill failed:", error);
     }
@@ -96,16 +88,11 @@ export function SkillsTable() {
     setIsEditSheetOpen(true);
   };
 
-  const handleUpdateSkill = async (
-    data: SkillFormData & { skill_id: number }
-  ) => {
+  const handleUpdateSkill = async (data: Partial<Skill>) => {
     try {
+      if (!data.skill_id) return;
       const result = await updateSkill(data.skill_id, {
         name: data.name,
-        category: {
-          faculty_id: data.faculty_id,
-          major_id: data.major_id,
-        },
       });
 
       setSkills((prev) =>
@@ -126,6 +113,7 @@ export function SkillsTable() {
     try {
       await deleteSkill(id);
       setSkills((prev) => prev.filter((s) => s.skill_id !== id));
+      setCurrentPage(1); // Reset to first page
     } catch (err) {
       console.error("Delete skill failed:", err);
     }
@@ -142,7 +130,10 @@ export function SkillsTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[200px] pl-9 bg-white"
             />
           </div>
@@ -161,8 +152,6 @@ export function SkillsTable() {
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}
         onSubmit={handleAddSkill}
-        faculties={faculties}
-        majors={majors}
       />
 
       <EditSkillsSheet
@@ -170,44 +159,43 @@ export function SkillsTable() {
         onOpenChange={setIsEditSheetOpen}
         onSubmit={handleUpdateSkill}
         skill={selectedSkill}
-        faculties={faculties}
-        majors={majors}
       />
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Skill Name</TableHead>
-              <TableHead>Faculty</TableHead>
-              <TableHead>Major</TableHead>
-              <TableHead className="text-center">Edit</TableHead>
-              <TableHead className="text-center">Delete</TableHead>
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Skill Name</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {filteredSkills.map((skill) => (
-              <TableRow key={skill.skill_id}>
-                <TableCell>{skill.name}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {
-                    faculties.find(
-                      (f) => f.faculty_id === skill.category?.faculty_id
-                    )?.name ?? "-"
-                  }                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {
-                    majors.find(
-                      (m) => m.major_id === skill.category?.major_id
-                    )?.name ?? "-"
-                  }
+            {loading && filteredSkills.length === 0 ? (
+              // Loading skeleton rows
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : paginatedSkills.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-6">
+                  No skills found
                 </TableCell>
-
+              </TableRow>
+            ) : (
+              paginatedSkills.map((skill) => (
+              <TableRow key={skill.skill_id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
+                <TableCell className="font-medium">{skill.name}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(skill)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -218,15 +206,51 @@ export function SkillsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleDelete(skill.skill_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredSkills.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredSkills.length)} of {filteredSkills.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

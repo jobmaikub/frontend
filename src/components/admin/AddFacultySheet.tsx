@@ -16,18 +16,20 @@ interface AddFacultySheetProps {
 }
 
 export interface FacultyFormData {
-  name: string;
+  eng_name: string;
+  th_name?: string;
 }
 
 export function AddFacultySheet({ open, onOpenChange, onSubmit }: AddFacultySheetProps) {
   const [formData, setFormData] = useState<FacultyFormData>({
-    name: "",
+    eng_name: "",
+    th_name: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-    setFormData({ name: "" });
+    setFormData({ eng_name: "", th_name: "" });
     onOpenChange(false);
   };
 
@@ -40,13 +42,24 @@ export function AddFacultySheet({ open, onOpenChange, onSubmit }: AddFacultyShee
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="name">Faculty Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="eng_name">Faculty Name (English) <span className="text-destructive">*</span></Label>
             <Input
-              id="name"
+              id="eng_name"
               placeholder="e.g., Engineering"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData.eng_name}
+              onChange={(e) => setFormData({ ...formData, eng_name: e.target.value })}
               required
+              className="bg-white"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="th_name">Faculty Name (Thai)</Label>
+            <Input
+              id="th_name"
+              placeholder="e.g., วิศวกรรม"
+              value={formData.th_name || ""}
+              onChange={(e) => setFormData({ ...formData, th_name: e.target.value })}
               className="bg-white"
             />
           </div>

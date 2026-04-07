@@ -17,28 +17,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Course, UpdateCoursePayload } from "@/data/coursesData";
+import { Course } from "@/lib/courses.api";
 
-/* ===== types ===== */
 type CourseLevel = "beginner" | "intermediate" | "advanced";
 
 interface EditCoursesSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: UpdateCoursePayload) => void;
+  onSubmit: (data: Partial<Course>) => Promise<void>;
   course: Course | null;
 }
 
 type CourseFormData = {
   title: string;
   description: string;
-  career: string;
+  career_id: number;
   level: CourseLevel;
-  hours: number;
-  externalUrl: string;
-  order: number;
-  skillsTaught: string;
-  learningOutcome: string;
+  duration: number;
+  external_url: string;
+  course_order: number;
+  skills_taught: string;
+  learning_outcome: string;
 };
 
 export function EditCoursesSheet({
@@ -55,39 +54,48 @@ export function EditCoursesSheet({
     setFormData({
       title: course.title,
       description: course.description,
-      career: course.career,
+      career_id: course.career_id,
       level: course.level,
-      hours: course.hours,
-      externalUrl: course.externalUrl,
-      order: course.order,
-      skillsTaught: course.skillsTaught.join("\n"),
-      learningOutcome: course.learningOutcome ?? "",
+      duration: course.duration,
+      external_url: course.external_url,
+      course_order: course.course_order,
+      skills_taught: (course.skills_taught || []).join("\n"),
+      learning_outcome: (course.learning_outcome || []).join("\n"),
     });
   }, [course]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!course || !formData.skillsTaught) return;
+    if (!course) return;
 
-    const parsedSkills = formData.skillsTaught
+    const parsedSkills = (formData.skills_taught || "")
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const payload: UpdateCoursePayload = {
+    const parsedOutcome = (formData.learning_outcome || "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const payload: Partial<Course> = {
       title: formData.title ?? "",
       description: formData.description ?? "",
-      career_path: formData.career ?? "UX Designer",
+      career_id: formData.career_id ?? 0,
       level: formData.level ?? "beginner",
-      duration: Number(formData.hours ?? 0),
-      external_url: formData.externalUrl ?? "",
-      course_order: Number(formData.order ?? 1),
+      duration: Number(formData.duration ?? 0),
+      external_url: formData.external_url ?? "",
+      course_order: Number(formData.course_order ?? 1),
       skills_taught: parsedSkills,
-      learning_outcome: formData.learningOutcome ?? "",
+      learning_outcome: parsedOutcome,
     };
 
-    onSubmit(payload);
-    onOpenChange(false);
+    try {
+      await onSubmit(payload);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error updating course:", error);
+    }
   };
 
   return (
@@ -101,64 +109,58 @@ export function EditCoursesSheet({
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* title */}
-          <div>
-            <Label>Title</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-title">Title <span className="text-destructive">*</span></Label>
             <Input
+              id="edit-title"
               value={formData.title ?? ""}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
               required
+              className="bg-white"
             />
           </div>
 
-          {/* description */}
-          <div>
-            <Label>Description</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-description">Description <span className="text-destructive">*</span></Label>
             <Textarea
+              id="edit-description"
               value={formData.description ?? ""}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
               required
+              className="bg-white"
             />
           </div>
 
-          {/* career */}
-          <div>
-            <Label>Career Path</Label>
-            <Select
-              value={formData.career ?? ""}
-              onValueChange={(v) =>
-                setFormData({ ...formData, career: v })
+          <div className="space-y-2">
+            <Label htmlFor="edit-career_id">Career ID <span className="text-destructive">*</span></Label>
+            <Input
+              id="edit-career_id"
+              type="number"
+              value={formData.career_id ?? 0}
+              onChange={(e) =>
+                setFormData({ ...formData, career_id: Number(e.target.value) })
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select career" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UXDesigner">UX Designer</SelectItem>
-                <SelectItem value="DataScientist">Data Scientist</SelectItem>
-                <SelectItem value="SoftwareEngineer">Software Engineer</SelectItem>
-                <SelectItem value="ProductManager">Product Manager</SelectItem>
-              </SelectContent>
-            </Select>
+              required
+              className="bg-white"
+            />
           </div>
 
-          {/* level */}
-          <div>
-            <Label>Level</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-level">Level <span className="text-destructive">*</span></Label>
             <Select
               value={formData.level ?? "beginner"}
               onValueChange={(v: CourseLevel) =>
                 setFormData({ ...formData, level: v })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="beginner">Beginner</SelectItem>
                 <SelectItem value="intermediate">Intermediate</SelectItem>
                 <SelectItem value="advanced">Advanced</SelectItem>
@@ -166,86 +168,101 @@ export function EditCoursesSheet({
             </Select>
           </div>
 
-          {/* duration */}
-          <div>
-            <Label>Duration (hours)</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-duration">Duration (hours) <span className="text-destructive">*</span></Label>
             <Input
+              id="edit-duration"
               type="number"
-              value={formData.hours ?? 0}
+              value={formData.duration ?? 0}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  hours: Number(e.target.value),
+                  duration: Number(e.target.value),
                 })
               }
+              required
+              className="bg-white"
             />
           </div>
 
-          {/* url */}
-          <div>
-            <Label>External URL</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-external_url">External URL</Label>
             <Input
-              value={formData.externalUrl ?? ""}
+              id="edit-external_url"
+              value={formData.external_url ?? ""}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  externalUrl: e.target.value,
+                  external_url: e.target.value,
                 })
               }
+              className="bg-white"
             />
           </div>
 
-          {/* order */}
-          <div>
-            <Label>Order</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-course_order">Course Order <span className="text-destructive">*</span></Label>
             <Input
+              id="edit-course_order"
               type="number"
-              value={formData.order ?? 1}
+              value={formData.course_order ?? 1}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  order: Number(e.target.value),
+                  course_order: Number(e.target.value),
                 })
               }
+              required
+              className="bg-white"
             />
           </div>
 
-          {/* skills */}
-          <div>
-            <Label>Skills Taught</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-skills_taught">Skills Taught (one per line)</Label>
             <Textarea
-              value={formData.skillsTaught ?? ""}
+              id="edit-skills_taught"
+              value={formData.skills_taught ?? ""}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  skillsTaught: e.target.value,
+                  skills_taught: e.target.value,
                 })
               }
+              className="bg-white min-h-[80px]"
             />
           </div>
 
-          {/* learning outcome */}
-          <div>
-            <Label>Learning Outcome</Label>
+          <div className="space-y-2">
+            <Label htmlFor="edit-learning_outcome">Learning Outcome (one per line)</Label>
             <Textarea
-              value={formData.learningOutcome ?? ""}
+              id="edit-learning_outcome"
+              value={formData.learning_outcome ?? ""}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  learningOutcome: e.target.value,
+                  learning_outcome: e.target.value,
                 })
               }
+              className="bg-white min-h-[80px]"
             />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit">Update</Button>
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white">
+              Update
+            </Button>
           </div>
         </form>
       </SheetContent>
     </Sheet>
   );
 }
+

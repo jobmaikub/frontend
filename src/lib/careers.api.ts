@@ -1,11 +1,26 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/careers",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export interface Career {
+  career_id: number;
+  title: string;
+  description: string;
+  industry_id: number;
+  major_id?: number;
+  min_salary?: number;
+  max_salary?: number;
+  growth_rate?: string;
+  image_url?: string;
+  required_skills?: string[];
+  responsibilities?: string[];
+  industries?: {
+    industry_id: number;
+    name: string;
+  };
+}
+
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/careers"
+);
 
 /* ===== GET ===== */
 export async function fetchCareers(industry?: string) {
@@ -19,14 +34,14 @@ export async function fetchCareers(industry?: string) {
 export async function createCareer(data: {
   title: string;
   description: string;
-  industry: string;
+  industry_id: number;
+  major_id?: number;
   min_salary?: number;
   max_salary?: number;
   growth_rate?: number;
   image_url?: string;
   required_skills?: string[];
   responsibilities?: string[];
-  interest?: string;
 }) {
   const res = await api.post("/", data);
   return res.data;
@@ -35,7 +50,7 @@ export async function createCareer(data: {
 /* ===== UPDATE ===== */
 export async function updateCareer(
   id: number,
-  data: any
+  data: Partial<Career>
 ) {
   const res = await api.patch(`/${id}`, data);
   return res.data;

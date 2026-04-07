@@ -1,12 +1,10 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { NewsTable } from "@/components/admin/NewsTable";
 
-const News = () => {
+export default function AdminNews() {
   return (
     <AdminLayout>
       <NewsTable />
     </AdminLayout>
   );
-};
-
-export default News;
+}

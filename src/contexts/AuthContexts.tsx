@@ -74,15 +74,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         if (data.is_banned) {
+          console.log('🚫 User is banned');
           await supabase.auth.signOut();
           setUser(null);
           setProfile(null);
         } else {
+          console.log('✅ Profile loaded:', data);
           setProfile(data);
         }
       } else {
         // profile ไม่เจอ → สร้างใหม่ (กันกรณี reset password)
-        const { data: newProfile } = await supabase
+        console.log('📝 Creating new profile for user:', userId);
+        const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
           .insert({
             id: userId,
@@ -91,11 +94,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .select()
           .single();
 
-        if (newProfile) setProfile(newProfile);
+        if (insertError) {
+          console.error('❌ Failed to create profile:', insertError);
+          // ยังคง set profile ด้วย default role === null
+          setProfile({ id: userId, email, role: null });
+        } else if (newProfile) {
+          console.log('✅ New profile created:', newProfile);
+          setProfile(newProfile);
+        }
       }
     } catch (err) {
-      console.warn('Profile load failed (non-blocking):', err);
-      // ❗ ไม่ signOut / ไม่ block
+      console.error('🚨 Profile load error:', err);
+      // Fallback: ตั้ง profile ด้วย default role === null เพื่อให้ admin สามารถเข้าได้
+      setProfile({ id: userId, email, role: null });
     }
   };
 

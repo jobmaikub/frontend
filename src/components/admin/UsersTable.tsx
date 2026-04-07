@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,8 @@ export function UsersTable() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchUsers()
@@ -44,6 +46,19 @@ export function UsersTable() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   // Function to trigger the detail side sheet
   const handleShowDetails = (user: User) => {
     setSelectedUser(user);
@@ -59,6 +74,7 @@ export function UsersTable() {
     });
 
     setUsers((prev) => [newUser, ...prev]);
+    setCurrentPage(1);
   };
 
 
@@ -77,10 +93,6 @@ export function UsersTable() {
     setUsers(refreshed);
   };
 
-  if (loading) {
-    return <div className="p-6">Loading users...</div>;
-  }
-
   if (error) {
     return (
       <div className="p-6 space-y-4">
@@ -98,7 +110,7 @@ export function UsersTable() {
     );
   }
 
-  if (users.length === 0) {
+  if (users.length === 0 && !loading) {
     return (
       <div className="p-6">
         <div className="text-center">
@@ -127,7 +139,10 @@ export function UsersTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[250px] pl-9 bg-[#FFFFFF]"
             />
           </div>
@@ -171,37 +186,92 @@ export function UsersTable() {
           </TableHeader>
 
           <TableBody>
-            {filteredUsers.map((user) => {
-              const isBanned = user.banHistory && user.banHistory.length > 0;
-              return (
-                <TableRow
-                  key={user.id}
-                  className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
-                >
-                  <TableCell className="text-muted-foreground">{user.id}</TableCell>
-                  <TableCell className="font-medium text-foreground">{user.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.joinedDate}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${isBanned ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                      }`}>
-                      {isBanned ? "Banned" : "Active"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      className="bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white h-8 px-4 text-xs rounded-md shadow-none"
-                      onClick={() => handleShowDetails(user)}
-                    >
-                      Show Details
-                    </Button>
-                  </TableCell>
+            {loading && users.length === 0 ? (
+              // Loading skeleton rows - match actual row height
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell className="text-muted-foreground"><div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-28 mx-auto"></div></TableCell>
                 </TableRow>
-              );
-            })}
+              ))
+            ) : filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                  No users found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedUsers.map((user) => {
+                const isBanned = user.banHistory && user.banHistory.length > 0;
+                return (
+                  <TableRow
+                    key={user.id}
+                    className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
+                  >
+                    <TableCell className="text-muted-foreground">{user.id}</TableCell>
+                    <TableCell className="font-medium text-foreground">{user.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell className="text-muted-foreground">{user.joinedDate}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${isBanned ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+                        }`}>
+                        {isBanned ? "Banned" : "Active"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        className="bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white h-8 px-4 text-xs rounded-md shadow-none"
+                        onClick={() => handleShowDetails(user)}
+                      >
+                        Show Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredUsers.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredUsers.length)} of {filteredUsers.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

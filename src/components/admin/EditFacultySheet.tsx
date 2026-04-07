@@ -25,11 +25,13 @@ export function EditFacultySheet({
   onSubmit,
   faculty,
 }: EditFacultySheetProps) {
-  const [name, setName] = useState("");
+  const [eng_name, setEngName] = useState("");
+  const [th_name, setThName] = useState("");
 
   useEffect(() => {
     if (faculty) {
-      setName(faculty.name);
+      setEngName(faculty.eng_name);
+      setThName(faculty.th_name || "");
     }
   }, [faculty]);
 
@@ -39,7 +41,8 @@ export function EditFacultySheet({
 
     await onSubmit({
       ...faculty,
-      name,
+      eng_name,
+      th_name,
     });
 
     onOpenChange(false);
@@ -56,14 +59,26 @@ export function EditFacultySheet({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">
-              Faculty Name <span className="text-destructive">*</span>
+            <Label htmlFor="edit-eng-name">
+              Faculty Name (English) <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="edit-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="edit-eng-name"
+              value={eng_name}
+              onChange={(e) => setEngName(e.target.value)}
               required
+              className="bg-white"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-th-name">
+              Faculty Name (Thai)
+            </Label>
+            <Input
+              id="edit-th-name"
+              value={th_name}
+              onChange={(e) => setThName(e.target.value)}
               className="bg-white"
             />
           </div>

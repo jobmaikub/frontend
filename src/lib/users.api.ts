@@ -1,12 +1,9 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 import { User } from "@/data/usersData";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/users",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/users"
+);
 
 export async function fetchUsers(): Promise<User[]> {
   const res = await api.get("/");

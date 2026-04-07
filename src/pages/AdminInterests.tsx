@@ -1,7 +1,7 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { InterestsTable } from "@/components/admin/InterestsTable";
 
-export default function Interests() {
+export default function AdminInterests() {
   return (
     <AdminLayout>
       <InterestsTable />

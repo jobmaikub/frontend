@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { coursesApi } from "@/lib/courses.api";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { getCourses, deleteCourse, createCourse, updateCourse, Course } from "@/lib/courses.api";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,96 +12,122 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Course, UpdateCoursePayload } from "@/data/coursesData";
 import { AddCoursesSheet, CourseFormData } from "./AddCoursesSheet";
 import { EditCoursesSheet } from "./EditCoursesSheet";
-const careerPathLabelMap: Record<string, string> = {
-  UXDesigner: "UX Designer",
-  DataScientist: "Data Scientist",
-  SoftwareEngineer: "Software Engineer",
-  ProductManager: "Product Manager",
-};
 
 export function CoursesTable() {
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     const fetchCourses = async () => {
-      const res = await coursesApi.getAll();
+      try {
+        const apiCourses = await getCourses();
 
-      const mapped: Course[] = res.data.map((c: any) => ({
-        id: c.course_id,
-        title: c.title,
-        description: c.description,
-        career: c.career_path,
-        level: c.level,
-        hours: c.duration,
-        externalUrl: c.external_url,
-        order: c.course_order,
-        skillsTaught: c.skills_taught ?? [],
-        learningOutcome: c.learning_outcome,
-        image: "/placeholder.svg",
-      }));
+        const mapped = apiCourses.map((c: Course) => ({
+          id: c.course_id,
+          title: c.title,
+          description: c.description,
+          image: c.course_image,
+          career_id: c.career_id,
+          career_name: c.career_name,
+          level: c.level,
+          duration_mins: c.duration_mins,
+          external_url: c.external_url,
+          course_order: c.course_order,
+          skills_taught: c.skills_taught ?? [],
+          learning_outcome: c.learning_outcome ?? [],
+        }));
 
-      setCourses(mapped);
+        setCourses(mapped);
+      } catch (err) {
+        console.error("Failed to load courses:", err);
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchCourses();
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [courses, setCourses] = useState<Course[]>([]);
-
-  // State for Add Sheet
-  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
-
-  // State for Edit Sheet
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-
   const filteredCourses = courses.filter(
     (course) =>
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.career.toLowerCase().includes(searchQuery.toLowerCase())
+      course.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCourses = filteredCourses.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   const handleDelete = async (id: number) => {
-    await coursesApi.delete(id);
+    await deleteCourse(id);
     setCourses((prev) => prev.filter((c) => c.id !== id));
+    setCurrentPage(1);
   };
 
 
   const handleAddCourse = async (data: CourseFormData) => {
-    const res = await coursesApi.create(data);
+    const parsedSkills = (data.skills_taught || "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
-    const c = res.data;
+    const parsedOutcome = (data.learning_outcome || "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const c = await createCourse({
+      ...data,
+      skills_taught: parsedSkills,
+      learning_outcome: parsedOutcome,
+    });
 
     setCourses((prev) => [
       {
         id: c.course_id,
         title: c.title,
         description: c.description,
-        career: c.career_path,
+        career_id: c.career_id,
+        career_name: c.career_name,
         level: c.level,
-        hours: c.duration,
-        externalUrl: c.external_url,
-        order: c.course_order,
-        skillsTaught: c.skills_taught ?? [],
-        learningOutcome: c.learning_outcome,
-        image: "/placeholder.svg",
+        duration_mins: c.duration_mins,
+        external_url: c.external_url,
+        course_order: c.course_order,
+        skills_taught: c.skills_taught ?? [],
+        learning_outcome: c.learning_outcome ?? [],
       },
       ...prev,
     ]);
+    setCurrentPage(1);
   };
 
-  const handleEditClick = (course: Course) => {
+  const handleEditClick = (course: any) => {
     setSelectedCourse(course);
     setIsEditSheetOpen(true);
   };
 
-  const handleUpdateCourse = async (payload: UpdateCoursePayload) => {
+  const handleUpdateCourse = async (payload: Partial<Course>) => {
     if (!selectedCourse) return;
 
-    const res = await coursesApi.update(selectedCourse.id, payload);
-    const c = res.data;
+    const c = await updateCourse(selectedCourse.course_id, payload);
 
     setCourses((prev) =>
       prev.map((course) =>
@@ -110,14 +136,14 @@ export function CoursesTable() {
             id: c.course_id,
             title: c.title,
             description: c.description,
-            career: c.career_path,
+            career_id: c.career_id,
+            career_name: c.career_name,
             level: c.level,
-            hours: c.duration,
-            externalUrl: c.external_url,
-            order: c.course_order,
-            skillsTaught: c.skills_taught ?? [],
-            learningOutcome: c.learning_outcome,
-            image: "/placeholder.svg",
+            duration_mins: c.duration_mins,
+            external_url: c.external_url,
+            course_order: c.course_order,
+            skills_taught: c.skills_taught ?? [],
+            learning_outcome: c.learning_outcome ?? [],
           }
           : course
       )
@@ -136,7 +162,10 @@ export function CoursesTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[200px] pl-9 bg-[#FFFFFF]"
             />
           </div>
@@ -165,32 +194,62 @@ export function CoursesTable() {
       />
 
       {/* Table Section */}
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-table-header hover:bg-table-header">
-              <TableHead className="text-table-header-foreground font-semibold">Image</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Title</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Career Path</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Level</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Hours</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Edit</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Delete</TableHead>
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Image</TableHead>
+              <TableHead className="text-white font-semibold">Course Name</TableHead>
+              <TableHead className="text-white font-semibold">Career Path</TableHead>
+              <TableHead className="text-white font-semibold">Level</TableHead>
+              <TableHead className="text-white font-semibold text-center">Duration (min)</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCourses.map((course) => (
+            {loading && filteredCourses.length === 0 ? (
+              // Loading skeleton rows
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-12 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-3 bg-gray-200 rounded animate-pulse w-12 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : filteredCourses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6">
+                  No courses found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedCourses.map((course) => (
               <TableRow
                 key={course.id}
                 className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
               >
                 <TableCell>
                   <div className="h-12 w-20 overflow-hidden rounded-md bg-muted">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="h-full w-full object-cover"
-                    />
+                    {course.image ? (
+                      <img
+                        src={course.image}
+                        alt={course.title}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          console.warn(`Image failed to load: ${course.image}`);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
+                        No image
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">{course.title}</TableCell>
@@ -198,7 +257,7 @@ export function CoursesTable() {
                 {/* UPDATED: Career Path text color changed to grey (text-muted-foreground) */}
                 <TableCell>
                   <span className="text-muted-foreground font-medium">
-                    {careerPathLabelMap[course.career] ?? course.career}
+                    {course.career_name}
                   </span>
                 </TableCell>
 
@@ -210,12 +269,12 @@ export function CoursesTable() {
                     {course.level}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-center">{course.hours}</TableCell>
+                <TableCell className="text-center">{course.duration_mins}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-[#4A5DF9] hover:bg-transparent"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(course)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -225,16 +284,51 @@ export function CoursesTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-transparent hover:text-destructive"
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleDelete(course.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredCourses.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCourses.length)} of {filteredCourses.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

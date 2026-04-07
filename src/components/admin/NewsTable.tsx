@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,11 +30,17 @@ export function NewsTable() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // 🔹 Fetch news
   useEffect(() => {
     getNews()
-      .then(setNews)
+      .then((data) => {
+        console.log("📰 News Data with Industries:", data);
+        setNews(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error("Failed to load news:", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,14 +48,28 @@ export function NewsTable() {
   const filteredNews = news.filter(
     (item) =>
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(item.industry).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.industries?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.source_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedNews = filteredNews.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   // 🔹 Delete
   const handleDelete = async (id: number) => {
     await deleteNews(id);
     setNews((prev) => prev.filter((n) => n.news_id !== id));
+    setCurrentPage(1);
   };
 
   // 🔹 Add
@@ -57,13 +77,14 @@ export function NewsTable() {
     const created = await createNews({
       title: data.title,
       summary: data.summary,
-      industry: data.industry,
-      image_url: data.imageUrl,
-      source_url: data.sourceUrl,
-      source_name: data.sourceName,
+      industry_id: data.industry_id,
+      image_url: data.image_url,
+      source_url: data.source_url,
+      source_name: data.source_name,
     });
 
     setNews((prev) => [created, ...prev]);
+    setCurrentPage(1);
   };
 
   // 🔹 Edit
@@ -85,6 +106,7 @@ export function NewsTable() {
 
     setIsEditSheetOpen(false);
     setSelectedNews(null);
+    setCurrentPage(1);
   };
 
   if (loading) {
@@ -103,7 +125,10 @@ export function NewsTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[200px] pl-9 bg-white"
             />
           </div>
@@ -129,27 +154,47 @@ export function NewsTable() {
         open={isEditSheetOpen}
         onOpenChange={setIsEditSheetOpen}
         onSubmit={handleUpdateNews}
-        newsItem={selectedNews}
+        news={selectedNews}
       />
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Image</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Industry</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead className="text-center">Edit</TableHead>
-              <TableHead className="text-center">Delete</TableHead>
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Image</TableHead>
+              <TableHead className="text-white font-semibold">News Name</TableHead>
+              <TableHead className="text-white font-semibold">Industry</TableHead>
+              <TableHead className="text-white font-semibold">Date</TableHead>
+              <TableHead className="text-white font-semibold">Source</TableHead>
+              <TableHead className="text-white font-semibold text-center">Edit</TableHead>
+              <TableHead className="text-white font-semibold text-center">Delete</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {filteredNews.map((item) => (
-              <TableRow key={item.news_id}>
+            {loading && filteredNews.length === 0 ? (
+              // Loading skeleton rows
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-12 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-28"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : filteredNews.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6">
+                  No news found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedNews.map((item) => (
+              <TableRow key={item.news_id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
                 <TableCell>
                   <img
                     src={item.image_url}
@@ -162,11 +207,11 @@ export function NewsTable() {
                 </TableCell>
 
                 <TableCell className="text-[#4A5DF9] font-medium">
-                  {item.industry}
+                  {item.industries?.name || "N/A"}
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
-                  {new Date(item.created_at).toLocaleDateString()}
+                  {item.date ? new Date(item.date).toLocaleDateString() : "N/A"}
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
@@ -177,6 +222,7 @@ export function NewsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(item)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -187,16 +233,51 @@ export function NewsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive"
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleDelete(item.news_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredNews.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredNews.length)} of {filteredNews.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ export function ReportsTable() {
       </div>
 
       {/* Table Section */}
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
             {/* Custom Blue Header matching image_13966d.png */}
@@ -79,7 +79,7 @@ export function ReportsTable() {
                 <TableCell className="text-center">
                   <Button 
                     variant="ghost" 
-                    className="text-muted-foreground hover:text-[#4A5DF9] hover:bg-transparent text-sm font-normal"
+                    className="hover:bg-[#4A5DF9] hover:text-white text-sm font-normal"
                     onClick={() => console.log("Show details for report:", report.id)}
                   >
                     Show Report Details

@@ -26,28 +26,28 @@ interface AddCareerSheetProps {
 export interface CareerFormData {
   title: string;
   description: string;
-  industry: string;
-  minSalary: number;
-  maxSalary: number;
-  growth: string;
-  image: string;
+  industry_id: number;
+  major_id?: number;
+  min_salary: number;
+  max_salary: number;
+  growth_rate: string;
+  image_url: string;
   responsibilities: string;
-  skills: string;
-  interests: string; // New Field
+  required_skills: string;
 }
 
 export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetProps) {
   const [formData, setFormData] = useState<CareerFormData>({
     title: "",
     description: "",
-    industry: "",
-    minSalary: 30000,
-    maxSalary: 100000,
-    growth: "",
-    image: "",
+    industry_id: 0,
+    major_id: undefined,
+    min_salary: 30000,
+    max_salary: 100000,
+    growth_rate: "",
+    image_url: "",
     responsibilities: "",
-    skills: "",
-    interests: "",
+    required_skills: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,44 +88,36 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="industry">Industry <span className="text-destructive">*</span></Label>
-            <Select
-              value={formData.industry}
-              onValueChange={(value) => setFormData({ ...formData, industry: value })}
-            >
-              <SelectTrigger className="bg-white">
-                <SelectValue placeholder="Select industry category" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="Technology">Technology</SelectItem>
-                <SelectItem value="Design & Creative">Design & Creative</SelectItem>
-                <SelectItem value="Business & Management">Business & Management</SelectItem>
-                <SelectItem value="Healthcare">Healthcare</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-              </SelectContent>
-
-            </Select>
+            <Label htmlFor="industry_id">Industry ID <span className="text-destructive">*</span></Label>
+            <Input
+              id="industry_id"
+              type="number"
+              value={formData.industry_id}
+              onChange={(e) => setFormData({ ...formData, industry_id: Number(e.target.value) })}
+              required
+              className="bg-white"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="minSalary">Min Salary (THB) <span className="text-destructive">*</span></Label>
+              <Label htmlFor="min_salary">Min Salary (THB) <span className="text-destructive">*</span></Label>
               <Input
-                id="minSalary"
+                id="min_salary"
                 type="number"
-                value={formData.minSalary}
-                onChange={(e) => setFormData({ ...formData, minSalary: Number(e.target.value) })}
+                value={formData.min_salary}
+                onChange={(e) => setFormData({ ...formData, min_salary: Number(e.target.value) })}
                 required
                 className="bg-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxSalary">Max Salary (THB) <span className="text-destructive">*</span></Label>
+              <Label htmlFor="max_salary">Max Salary (THB) <span className="text-destructive">*</span></Label>
               <Input
-                id="maxSalary"
+                id="max_salary"
                 type="number"
-                value={formData.maxSalary}
-                onChange={(e) => setFormData({ ...formData, maxSalary: Number(e.target.value) })}
+                value={formData.max_salary}
+                onChange={(e) => setFormData({ ...formData, max_salary: Number(e.target.value) })}
                 required
                 className="bg-white"
               />
@@ -133,11 +125,11 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="growth">Growth Rate <span className="text-destructive">*</span></Label>
+            <Label htmlFor="growth_rate">Growth Rate <span className="text-destructive">*</span></Label>
             <Select
-              value={formData.growth}
+              value={formData.growth_rate}
               onValueChange={(value) =>
-                setFormData({ ...formData, growth: value })
+                setFormData({ ...formData, growth_rate: value })
               }
             >
               <SelectTrigger className="bg-white">
@@ -151,17 +143,6 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="interests">Related Interests <span className="text-destructive">*</span></Label>
-            <Textarea
-              id="interests"
-              placeholder="e.g. Technology, Art, Psychology..."
-              value={formData.interests}
-              onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-              className="min-h-[80px] bg-white"
-              required
-            />
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="responsibilities">Key Responsibilities <span className="text-destructive">*</span></Label>
@@ -176,24 +157,24 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="skills">Required Skills <span className="text-destructive">*</span></Label>
+            <Label htmlFor="required_skills">Required Skills <span className="text-destructive">*</span></Label>
             <Textarea
-              id="skills"
+              id="required_skills"
               placeholder="Essential tools and expertise (one per line)..."
-              value={formData.skills}
-              onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+              value={formData.required_skills}
+              onChange={(e) => setFormData({ ...formData, required_skills: e.target.value })}
               className="min-h-[80px] bg-white"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Image URL <span className="text-destructive">*</span></Label>
+            <Label htmlFor="image_url">Image URL <span className="text-destructive">*</span></Label>
             <Input
-              id="image"
+              id="image_url"
               placeholder="https://example.com/image.jpg"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
               required
               className="bg-white"
             />
