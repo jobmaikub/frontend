@@ -116,10 +116,6 @@ All colors MUST be HSL.
 }
 
 @layer base {
-  html {
-    scrollbar-gutter: stable;
-  }
-
   * {
     @apply border-border;
   }
@@ -127,5 +123,6 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
   }
 }

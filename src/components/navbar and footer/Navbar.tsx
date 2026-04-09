@@ -81,7 +81,7 @@ export function Navbar() {
           <Bell className="h-5 w-5" />
         </div>
 
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-1 ml-2 cursor-pointer group outline-none">
               <Avatar className="h-9 w-9 border border-[#D5E3FF]">
