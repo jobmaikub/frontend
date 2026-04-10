@@ -16,33 +16,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Course, createCourse } from "@/lib/courses.api";
+import { Career } from "@/lib/careers.api";
 
 interface AddCoursesSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CourseFormData) => Promise<void>;
+  careers: Career[];
 }
 
 export interface CourseFormData {
   title: string;
   description: string;
   career_id: number;
+  career_path: string;
+  image_url: string;
   level: "beginner" | "intermediate" | "advanced";
-  duration: number;
   external_url: string;
   course_order: number;
   skills_taught: string;
   learning_outcome: string;
 }
 
-export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesSheetProps) {
+export function AddCoursesSheet({
+  open,
+  onOpenChange,
+  onSubmit,
+  careers,
+}: AddCoursesSheetProps) {
   const [formData, setFormData] = useState<CourseFormData>({
     title: "",
     description: "",
     career_id: 0,
+    career_path: "",
+    image_url: "",
     level: "beginner",
-    duration: 1,
     external_url: "",
     course_order: 1,
     skills_taught: "",
@@ -57,8 +65,9 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
         title: formData.title,
         description: formData.description,
         career_id: formData.career_id,
+        career_path: formData.career_path,
+        image_url: formData.image_url,
         level: formData.level,
-        duration: formData.duration,
         external_url: formData.external_url,
         course_order: formData.course_order,
         skills_taught: formData.skills_taught,
@@ -68,8 +77,9 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
         title: "",
         description: "",
         career_id: 0,
+        career_path: "",
+        image_url: "",
         level: "beginner",
-        duration: 1,
         external_url: "",
         course_order: 1,
         skills_taught: "",
@@ -114,12 +124,38 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="career_id">Career ID <span className="text-destructive">*</span></Label>
+            <Label htmlFor="career_id">Career Path <span className="text-destructive">*</span></Label>
+            <Select
+              value={formData.career_id ? formData.career_id.toString() : ""}
+              onValueChange={(v) => {
+                const selectedCareer = careers.find((career) => career.career_id === Number(v));
+                setFormData({
+                  ...formData,
+                  career_id: Number(v),
+                  career_path: selectedCareer?.title || "",
+                });
+              }}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select Career" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {careers.map((career) => (
+                  <SelectItem key={career.career_id} value={career.career_id.toString()}>
+                    {career.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image_url">Image URL <span className="text-destructive">*</span></Label>
             <Input
-              id="career_id"
-              type="number"
-              value={formData.career_id}
-              onChange={(e) => setFormData({ ...formData, career_id: Number(e.target.value) })}
+              id="image_url"
+              placeholder="https://..."
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
               required
               className="bg-white"
             />
@@ -137,18 +173,6 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="duration">Duration (hours) <span className="text-destructive">*</span></Label>
-            <Input
-              id="duration"
-              type="number"
-              value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-              required
-              className="bg-white"
-            />
           </div>
 
           <div className="space-y-2">

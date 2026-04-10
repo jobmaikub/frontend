@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -17,26 +28,43 @@ import {
   createCareer,
   updateCareer,
   deleteCareer,
+  replaceCareerInterestLinks,
+  replaceCareerSkillLinks,
 } from "@/lib/careers.api";
+import { getIndustries, Industry } from "@/lib/industries.api";
+import { getMajors, Major } from "@/lib/majors.api";
+import { getSkills, Skill } from "@/lib/skills.api";
+import { getInterests, Interest } from "@/lib/interests.api";
 import { AddCareerSheet, CareerFormData } from "./AddCareerSheet";
 import { EditCareerSheet } from "./EditCareerSheet";
+import { useToast } from "@/hooks/use-toast";
 
 export function CareersTable() {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [careers, setCareers] = useState<Career[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [majors, setMajors] = useState<Major[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [interests, setInterests] = useState<Interest[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
+  const [careerToDelete, setCareerToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
-    fetchCareers()
-      .then((data) => {
-        setCareers(Array.isArray(data) ? data : []);
+    Promise.all([fetchCareers(), getIndustries(), getMajors(), getSkills(), getInterests()])
+      .then(([careersData, industriesData, majorsData, skillsData, interestsData]) => {
+        setCareers(Array.isArray(careersData) ? careersData : []);
+        setIndustries(Array.isArray(industriesData) ? industriesData : []);
+        setMajors(Array.isArray(majorsData) ? majorsData : []);
+        setSkills(Array.isArray(skillsData) ? skillsData : []);
+        setInterests(Array.isArray(interestsData) ? interestsData : []);
       })
-      .catch((err) => console.error("Failed to load careers:", err))
+      .catch((err) => console.error("Failed to load careers data:", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -67,46 +95,92 @@ export function CareersTable() {
 
   const handleAddCareer = async (data: CareerFormData) => {
     try {
-      await createCareer({
+      const created = await createCareer({
         title: data.title,
         description: data.description,
         industry_id: data.industry_id,
         major_id: data.major_id,
         min_salary: data.min_salary,
         max_salary: data.max_salary,
-        growth_rate: typeof data.growth_rate === 'string' ? parseInt(data.growth_rate) : data.growth_rate,
+        growth_rate: Number(data.growth_rate),
         image_url: data.image_url || "",
         required_skills: data.required_skills.split("\n").filter(Boolean),
         responsibilities: data.responsibilities.split("\n").filter(Boolean),
       });
+      await Promise.all([
+        replaceCareerSkillLinks(created.career_id, data.skill_ids ?? []),
+        replaceCareerInterestLinks(created.career_id, data.interest_ids ?? []),
+      ]);
       const updated = await fetchCareers();
       setCareers(Array.isArray(updated) ? updated : []);
       setIsAddSheetOpen(false);
       setCurrentPage(1);
     } catch (err) {
+      let message = "Failed to add career";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as any)?.message ||
+          (err.response?.data as any)?.error ||
+          err.message ||
+          message;
+        console.error("Failed to add career:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+      }
+      toast({
+        title: "Add Career Failed",
+        description: String(message),
+        variant: "destructive",
+      });
       console.error("Failed to add career:", err);
     }
   };
 
-  const handleUpdateCareer = async (data: Partial<Career>) => {
+  const handleUpdateCareer = async (data: Partial<Career> & { skill_ids?: number[]; interest_ids?: number[] }) => {
     try {
-      if (!data.career_id) throw new Error("Career ID is required");
-      await updateCareer(data.career_id, {
+      const careerId = data.career_id ?? selectedCareer?.career_id;
+      if (!careerId) throw new Error("Career ID is required");
+      await updateCareer(careerId, {
         title: data.title,
         description: data.description,
         industry_id: data.industry_id,
+        major_id: data.major_id,
         min_salary: data.min_salary,
         max_salary: data.max_salary,
-        growth_rate: data.growth_rate,
+        growth_rate: data.growth_rate ? Number(data.growth_rate) : undefined,
         image_url: data.image_url,
         required_skills: data.required_skills,
         responsibilities: data.responsibilities,
       });
+      await Promise.all([
+        replaceCareerSkillLinks(careerId, data.skill_ids ?? []),
+        replaceCareerInterestLinks(careerId, data.interest_ids ?? []),
+      ]);
       const updated = await fetchCareers();
       setCareers(Array.isArray(updated) ? updated : []);
       setIsEditSheetOpen(false);
       setSelectedCareer(null);
     } catch (err) {
+      let message = "Failed to update career";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as any)?.message ||
+          (err.response?.data as any)?.error ||
+          err.message ||
+          message;
+        console.error("Failed to update career:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+      }
+      toast({
+        title: "Update Career Failed",
+        description: String(message),
+        variant: "destructive",
+      });
       console.error("Failed to update career:", err);
     }
   };
@@ -121,7 +195,21 @@ export function CareersTable() {
       await deleteCareer(id);
       setCareers((prev) => prev.filter((career) => career.career_id !== id));
       setCurrentPage(1);
+      setCareerToDelete(null);
     } catch (err) {
+      let message = "Unable to delete this career.";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as any)?.message ||
+          (err.response?.data as any)?.error ||
+          err.message ||
+          message;
+      }
+      toast({
+        title: "Delete Career Failed",
+        description: String(message),
+        variant: "destructive",
+      });
       console.error("Failed to delete career:", err);
     }
   };
@@ -158,6 +246,10 @@ export function CareersTable() {
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}
         onSubmit={handleAddCareer}
+        industries={industries}
+        majors={majors}
+        skills={skills}
+        interests={interests}
       />
 
       <EditCareerSheet
@@ -165,6 +257,10 @@ export function CareersTable() {
         onOpenChange={setIsEditSheetOpen}
         onSubmit={handleUpdateCareer}
         career={selectedCareer}
+        industries={industries}
+        majors={majors}
+        skills={skills}
+        interests={interests}
       />
 
       <div className="overflow-hidden rounded-lg border bg-white">
@@ -245,7 +341,7 @@ export function CareersTable() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
-                    onClick={() => handleDelete(career.career_id)}
+                    onClick={() => setCareerToDelete(career.career_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -290,6 +386,30 @@ export function CareersTable() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={careerToDelete !== null} onOpenChange={(open) => !open && setCareerToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this career?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (careerToDelete !== null) {
+                  void handleDelete(careerToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

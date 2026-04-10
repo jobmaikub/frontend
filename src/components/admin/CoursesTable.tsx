@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { getCourses, deleteCourse, createCourse, updateCourse, Course } from "@/lib/courses.api";
 import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -14,28 +25,38 @@ import {
 } from "@/components/ui/table";
 import { AddCoursesSheet, CourseFormData } from "./AddCoursesSheet";
 import { EditCoursesSheet } from "./EditCoursesSheet";
+import { fetchCareers, Career } from "@/lib/careers.api";
 
 export function CoursesTable() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [careers, setCareers] = useState<Career[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const apiCourses = await getCourses();
+        const [apiCourses, careersData] = await Promise.all([
+          getCourses(),
+          fetchCareers(),
+        ]);
+        setCareers(Array.isArray(careersData) ? careersData : []);
 
         const mapped = apiCourses.map((c: Course) => ({
+          course_id: c.course_id,
           id: c.course_id,
           title: c.title,
           description: c.description,
-          image: c.course_image,
+          image: c.image_url,
+          image_url: c.image_url,
           career_id: c.career_id,
+          career_path: c.career_path || c.career_name,
           career_name: c.career_name,
           level: c.level,
           duration_mins: c.duration_mins,
@@ -49,6 +70,7 @@ export function CoursesTable() {
       } catch (err) {
         console.error("Failed to load courses:", err);
         setCourses([]);
+        setCareers([]);
       } finally {
         setLoading(false);
       }
@@ -79,44 +101,61 @@ export function CoursesTable() {
   const handleDelete = async (id: number) => {
     await deleteCourse(id);
     setCourses((prev) => prev.filter((c) => c.id !== id));
+    setCourseToDelete(null);
     setCurrentPage(1);
   };
 
 
   const handleAddCourse = async (data: CourseFormData) => {
-    const parsedSkills = (data.skills_taught || "")
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    try {
+      const parsedSkills = (data.skills_taught || "")
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-    const parsedOutcome = (data.learning_outcome || "")
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
+      const parsedOutcome = (data.learning_outcome || "")
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-    const c = await createCourse({
-      ...data,
-      skills_taught: parsedSkills,
-      learning_outcome: parsedOutcome,
-    });
+      const c = await createCourse({
+        ...data,
+        skills_taught: parsedSkills,
+        learning_outcome: parsedOutcome,
+      });
 
-    setCourses((prev) => [
-      {
-        id: c.course_id,
-        title: c.title,
-        description: c.description,
-        career_id: c.career_id,
-        career_name: c.career_name,
-        level: c.level,
-        duration_mins: c.duration_mins,
-        external_url: c.external_url,
-        course_order: c.course_order,
-        skills_taught: c.skills_taught ?? [],
-        learning_outcome: c.learning_outcome ?? [],
-      },
-      ...prev,
-    ]);
-    setCurrentPage(1);
+      setCourses((prev) => [
+        {
+          course_id: c.course_id,
+          id: c.course_id,
+          title: c.title,
+          description: c.description,
+          image: c.image_url,
+          image_url: c.image_url,
+          career_id: c.career_id,
+          career_path: c.career_path || c.career_name,
+          career_name: c.career_name,
+          level: c.level,
+          duration_mins: c.duration_mins,
+          external_url: c.external_url,
+          course_order: c.course_order,
+          skills_taught: c.skills_taught ?? [],
+          learning_outcome: c.learning_outcome ?? [],
+        },
+        ...prev,
+      ]);
+      setCurrentPage(1);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        console.error("Failed to add course:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+      }
+      console.error("Failed to add course:", err);
+      throw err;
+    }
   };
 
   const handleEditClick = (course: any) => {
@@ -127,27 +166,43 @@ export function CoursesTable() {
   const handleUpdateCourse = async (payload: Partial<Course>) => {
     if (!selectedCourse) return;
 
-    const c = await updateCourse(selectedCourse.course_id, payload);
+    try {
+      const c = await updateCourse(selectedCourse.course_id, payload);
 
-    setCourses((prev) =>
-      prev.map((course) =>
-        course.id === c.course_id
-          ? {
-            id: c.course_id,
-            title: c.title,
-            description: c.description,
-            career_id: c.career_id,
-            career_name: c.career_name,
-            level: c.level,
-            duration_mins: c.duration_mins,
-            external_url: c.external_url,
-            course_order: c.course_order,
-            skills_taught: c.skills_taught ?? [],
-            learning_outcome: c.learning_outcome ?? [],
-          }
-          : course
-      )
-    );
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.id === c.course_id
+            ? {
+                  course_id: c.course_id,
+                  id: c.course_id,
+              title: c.title,
+              description: c.description,
+                image: c.image_url,
+                image_url: c.image_url,
+              career_id: c.career_id,
+                  career_path: c.career_path || c.career_name,
+              career_name: c.career_name,
+              level: c.level,
+              duration_mins: c.duration_mins,
+              external_url: c.external_url,
+              course_order: c.course_order,
+              skills_taught: c.skills_taught ?? [],
+              learning_outcome: c.learning_outcome ?? [],
+            }
+            : course
+        )
+      );
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        console.error("Failed to update course:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+      }
+      console.error("Failed to update course:", err);
+      throw err;
+    }
   };
 
   return (
@@ -184,6 +239,7 @@ export function CoursesTable() {
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}
         onSubmit={handleAddCourse}
+        careers={careers}
       />
 
       <EditCoursesSheet
@@ -191,6 +247,7 @@ export function CoursesTable() {
         onOpenChange={setIsEditSheetOpen}
         onSubmit={handleUpdateCourse}
         course={selectedCourse}
+        careers={careers}
       />
 
       {/* Table Section */}
@@ -257,7 +314,7 @@ export function CoursesTable() {
                 {/* UPDATED: Career Path text color changed to grey (text-muted-foreground) */}
                 <TableCell>
                   <span className="text-muted-foreground font-medium">
-                    {course.career_name}
+                    {course.career_path || course.career_name || "-"}
                   </span>
                 </TableCell>
 
@@ -285,7 +342,7 @@ export function CoursesTable() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
-                    onClick={() => handleDelete(course.id)}
+                    onClick={() => setCourseToDelete(course.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -330,6 +387,30 @@ export function CoursesTable() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={courseToDelete !== null} onOpenChange={(open) => !open && setCourseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this course?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (courseToDelete !== null) {
+                  void handleDelete(courseToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

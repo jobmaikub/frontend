@@ -7,7 +7,7 @@ export const api = createAuthenticatedApi(
 export interface News {
   news_id: number;
   title: string;
-  summary: string;
+  description: string;
   industry_id?: number;
   image_url: string;
   source_url: string;

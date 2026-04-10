@@ -63,6 +63,8 @@ export function AddLessonsSheet({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.course_id <= 0) return;
+
     try {
       await onSubmit({
         title: formData.title,
@@ -110,7 +112,7 @@ export function AddLessonsSheet({
           <div className="space-y-2">
             <Label htmlFor="add-course_id">Course <span className="text-destructive">*</span></Label>
             <Select
-              value={String(formData.course_id || "")}
+              value={formData.course_id === 0 ? "" : formData.course_id.toString()}
               onValueChange={(v) =>
                 setFormData({ ...formData, course_id: Number(v) })
               }
@@ -118,17 +120,21 @@ export function AddLessonsSheet({
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select Course" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]">
                 {courses.map((course) => (
                   <SelectItem
                     key={course.course_id}
                     value={String(course.course_id)}
+                    className="truncate"
                   >
                     {course.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {formData.course_id <= 0 && (
+              <p className="text-xs text-muted-foreground">Please select a course.</p>
+            )}
           </div>
 
           <div className="space-y-2">

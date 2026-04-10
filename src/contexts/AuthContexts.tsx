@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from 'react';
 import { supabase } from '../supabase';
+import { fetchActiveBanByUser } from '@/lib/users.api';
 
 type AuthContextType = {
   user: any;
@@ -66,6 +67,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = async (userId: string, email?: string) => {
     try {
+      const activeBan = await fetchActiveBanByUser(userId);
+      if (activeBan) {
+        const params = new URLSearchParams({
+          banned: '1',
+          reason: activeBan.reason || 'Your account has been suspended by admin',
+          until: activeBan.unban_date || '',
+        });
+
+        await supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        window.location.href = `/login?${params.toString()}`;
+        return;
+      }
+
       const { data } = await supabase
         .from('profiles')
         .select('*')

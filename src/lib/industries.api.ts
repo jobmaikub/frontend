@@ -6,12 +6,18 @@ export const api = createAuthenticatedApi(
 
 export interface Industry {
   industry_id: number;
-  industry_name: string;
+  name?: string;
+  industry_name?: string;
 }
 
 export async function getIndustries(): Promise<Industry[]> {
   const res = await api.get("/");
-  return res.data;
+  const raw = Array.isArray(res.data) ? res.data : [];
+  return raw.map((item: any) => ({
+    industry_id: Number(item.industry_id),
+    name: item.name ?? item.industry_name,
+    industry_name: item.industry_name ?? item.name,
+  }));
 }
 
 export async function createIndustry(data: {

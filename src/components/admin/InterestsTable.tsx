@@ -3,6 +3,16 @@ import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,6 +43,7 @@ export function InterestsTable() {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedInterest, setSelectedInterest] =
     useState<Interest | null>(null);
+  const [interestToDelete, setInterestToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -116,6 +127,7 @@ export function InterestsTable() {
   const handleDelete = async (id: number) => {
     await deleteInterest(id);
     setInterests(interests.filter((item) => item.id !== id));
+    setInterestToDelete(null);
     setCurrentPage(1);
   };
 
@@ -209,7 +221,7 @@ export function InterestsTable() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setInterestToDelete(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -254,6 +266,30 @@ export function InterestsTable() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={interestToDelete !== null} onOpenChange={(open) => !open && setInterestToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this interest?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (interestToDelete !== null) {
+                  void handleDelete(interestToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Toast, { ToastType } from '../components/Toast';
 
 export default function Login() {
@@ -9,6 +9,24 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('banned') !== '1') return;
+
+    const reason = params.get('reason') || 'Your account has been suspended by admin';
+    const until = params.get('until');
+
+    const untilText = until
+      ? ` You can login again after ${new Date(until).toLocaleString()}.`
+      : ' This ban is permanent until admin unbans your account.';
+
+    setToast({
+      message: `${reason}.${untilText}`,
+      type: 'error',
+    });
+  }, [location.search]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

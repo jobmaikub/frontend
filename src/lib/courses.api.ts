@@ -5,6 +5,7 @@ export interface Course {
   title: string;
   description: string;
   career_id: number;
+  career_path?: string;
   career_name?: string;
   level: "beginner" | "intermediate" | "advanced";
   duration_mins: number;
@@ -12,7 +13,7 @@ export interface Course {
   course_order: number;
   skills_taught: string[];
   learning_outcome: string[];
-  course_image?: string;
+  image_url?: string;
 }
 
 export const api = axios.create({
@@ -28,12 +29,38 @@ export async function getCourses(): Promise<Course[]> {
 }
 
 export async function createCourse(data: Partial<Course>) {
-  const res = await api.post("/", data);
+  const payload = {
+    title: data.title,
+    description: data.description,
+    career_id: data.career_id,
+    career_path: data.career_path,
+    level: data.level,
+    duration_mins: data.duration_mins,
+    external_url: data.external_url,
+    course_order: data.course_order,
+    image_url: data.image_url,
+    skills_taught: data.skills_taught,
+    learning_outcome: data.learning_outcome,
+  };
+  const res = await api.post("/", payload);
   return res.data;
 }
 
 export async function updateCourse(id: number, data: Partial<Course>) {
-  const res = await api.patch(`/${id}`, data);
+  const payload = {
+    title: data.title,
+    description: data.description,
+    career_id: data.career_id,
+    career_path: data.career_path,
+    level: data.level,
+    duration_mins: data.duration_mins,
+    external_url: data.external_url,
+    course_order: data.course_order,
+    image_url: data.image_url,
+    skills_taught: data.skills_taught,
+    learning_outcome: data.learning_outcome,
+  };
+  const res = await api.patch(`/${id}`, payload);
   return res.data;
 }
 

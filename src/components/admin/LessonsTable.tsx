@@ -3,6 +3,16 @@ import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -41,6 +51,7 @@ export function LessonsTable() {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -95,8 +106,8 @@ export function LessonsTable() {
 
 
   const handleUpdateLesson = async (data: Partial<Lesson>) => {
-    if (!data.lesson_id) return;
-    await updateLesson(data.lesson_id, data);
+    if (!selectedLesson?.lesson_id) return;
+    await updateLesson(selectedLesson.lesson_id, data);
 
     const lessonsData = await getLessons();
     setLessons((lessonsData || []).map((l) => mapLesson(l, courses)));
@@ -111,6 +122,7 @@ export function LessonsTable() {
   const handleDelete = async (id: number) => {
     await deleteLesson(id);
     setLessons(lessons.filter((l) => l.id !== id));
+    setLessonToDelete(null);
     setCurrentPage(1);
   };
 
@@ -211,7 +223,7 @@ export function LessonsTable() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
-                    onClick={() => handleDelete(lesson.id)}
+                    onClick={() => setLessonToDelete(lesson.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -256,6 +268,30 @@ export function LessonsTable() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={lessonToDelete !== null} onOpenChange={(open) => !open && setLessonToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this lesson?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (lessonToDelete !== null) {
+                  void handleDelete(lessonToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

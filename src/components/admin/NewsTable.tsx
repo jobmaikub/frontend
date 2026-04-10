@@ -3,6 +3,16 @@ import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,42 +30,62 @@ import {
   deleteNews,
   News,
 } from "@/lib/news.api";
+import { getIndustries, Industry } from "@/lib/industries.api";
 
 export function NewsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [news, setNews] = useState<News[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Sheet state
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [newsToDelete, setNewsToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 🔹 Fetch news
+  // 🔹 Fetch news and industries
   useEffect(() => {
-    getNews()
-      .then((data) => {
-        console.log("📰 News Data with Industries:", data);
-        setNews(Array.isArray(data) ? data : []);
+    Promise.all([getNews(), getIndustries()])
+      .then(([newsData, industriesData]) => {
+        setNews(Array.isArray(newsData) ? newsData : []);
+        setIndustries(Array.isArray(industriesData) ? industriesData : []);
       })
-      .catch((err) => console.error("Failed to load news:", err))
+      .catch(() => {
+        setNews([]);
+        setIndustries([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   // 🔹 Search
   const filteredNews = news.filter(
-    (item) =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.industries?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.source_name.toLowerCase().includes(searchQuery.toLowerCase())
+    (item) => {
+      const searchLower = searchQuery.toLowerCase();
+      const itemDate = (item.created_at || item.date || "").split("T")[0]; // Extract YYYY-MM-DD
+      
+      return (
+        item.title.toLowerCase().includes(searchLower) ||
+        item.industries?.name?.toLowerCase().includes(searchLower) ||
+        item.source_name.toLowerCase().includes(searchLower) ||
+        itemDate.includes(searchLower) // Search by date (YYYY-MM-DD format)
+      );
+    }
   );
 
+  // 🔹 Sort by date (newest first)
+  const sortedNews = [...filteredNews].sort((a, b) => {
+    const dateA = new Date(a.created_at || a.date || 0).getTime();
+    const dateB = new Date(b.created_at || b.date || 0).getTime();
+    return dateB - dateA; // Newest first
+  });
+
   // Pagination
-  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedNews.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedNews = filteredNews.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedNews = sortedNews.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -65,10 +95,18 @@ export function NewsTable() {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
+  const getIndustryNameById = (industryId?: number) => {
+    if (!industryId) return undefined;
+    const found = industries.find((i) => i.industry_id === industryId);
+    if (!found) return undefined;
+    return found.name || found.industry_name || "";
+  };
+
   // 🔹 Delete
   const handleDelete = async (id: number) => {
     await deleteNews(id);
     setNews((prev) => prev.filter((n) => n.news_id !== id));
+    setNewsToDelete(null);
     setCurrentPage(1);
   };
 
@@ -76,14 +114,26 @@ export function NewsTable() {
   const handleAddNews = async (data: NewsFormData) => {
     const created = await createNews({
       title: data.title,
-      summary: data.summary,
+      description: data.description,
       industry_id: data.industry_id,
       image_url: data.image_url,
       source_url: data.source_url,
       source_name: data.source_name,
+      date: data.date,
     });
 
-    setNews((prev) => [created, ...prev]);
+    const createdIndustryName = getIndustryNameById(created.industry_id ?? data.industry_id);
+    const createdWithIndustry = {
+      ...created,
+      industries: created.industries || (createdIndustryName
+        ? {
+            industry_id: created.industry_id ?? data.industry_id ?? 0,
+            name: createdIndustryName,
+          }
+        : undefined),
+    };
+
+    setNews((prev) => [createdWithIndustry, ...prev]);
     setCurrentPage(1);
   };
 
@@ -97,10 +147,21 @@ export function NewsTable() {
     if (!selectedNews) return;
 
     const result = await updateNews(selectedNews.news_id, data);
+    const updatedIndustryName = getIndustryNameById(result.industry_id ?? data.industry_id);
 
     setNews((prev) =>
       prev.map((n) =>
-        n.news_id === result.news_id ? result : n
+        n.news_id === result.news_id
+          ? {
+              ...result,
+              industries: result.industries || (updatedIndustryName
+                ? {
+                    industry_id: result.industry_id ?? data.industry_id ?? 0,
+                    name: updatedIndustryName,
+                  }
+                : n.industries),
+            }
+          : n
       )
     );
 
@@ -148,6 +209,7 @@ export function NewsTable() {
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}
         onSubmit={handleAddNews}
+        industries={industries}
       />
 
       <EditNewsSheet
@@ -155,6 +217,7 @@ export function NewsTable() {
         onOpenChange={setIsEditSheetOpen}
         onSubmit={handleUpdateNews}
         news={selectedNews}
+        industries={industries}
       />
 
       {/* Table */}
@@ -210,8 +273,8 @@ export function NewsTable() {
                   {item.industries?.name || "N/A"}
                 </TableCell>
 
-                <TableCell className="text-muted-foreground">
-                  {item.date ? new Date(item.date).toLocaleDateString() : "N/A"}
+                <TableCell className="text-muted-foreground min-w-[120px]">
+                  {(item.created_at || item.date) ? new Date(item.created_at || item.date || "").toLocaleDateString('sv-SE') : "N/A"}
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
@@ -234,7 +297,7 @@ export function NewsTable() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
-                    onClick={() => handleDelete(item.news_id)}
+                    onClick={() => setNewsToDelete(item.news_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -279,6 +342,30 @@ export function NewsTable() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={newsToDelete !== null} onOpenChange={(open) => !open && setNewsToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this news item?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (newsToDelete !== null) {
+                  void handleDelete(newsToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

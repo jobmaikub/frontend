@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Course } from "@/lib/courses.api";
+import { Career } from "@/lib/careers.api";
 
 type CourseLevel = "beginner" | "intermediate" | "advanced";
 
@@ -26,14 +27,16 @@ interface EditCoursesSheetProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: Partial<Course>) => Promise<void>;
   course: Course | null;
+  careers: Career[];
 }
 
 type CourseFormData = {
   title: string;
   description: string;
   career_id: number;
+  career_path: string;
+  image_url: string;
   level: CourseLevel;
-  duration: number;
   external_url: string;
   course_order: number;
   skills_taught: string;
@@ -45,6 +48,7 @@ export function EditCoursesSheet({
   onOpenChange,
   onSubmit,
   course,
+  careers,
 }: EditCoursesSheetProps) {
   const [formData, setFormData] = useState<Partial<CourseFormData>>({});
 
@@ -55,8 +59,9 @@ export function EditCoursesSheet({
       title: course.title,
       description: course.description,
       career_id: course.career_id,
+      career_path: course.career_path || course.career_name || "",
+      image_url: course.image_url || (course as any).image || "",
       level: course.level,
-      duration: course.duration,
       external_url: course.external_url,
       course_order: course.course_order,
       skills_taught: (course.skills_taught || []).join("\n"),
@@ -82,8 +87,9 @@ export function EditCoursesSheet({
       title: formData.title ?? "",
       description: formData.description ?? "",
       career_id: formData.career_id ?? 0,
+      career_path: formData.career_path ?? "",
+      image_url: formData.image_url ?? "",
       level: formData.level ?? "beginner",
-      duration: Number(formData.duration ?? 0),
       external_url: formData.external_url ?? "",
       course_order: Number(formData.course_order ?? 1),
       skills_taught: parsedSkills,
@@ -136,13 +142,41 @@ export function EditCoursesSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-career_id">Career ID <span className="text-destructive">*</span></Label>
+            <Label htmlFor="edit-career_id">Career Path <span className="text-destructive">*</span></Label>
+            <Select
+              value={formData.career_id ? String(formData.career_id) : ""}
+              onValueChange={(v) => {
+                const selectedCareer = careers.find((career) => career.career_id === Number(v));
+                setFormData({
+                  ...formData,
+                  career_id: Number(v),
+                  career_path: selectedCareer?.title || "",
+                });
+              }}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select Career" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {careers.map((career) => (
+                  <SelectItem key={career.career_id} value={career.career_id.toString()}>
+                    {career.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-image_url">Image URL <span className="text-destructive">*</span></Label>
             <Input
-              id="edit-career_id"
-              type="number"
-              value={formData.career_id ?? 0}
+              id="edit-image_url"
+              value={formData.image_url ?? ""}
               onChange={(e) =>
-                setFormData({ ...formData, career_id: Number(e.target.value) })
+                setFormData({
+                  ...formData,
+                  image_url: e.target.value,
+                })
               }
               required
               className="bg-white"
@@ -166,23 +200,6 @@ export function EditCoursesSheet({
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-duration">Duration (hours) <span className="text-destructive">*</span></Label>
-            <Input
-              id="edit-duration"
-              type="number"
-              value={formData.duration ?? 0}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  duration: Number(e.target.value),
-                })
-              }
-              required
-              className="bg-white"
-            />
           </div>
 
           <div className="space-y-2">

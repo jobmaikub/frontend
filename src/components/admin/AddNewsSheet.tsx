@@ -256,30 +256,46 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Industry } from "@/lib/industries.api";
 
 interface AddNewsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: NewsFormData) => void;
+  industries: Industry[];
 }
 
 export interface NewsFormData {
   title: string;
-  summary: string;
+  description: string;
   industry_id?: number;
   image_url: string;
   source_url: string;
   source_name: string;
+  date: string;
 }
 
-export function AddNewsSheet({ open, onOpenChange, onSubmit }: AddNewsSheetProps) {
+export function AddNewsSheet({
+  open,
+  onOpenChange,
+  onSubmit,
+  industries,
+}: AddNewsSheetProps) {
   const [formData, setFormData] = useState<NewsFormData>({
     title: "",
-    summary: "",
+    description: "",
     industry_id: undefined,
     image_url: "",
     source_url: "",
     source_name: "",
+    date: new Date().toISOString().split("T")[0],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -288,11 +304,12 @@ export function AddNewsSheet({ open, onOpenChange, onSubmit }: AddNewsSheetProps
       await onSubmit(formData);
       setFormData({
         title: "",
-        summary: "",
+        description: "",
         industry_id: undefined,
         image_url: "",
         source_url: "",
         source_name: "",
+        date: new Date().toISOString().split("T")[0],
       });
       onOpenChange(false);
     } catch (error) {
@@ -314,18 +331,39 @@ export function AddNewsSheet({ open, onOpenChange, onSubmit }: AddNewsSheetProps
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="summary">Summary <span className="text-destructive">*</span></Label>
-            <Textarea id="summary" placeholder="Write your summary" value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} className="min-h-[100px] bg-[#FFFFFF]" required />
+            <Label htmlFor="description">Description <span className="text-destructive">*</span></Label>
+            <Textarea id="description" placeholder="Write description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="min-h-[100px] bg-[#FFFFFF]" required />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="industry_id">Industry ID (Optional)</Label>
+            <Label htmlFor="industry_id">Industry</Label>
+            <Select
+              value={formData.industry_id ? formData.industry_id.toString() : ""}
+              onValueChange={(v) =>
+                setFormData({ ...formData, industry_id: v ? Number(v) : undefined })
+              }
+            >
+              <SelectTrigger className="bg-[#FFFFFF]">
+                <SelectValue placeholder="Select Industry (Optional)" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#FFFFFF]">
+                {industries.map((ind) => (
+                  <SelectItem key={ind.industry_id} value={ind.industry_id.toString()}>
+                    {ind.name || ind.industry_name || `Industry ${ind.industry_id}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="date">Publish Date <span className="text-destructive">*</span></Label>
             <Input
-              id="industry_id"
-              type="number"
-              placeholder="e.g. 1"
-              value={formData.industry_id || ""}
-              onChange={(e) => setFormData({ ...formData, industry_id: e.target.value ? Number(e.target.value) : undefined })}
+              id="date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              required
               className="bg-[#FFFFFF]"
             />
           </div>

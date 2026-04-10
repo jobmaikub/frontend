@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,9 +19,9 @@ import {
 } from "@/components/ui/table";
 import type { User } from "@/data/usersData";
 import { UserDetailsSheet } from "./UserDetailsSheet";
-import { AddUsersSheet, UserFormData } from "./AddUsersSheet";
 import { useEffect } from "react";
-import { fetchUsers, updateUserStatus, createUser } from "@/lib/users.api";
+import { fetchUsers, fetchBanHistory, banUser, unbanUser } from "@/lib/users.api";
+import { useAuth } from "@/contexts/AuthContexts";
 
 export function UsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,13 +32,34 @@ export function UsersTable() {
   // State for side sheets
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusSort, setStatusSort] = useState<"" | "active-first" | "banned-first">("");
+  const [roleSort, setRoleSort] = useState<"" | "admin-first" | "user-first">("");
   const itemsPerPage = 10;
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
-    fetchUsers()
-      .then(setUsers)
+    Promise.all([fetchUsers(), fetchBanHistory()])
+      .then(([usersData, banRows]) => {
+        const now = new Date();
+        const mapped = usersData.map((u) => {
+          const userBans = banRows
+            .filter((b) => String(b.user_id) === String(u.id))
+            .map((b) => ({
+              banId: b.ban_id,
+              banDate: b.ban_date,
+              unbanDate: b.unban_date,
+              reason: b.reason || "No reason",
+            }));
+          const activeBan = userBans.some((b) => !b.unbanDate || new Date(b.unbanDate) > now);
+          return {
+            ...u,
+            is_banned: activeBan,
+            banHistory: userBans,
+          };
+        });
+        setUsers(mapped);
+      })
       .catch((err) => {
         const errorMsg = err.response?.data?.message || err.message || "Failed to fetch users";
         setError(errorMsg);
@@ -46,10 +74,36 @@ export function UsersTable() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    let result = 0;
+
+    if (statusSort !== "") {
+      const aBanned = a.banHistory?.some(
+        (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
+      ) ? 1 : 0;
+      const bBanned = b.banHistory?.some(
+        (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
+      ) ? 1 : 0;
+
+      result = statusSort === "banned-first" ? bBanned - aBanned : aBanned - bBanned;
+    }
+
+    if (result === 0 && roleSort !== "") {
+      const aRole = (a.role || "user").toLowerCase();
+      const bRole = (b.role || "user").toLowerCase();
+      const aAdmin = aRole === "admin" ? 1 : 0;
+      const bAdmin = bRole === "admin" ? 1 : 0;
+
+      result = roleSort === "admin-first" ? bAdmin - aAdmin : aAdmin - bAdmin;
+    }
+
+    return result;
+  });
+
   // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedUsers = sortedUsers.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -65,32 +119,40 @@ export function UsersTable() {
     setIsDetailsOpen(true);
   };
 
-  // Function to handle adding a new user
-  const handleAddUser = async (data: UserFormData) => {
-    const newUser = await createUser({
-      name: data.name,
-      email: data.email,
-      role: data.role.toLowerCase() as "admin" | "user",
-    });
-
-    setUsers((prev) => [newUser, ...prev]);
-    setCurrentPage(1);
-  };
-
-
   // Function to handle Ban/Unban logic from the detail sheet
-  const handleBanToggle = async (userId: number) => {
+  const handleBanToggle = async (userId: string | number, reason?: string, banUntil?: string) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
 
-    const isBanned = user.banHistory.length > 0;
-    const status = isBanned ? "unban" : "ban";
+    const hasActiveBan = user.banHistory.some(
+      (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
+    );
 
-    const updated = await updateUserStatus(userId, status);
+    if (hasActiveBan) {
+      await unbanUser(userId);
+    } else {
+      await banUser(userId, reason || "Banned by admin", authUser?.id ?? null, banUntil);
+    }
 
-    // ดึง user ใหม่อีกรอบ (ง่าย & ชัวร์)
-    const refreshed = await fetchUsers();
-    setUsers(refreshed);
+    const [usersData, banRows] = await Promise.all([fetchUsers(), fetchBanHistory()]);
+    const now = new Date();
+    const mapped = usersData.map((u) => {
+      const userBans = banRows
+        .filter((b) => String(b.user_id) === String(u.id))
+        .map((b) => ({
+          banId: b.ban_id,
+          banDate: b.ban_date,
+          unbanDate: b.unban_date,
+          reason: b.reason || "No reason",
+        }));
+      const activeBan = userBans.some((b) => !b.unbanDate || new Date(b.unbanDate) > now);
+      return {
+        ...u,
+        is_banned: activeBan,
+        banHistory: userBans,
+      };
+    });
+    setUsers(mapped);
   };
 
   if (error) {
@@ -115,13 +177,6 @@ export function UsersTable() {
       <div className="p-6">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">No users found</p>
-          <Button
-            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
-            onClick={() => setIsAddSheetOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add New
-          </Button>
         </div>
       </div>
     );
@@ -146,23 +201,41 @@ export function UsersTable() {
               className="w-[250px] pl-9 bg-[#FFFFFF]"
             />
           </div>
-          <Button
-            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
-            onClick={() => setIsAddSheetOpen(true)}
+          <Select
+            value={roleSort}
+            onValueChange={(value: "admin-first" | "user-first") => {
+              setRoleSort(value);
+              setCurrentPage(1);
+            }}
           >
-            <Plus className="h-4 w-4" />
-            Add New
-          </Button>
+            <SelectTrigger className="w-[170px] bg-[#FFFFFF]">
+              <SelectValue placeholder="Select Role" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#FFFFFF]">
+              <SelectItem value="admin-first">Admin First</SelectItem>
+              <SelectItem value="user-first">User First</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={statusSort}
+            onValueChange={(value: "active-first" | "banned-first") => {
+              setStatusSort(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[180px] bg-[#FFFFFF]">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#FFFFFF]">
+              <SelectItem value="banned-first">Banned First</SelectItem>
+              <SelectItem value="active-first">Active First</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Side Sheet Components */}
-      <AddUsersSheet
-        open={isAddSheetOpen}
-        onOpenChange={setIsAddSheetOpen}
-        onSubmit={handleAddUser}
-      />
-
       <UserDetailsSheet
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
@@ -199,7 +272,7 @@ export function UsersTable() {
                   <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-28 mx-auto"></div></TableCell>
                 </TableRow>
               ))
-            ) : filteredUsers.length === 0 ? (
+            ) : sortedUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                   No users found
@@ -207,7 +280,9 @@ export function UsersTable() {
               </TableRow>
             ) : (
               paginatedUsers.map((user) => {
-                const isBanned = user.banHistory && user.banHistory.length > 0;
+                const isBanned = user.banHistory?.some(
+                  (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
+                );
                 return (
                   <TableRow
                     key={user.id}
@@ -240,10 +315,10 @@ export function UsersTable() {
         </Table>
 
         {/* Pagination Controls - Fixed Height */}
-        {filteredUsers.length > 0 && (
+        {sortedUsers.length > 0 && (
           <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
             <span className="text-sm text-muted-foreground">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredUsers.length)} of {filteredUsers.length}
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedUsers.length)} of {sortedUsers.length}
             </span>
             <div className="flex items-center gap-3">
               <Button

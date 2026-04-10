@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Interest, createInterest } from "@/lib/interests.api";
+import { Interest } from "@/lib/interests.api";
 
 interface AddInterestsSheetProps {
   open: boolean;

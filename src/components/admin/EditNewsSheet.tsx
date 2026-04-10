@@ -9,15 +9,23 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { News, updateNews } from "@/lib/news.api";
-import { getIndustries, Industry } from "@/lib/industries.api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { News } from "@/lib/news.api";
+import { Industry } from "@/lib/industries.api";
 
 
 interface EditNewsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: News) => Promise<void> | void;
+  onSubmit: (data: Partial<News>) => Promise<void> | void;
   news: News | null;
+  industries: Industry[];
 }
 
 export function EditNewsSheet({
@@ -25,63 +33,50 @@ export function EditNewsSheet({
   onOpenChange,
   onSubmit,
   news,
+  industries,
 }: EditNewsSheetProps) {
-  const [industries, setIndustries] = useState<Industry[]>([]);
   const [formData, setFormData] = useState({
     title: "",
-    summary: "",
+    description: "",
     industry_id: undefined as number | undefined,
     image_url: "",
     source_url: "",
     source_name: "",
+    date: "",
   });
-
-  useEffect(() => {
-    getIndustries().then((industries: Industry[]) => {
-      setIndustries(industries);
-    });
-  }, []);
 
   useEffect(() => {
     if (news) {
       setFormData({
         title: news.title || "",
-        summary: news.summary || "",
+        description: news.description || "",
         industry_id: news.industry_id,
         image_url: news.image_url || "",
         source_url: news.source_url || "",
         source_name: news.source_name || "",
+        date: (news.date || "").split("T")[0],
       });
     }
-  }, [news]);
+  }, [news, industries]);
 
   const isValid =
-    formData.title.trim().length > 0 && formData.summary.trim().length > 0;
+    formData.title.trim().length > 0 && formData.description.trim().length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid || !news) return;
 
     try {
-      await updateNews(news.news_id, {
+      await onSubmit({
         title: formData.title.trim(),
-        summary: formData.summary.trim(),
+        description: formData.description.trim(),
         industry_id: formData.industry_id,
         image_url: formData.image_url.trim(),
         source_url: formData.source_url.trim(),
         source_name: formData.source_name.trim(),
+        date: formData.date,
       });
-
       onOpenChange(false);
-      await onSubmit({
-        ...news,
-        title: formData.title,
-        summary: formData.summary,
-        industry_id: formData.industry_id,
-        image_url: formData.image_url,
-        source_url: formData.source_url,
-        source_name: formData.source_name,
-      });
     } catch (error) {
       console.error("Error updating news:", error);
     }
@@ -111,14 +106,14 @@ export function EditNewsSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-summary">
-              Summary <span className="text-destructive">*</span>
+            <Label htmlFor="edit-description">
+              Description <span className="text-destructive">*</span>
             </Label>
             <Textarea
-              id="edit-summary"
-              value={formData.summary}
+              id="edit-description"
+              value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, summary: e.target.value })
+                setFormData({ ...formData, description: e.target.value })
               }
               className="min-h-[100px] bg-white"
               required
@@ -127,24 +122,43 @@ export function EditNewsSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-industry">Industry</Label>
-            <select
-              id="edit-industry"
-              value={formData.industry_id || ""}
-              onChange={(e) =>
+            <Select
+              value={formData.industry_id ? formData.industry_id.toString() : ""}
+              onValueChange={(v) =>
                 setFormData({
                   ...formData,
-                  industry_id: e.target.value ? Number(e.target.value) : undefined,
+                  industry_id: v ? Number(v) : undefined,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white"
             >
-              <option value="">Select Industry (Optional)</option>
-              {industries.map((ind) => (
-                <option key={ind.industry_id} value={ind.industry_id}>
-                  {ind.industry_name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select Industry (Optional)" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {industries?.map((ind) => (
+                  <SelectItem
+                    key={ind.industry_id}
+                    value={ind.industry_id.toString()}
+                  >
+                    {ind.name || ind.industry_name || `Industry ${ind.industry_id}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-date">Publish Date <span className="text-destructive">*</span></Label>
+            <Input
+              id="edit-date"
+              type="date"
+              value={formData.date}
+              onChange={(e) =>
+                setFormData({ ...formData, date: e.target.value })
+              }
+              required
+              className="bg-white"
+            />
           </div>
 
           <div className="space-y-2">
@@ -185,25 +199,26 @@ export function EditNewsSheet({
               className="bg-white"
             />
           </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!isValid}
-              className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white"
-            >
-              Update
-            </Button>
-          </div>
         </form>
+
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={!isValid}
+            className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white"
+            onClick={handleSubmit}
+          >
+            Update
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );

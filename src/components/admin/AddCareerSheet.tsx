@@ -16,44 +16,102 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Industry } from "@/lib/industries.api";
+import { Major } from "@/lib/majors.api";
+import { Skill } from "@/lib/skills.api";
+import { Interest } from "@/lib/interests.api";
 
 interface AddCareerSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CareerFormData) => void;
+  industries: Industry[];
+  majors: Major[];
+  skills: Skill[];
+  interests: Interest[];
 }
 
 export interface CareerFormData {
   title: string;
   description: string;
   industry_id: number;
-  major_id?: number;
+  major_id: number;
   min_salary: number;
   max_salary: number;
-  growth_rate: string;
+  growth_rate: "" | "1" | "2" | "3";
   image_url: string;
   responsibilities: string;
   required_skills: string;
+  skill_ids: number[];
+  interest_ids: number[];
 }
 
-export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetProps) {
+export function AddCareerSheet({
+  open,
+  onOpenChange,
+  onSubmit,
+  industries,
+  majors,
+  skills,
+  interests,
+}: AddCareerSheetProps) {
+  const [skillSearch, setSkillSearch] = useState("");
+  const [interestSearch, setInterestSearch] = useState("");
   const [formData, setFormData] = useState<CareerFormData>({
     title: "",
     description: "",
     industry_id: 0,
-    major_id: undefined,
+    major_id: 0,
     min_salary: 30000,
     max_salary: 100000,
     growth_rate: "",
     image_url: "",
     responsibilities: "",
     required_skills: "",
+    skill_ids: [],
+    interest_ids: [],
   });
+
+  const toggleSkill = (skillId: number) => {
+    const normalizedSkillId = Number(skillId);
+    setFormData((prev) => ({
+      ...prev,
+      skill_ids: prev.skill_ids.includes(normalizedSkillId)
+        ? prev.skill_ids.filter((id) => id !== normalizedSkillId)
+        : [...prev.skill_ids, normalizedSkillId],
+    }));
+  };
+
+  const toggleInterest = (interestId: number) => {
+    const normalizedInterestId = Number(interestId);
+    setFormData((prev) => ({
+      ...prev,
+      interest_ids: prev.interest_ids.includes(normalizedInterestId)
+        ? prev.interest_ids.filter((id) => id !== normalizedInterestId)
+        : [...prev.interest_ids, normalizedInterestId],
+    }));
+  };
+
+  const filteredSkills = skills.filter((skill) =>
+    skill.name.toLowerCase().includes(skillSearch.toLowerCase())
+  );
+
+  const filteredInterests = interests.filter((interest) =>
+    interest.interest_name.toLowerCase().includes(interestSearch.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.major_id === 0) return;
     onSubmit(formData);
   };
+
+  const isSubmitDisabled =
+    !formData.title.trim() ||
+    !formData.description.trim() ||
+    formData.industry_id === 0 ||
+    formData.major_id === 0 ||
+    !formData.growth_rate;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -88,15 +146,48 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="industry_id">Industry ID <span className="text-destructive">*</span></Label>
-            <Input
-              id="industry_id"
-              type="number"
-              value={formData.industry_id}
-              onChange={(e) => setFormData({ ...formData, industry_id: Number(e.target.value) })}
-              required
-              className="bg-white"
-            />
+            <Label htmlFor="industry_id">Industry <span className="text-destructive">*</span></Label>
+            <Select
+              value={formData.industry_id ? formData.industry_id.toString() : ""}
+              onValueChange={(value) =>
+                setFormData({ ...formData, industry_id: Number(value) })
+              }
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select Industry" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {industries.map((industry) => (
+                  <SelectItem key={industry.industry_id} value={industry.industry_id.toString()}>
+                    {industry.name || industry.industry_name || `Industry ${industry.industry_id}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="major_id">Major <span className="text-destructive">*</span></Label>
+            <Select
+              value={formData.major_id ? formData.major_id.toString() : ""}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  major_id: Number(value),
+                })
+              }
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select Major" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {majors.map((major) => (
+                  <SelectItem key={major.major_id} value={major.major_id.toString()}>
+                    {major.eng_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -129,16 +220,16 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
             <Select
               value={formData.growth_rate}
               onValueChange={(value) =>
-                setFormData({ ...formData, growth_rate: value })
+                setFormData({ ...formData, growth_rate: value as "1" | "2" | "3" })
               }
             >
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select market growth" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="High">High</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Stable">Stable</SelectItem>
+                <SelectItem value="3">High</SelectItem>
+                <SelectItem value="2">Medium</SelectItem>
+                <SelectItem value="1">Stable</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -169,6 +260,56 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
           </div>
 
           <div className="space-y-2">
+            <Label>Link Skills</Label>
+            <Input
+              placeholder="Search skills..."
+              value={skillSearch}
+              onChange={(e) => setSkillSearch(e.target.value)}
+              className="bg-white"
+            />
+            <div className="max-h-36 overflow-y-auto rounded-md border border-slate-200 p-3 space-y-2 bg-white">
+              {filteredSkills.map((skill) => (
+                <label key={skill.skill_id} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.skill_ids.includes(skill.skill_id)}
+                    onChange={() => toggleSkill(skill.skill_id)}
+                  />
+                  <span>{skill.name}</span>
+                </label>
+              ))}
+              {filteredSkills.length === 0 && (
+                <p className="text-xs text-muted-foreground">No skills found</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Link Interests</Label>
+            <Input
+              placeholder="Search interests..."
+              value={interestSearch}
+              onChange={(e) => setInterestSearch(e.target.value)}
+              className="bg-white"
+            />
+            <div className="max-h-36 overflow-y-auto rounded-md border border-slate-200 p-3 space-y-2 bg-white">
+              {filteredInterests.map((interest) => (
+                <label key={interest.interest_id} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.interest_ids.includes(interest.interest_id)}
+                    onChange={() => toggleInterest(interest.interest_id)}
+                  />
+                  <span>{interest.interest_name}</span>
+                </label>
+              ))}
+              {filteredInterests.length === 0 && (
+                <p className="text-xs text-muted-foreground">No interests found</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="image_url">Image URL <span className="text-destructive">*</span></Label>
             <Input
               id="image_url"
@@ -189,7 +330,7 @@ export function AddCareerSheet({ open, onOpenChange, onSubmit }: AddCareerSheetP
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm">
+            <Button type="submit" disabled={isSubmitDisabled} className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm">
               Create
             </Button>
           </div>
