@@ -12,12 +12,6 @@ import React from "react";
 import { useAuth } from "@/contexts/AuthContexts";
 import { getMatchHistory, submitMatch, CareerMatch } from "@/lib/ai.api";
 
-const sortMatchesByScoreDesc = (matches: CareerMatch[]): CareerMatch[] => {
-  return [...matches].sort(
-    (a, b) => Number(b.match_score ?? b.score ?? 0) - Number(a.match_score ?? a.score ?? 0)
-  );
-};
-
 export default function AIMatch() {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
@@ -42,7 +36,7 @@ export default function AIMatch() {
       try {
         const data = await getMatchHistory(currentUserId);
         if (data && Array.isArray(data) && data.length > 0) {
-          setMatchResults(sortMatchesByScoreDesc(data));
+          setMatchResults(data);
           setCurrentStep(4);
         }
       } catch (error) {
@@ -94,7 +88,7 @@ export default function AIMatch() {
         interests: selectedInterests,
         user_id: currentUserId,
       });
-      setMatchResults(sortMatchesByScoreDesc(data));
+      setMatchResults(data);
       setCurrentStep(4);
     } catch (error) {
       console.error("Error submitting match:", error);
