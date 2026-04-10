@@ -309,7 +309,7 @@ export function CoursesTable() {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">{course.title}</TableCell>
+                <TableCell className="font-medium text-foreground">{course.title}</TableCell>
 
                 {/* UPDATED: Career Path text color changed to grey (text-muted-foreground) */}
                 <TableCell>
@@ -326,7 +326,7 @@ export function CoursesTable() {
                     {course.level}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-center">{course.duration_mins}</TableCell>
+                <TableCell className="text-center text-muted-foreground">{course.duration_mins}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"

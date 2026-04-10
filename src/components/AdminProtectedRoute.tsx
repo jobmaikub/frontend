@@ -40,8 +40,7 @@ export default function AdminProtectedRoute({
     )
   }
 
-  // ตรวจ role เป็น admin หรือ allow if profile exists (for dev)
-  if (profile.role === 'admin' || profile.role === null) {
+  if (String(profile.role || '').toLowerCase() === 'admin') {
     return children
   }
 

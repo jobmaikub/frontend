@@ -126,7 +126,7 @@ export function MajorsTable() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">Majors</h1>
+        <h1 className="text-3xl font-bold text-foreground">Majors</h1>
 
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -202,8 +202,8 @@ export function MajorsTable() {
             ) : (
               paginatedMajors.map((major) => (
               <TableRow key={major.major_id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
-                <TableCell>{major.eng_name}</TableCell>
-                <TableCell>
+                <TableCell className="text-foreground font-medium">{major.eng_name}</TableCell>
+                <TableCell className="text-muted-foreground">
                   {
                     faculties.find(
                       (f) => f.faculty_id === major.faculty_id

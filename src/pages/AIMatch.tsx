@@ -9,36 +9,35 @@ import { CareerMatches } from "@/components/ai match/CareerMatches";
 import { Footer } from "@/components/navbar and footer/Footer";
 import { GraduationCap, BookOpen, Lightbulb, Heart } from "lucide-react";
 import React from "react";
-// 1. Uncomment this when you are ready to use real Supabase Auth
-// import { supabase } from "@/lib/supabaseClient"; 
+import { useAuth } from "@/contexts/AuthContexts";
+import { getMatchHistory, submitMatch, CareerMatch } from "@/lib/ai.api";
 
 export default function AIMatch() {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [facultyId, setFacultyId] = useState<number | null>(null);
   const [majorId, setMajorId] = useState<number | null>(null);
   const [skills, setSkills] = useState<number[]>([]);
   const [interests, setInterests] = useState<number[]>([]);
-  const [matchResults, setMatchResults] = useState<any[]>([]);
+  const [matchResults, setMatchResults] = useState<CareerMatch[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryChecked, setIsHistoryChecked] = useState(false);
 
   // Check for previous matches on mount
   useEffect(() => {
+    const currentUserId = user?.id;
+    if (!currentUserId) {
+      setIsHistoryChecked(true);
+      setMatchResults([]);
+      return;
+    }
+
     const checkHistory = async () => {
       try {
-        // --- TO USE REAL AUTH ---
-        // const { data: { user } } = await supabase.auth.getUser();
-        // if (!user) return; // Skip if not logged in
-        // const USER_ID = user.id;
-
-        const USER_ID = "d5dddf47-b4e1-45a5-8ef4-f6aee4c138ab";
-        const response = await fetch(`http://localhost:3000/ai/history/${USER_ID}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            setMatchResults(data);
-            setCurrentStep(4);
-          }
+        const data = await getMatchHistory(currentUserId);
+        if (data && Array.isArray(data) && data.length > 0) {
+          setMatchResults(data);
+          setCurrentStep(4);
         }
       } catch (error) {
         console.error("Error checking history:", error);
@@ -47,10 +46,8 @@ export default function AIMatch() {
       }
     };
 
-    if (!isHistoryChecked) {
-      checkHistory();
-    }
-  }, [isHistoryChecked]);
+    checkHistory();
+  }, [isHistoryChecked, user?.id]);
 
   const handleBack = () => setCurrentStep((prev) => prev - 1);
   const handleStartOver = () => {
@@ -78,32 +75,21 @@ export default function AIMatch() {
   };
 
   const handleInterestsSubmit = async (selectedInterests: number[]) => {
+    const currentUserId = user?.id;
+    if (!currentUserId) return;
+
     setInterests(selectedInterests);
     setIsLoading(true);
     try {
-      // --- TO USE REAL AUTH (BEFORE SUBMITTING) ---
-      // const { data: { user } } = await supabase.auth.getUser();
-      // const CURRENT_USER_ID = user?.id || "d5dddf47-b4e1-45a5-8ef4-f6aee4c138ab";
-
-      const response = await fetch("http://localhost:3000/ai/match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          faculty_id: facultyId,
-          major_id: majorId,
-          skills: skills,
-          interests: selectedInterests,
-          // Replace this hardcoded ID with CURRENT_USER_ID
-          user_id: "d5dddf47-b4e1-45a5-8ef4-f6aee4c138ab",
-        }),
+      const data = await submitMatch({
+        faculty_id: facultyId!,
+        major_id: majorId!,
+        skills: skills,
+        interests: selectedInterests,
+        user_id: currentUserId,
       });
-      if (response.ok) {
-        const data = await response.json();
-        setMatchResults(data);
-        setCurrentStep(4);
-      } else {
-        console.error("Failed to fetch matches");
-      }
+      setMatchResults(data);
+      setCurrentStep(4);
     } catch (error) {
       console.error("Error submitting match:", error);
     } finally {

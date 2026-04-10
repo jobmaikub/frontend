@@ -178,7 +178,7 @@ export function NewsTable() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">News</h1>
+        <h1 className="text-3xl font-bold text-foreground">News</h1>
 
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -265,15 +265,15 @@ export function NewsTable() {
                   />
                 </TableCell>
 
-                <TableCell className="font-medium">
+                <TableCell className="font-medium text-foreground">
                   {item.title}
                 </TableCell>
 
-                <TableCell className="text-[#4A5DF9] font-medium">
+                <TableCell className="text-muted-foreground font-medium">
                   {item.industries?.name || "N/A"}
                 </TableCell>
 
-                <TableCell className="text-muted-foreground min-w-[120px]">
+                <TableCell className="text-foreground min-w-[120px]">
                   {(item.created_at || item.date) ? new Date(item.created_at || item.date || "").toLocaleDateString('sv-SE') : "N/A"}
                 </TableCell>
 

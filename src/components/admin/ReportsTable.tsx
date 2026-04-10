@@ -71,10 +71,10 @@ export function ReportsTable() {
                 key={report.id} 
                 className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
               >
-                <TableCell>{report.id}</TableCell>
-                <TableCell>{report.reporterId}</TableCell>
-                <TableCell>{report.offenderId}</TableCell>
-                <TableCell>{report.category}</TableCell>
+                <TableCell className="text-muted-foreground">{report.id}</TableCell>
+                <TableCell className="text-foreground">{report.reporterId}</TableCell>
+                <TableCell className="text-muted-foreground">{report.offenderId}</TableCell>
+                <TableCell className="text-foreground">{report.category}</TableCell>
                 <TableCell className="text-muted-foreground">{report.date}</TableCell>
                 <TableCell className="text-center">
                   <Button 

@@ -204,10 +204,10 @@ export function LessonsTable() {
                 key={lesson.id}
                 className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
               >
-                <TableCell className="font-medium">{lesson.title}</TableCell>
+                <TableCell className="font-medium text-foreground">{lesson.title}</TableCell>
                 <TableCell className="text-muted-foreground">{lesson.course}</TableCell>
-                <TableCell className="text-center">{lesson.order}</TableCell>
-                <TableCell className="text-center">{lesson.duration_mins}</TableCell>
+                <TableCell className="text-center text-foreground">{lesson.order}</TableCell>
+                <TableCell className="text-center text-muted-foreground">{lesson.duration_mins}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"

@@ -312,13 +312,13 @@ export function CareersTable() {
                     />
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">{career.title}</TableCell>
+                <TableCell className="font-medium text-foreground">{career.title}</TableCell>
                 <TableCell>
-                  <span className="text-[#4A5DF9] font-medium">
+                  <span className="text-muted-foreground font-medium">
                     {career.industries?.name || "N/A"}
                   </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-foreground">
                   {career.min_salary ? career.min_salary.toLocaleString() : "N/A"}
                 </TableCell>
                 <TableCell>

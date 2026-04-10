@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, BookOpen, ArrowLeft, ArrowRight } from "lucide-react";
+import { getMajors } from "@/lib/ai.api";
 
 interface MajorFormProps {
   facultyId: number;
@@ -16,10 +17,17 @@ export function MajorForm({ facultyId, initialMajorId, onNext, onBack }: MajorFo
   const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
-    fetch(`http://localhost:3000/ai/majors/${facultyId}`)
-      .then(res => res.json())
-      .then(data => { setMajors(data); setIsLoading(false); })
-      .catch(err => { console.error(err); setIsLoading(false); });
+    const loadMajors = async () => {
+      try {
+        const data = await getMajors(facultyId);
+        setMajors(data);
+      } catch (err) {
+        console.error("Error loading majors:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadMajors();
   }, [facultyId]);
 
   // Filter the majors based on the search query

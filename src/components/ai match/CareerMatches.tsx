@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Check, ArrowLeft, ArrowRight, X } from "lucide-react";
+import { getCareerDetails } from "@/lib/ai.api";
 
 interface CareerMatchesProps {
   onStartOver: () => void;
@@ -16,11 +17,8 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
     setIsLoadingDetails(true);
     setSelectedCareer(null);
     try {
-      const response = await fetch(`http://localhost:3000/ai/careers/${careerId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedCareer(data);
-      }
+      const data = await getCareerDetails(careerId);
+      setSelectedCareer(data);
     } catch (err) {
       console.error("Error fetching career details:", err);
     } finally {
@@ -43,7 +41,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
 
       {/* Career Cards List */}
       <div className="w-full max-w-[1100px] flex flex-col gap-8 px-4">
-        {matches.map((match, index) => (
+        {matches && Array.isArray(matches) && matches.map((match, index) => (
           <div key={index} className="flex flex-col md:flex-row w-full rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm gap-8">
             
             {/* 1. Left Image - Added `self-center` to perfectly center it vertically against the text on the right! */}

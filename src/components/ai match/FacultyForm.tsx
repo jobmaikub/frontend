@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, GraduationCap, ArrowRight } from "lucide-react";
+import { getFaculties } from "@/lib/ai.api";
 
 interface FacultyFormProps {
   initialFacultyId: number | null;
@@ -14,10 +15,17 @@ export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
-    fetch("http://localhost:3000/ai/faculties")
-      .then(res => res.json())
-      .then(data => { setFaculties(data); setIsLoading(false); })
-      .catch(err => { console.error(err); setIsLoading(false); });
+    const loadFaculties = async () => {
+      try {
+        const data = await getFaculties();
+        setFaculties(data);
+      } catch (err) {
+        console.error("Error loading faculties:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadFaculties();
   }, []);
 
   // Filter the faculties based on the search query

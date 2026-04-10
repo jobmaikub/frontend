@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, Lightbulb, ArrowLeft, ArrowRight, X } from "lucide-react";
+import { getSkills } from "@/lib/ai.api";
 
 
 interface SkillsFormProps {
@@ -9,16 +10,24 @@ interface SkillsFormProps {
 }
 
 export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps) {
+  const MAX_SKILLS = 12;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>(initialSkillIds || []);
   const [skills, setSkills] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
-    fetch("http://localhost:3000/ai/skills")
-      .then(res => res.json())
-      .then(data => { setSkills(data); setIsLoading(false); })
-      .catch(err => { console.error(err); setIsLoading(false); });
+    const loadSkills = async () => {
+      try {
+        const data = await getSkills();
+        setSkills(data);
+      } catch (err) {
+        console.error("Error loading skills:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSkills();
   }, []);
 
   const filteredSkills = skills.filter((skill) => {
@@ -29,8 +38,10 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
   const toggleSkill = (skillId: number) => {
     if (selectedSkillIds.includes(skillId)) {
       setSelectedSkillIds(selectedSkillIds.filter((id) => id !== skillId));
-    } else {
+    } else if (selectedSkillIds.length < MAX_SKILLS) {
       setSelectedSkillIds([...selectedSkillIds, skillId]);
+    } else {
+      return;
     }
   };
 
@@ -48,7 +59,7 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
           </div>
           <div>
             <h2 className="text-[22px] font-semibold text-gray-900">Select Your Skills</h2>
-            <p className="text-[18px] text-gray-500 mt-1">Search and select all skills you possess or want to develop.</p>
+            <p className="text-[18px] text-gray-500 mt-1">Search and select all skills you possess or want to develop. (Max 12)</p>
           </div>
         </div>
 
@@ -73,10 +84,13 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
               <button 
                 key={skill.skill_id} 
                 onClick={() => toggleSkill(skill.skill_id)}
-                className={`rounded-full border px-5 py-2.5 text-[16px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] ${
+                disabled={selectedSkillIds.length >= MAX_SKILLS && !selectedSkillIds.includes(skill.skill_id)}
+                className={`rounded-full border px-5 py-2.5 text-[16px] font-medium transition-all ${
                   selectedSkillIds.includes(skill.skill_id)
                     ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
-                    : "border-gray-200 text-gray-700 bg-white"
+                    : selectedSkillIds.length >= MAX_SKILLS
+                      ? "border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed"
+                      : "border-gray-200 text-gray-700 bg-white hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
                 }`}
               >
                 {skill.name || skill.name_th}
@@ -91,7 +105,7 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
 
         {/* Selected Counter */}
         <div className="mt-6 flex flex-wrap items-center gap-2 text-[14px] font-medium text-gray-500">
-          <span>Selected: {selectedSkillIds.length} Skills</span>
+          <span>Selected: {selectedSkillIds.length}/{MAX_SKILLS} Skills</span>
           {skills.filter(s => selectedSkillIds.includes(s.skill_id)).map((skill) => (
              <div key={skill.skill_id} className="flex items-center gap-1 rounded-full bg-[#F0F4FF] px-3 py-1 text-[#4A5DF9]">
                 <span>{skill.name || skill.name_th}</span>

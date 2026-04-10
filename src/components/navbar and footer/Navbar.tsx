@@ -41,6 +41,7 @@ export function Navbar() {
   const userInitial = userName.charAt(0).toUpperCase();
   const fullName = profile?.full_name || "User"; // Ensure full_name is fetched from profile
   const userEmail = user?.email || "";
+  const isAdmin = String(profile?.role || "").toLowerCase() === "admin";
 
   return (
     <header className="fixed left-0 top-0 z-50 flex h-20 w-screen items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-12 font-['Inter']">
@@ -115,19 +116,23 @@ export function Navbar() {
                 <span className="text-sm font-medium">My Profile</span>
               </DropdownMenuItem>
               
-              <DropdownMenuItem asChild>
-                <Link 
-                  to="/admin/dashboard" 
-                  onMouseEnter={() => setHoveredItem('admin')}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  style={getStyle('admin')}
-                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
-                >
-                  <Settings size={16} color={hoveredItem === 'admin' ? "#4A5DF9" : "#000000"} />
-                  <span className="text-sm font-medium">Admin Panel</span>
-                </Link>
-              </DropdownMenuItem>
-              
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      to="/admin/dashboard" 
+                      onMouseEnter={() => setHoveredItem('admin')}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      style={getStyle('admin')}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
+                    >
+                      <Settings size={16} color={hoveredItem === 'admin' ? "#4A5DF9" : "#000000"} />
+                      <span className="text-sm font-medium">Admin Panel</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+
               <DropdownMenuSeparator />
               
               <DropdownMenuItem 

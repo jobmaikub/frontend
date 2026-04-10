@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, Heart, ArrowLeft, Sparkles, X } from "lucide-react";
+import { getInterests } from "@/lib/ai.api";
 
 
 interface InterestsFormProps {
@@ -16,10 +17,17 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
   const [isFetching, setIsFetching] = useState(true);
 
   React.useEffect(() => {
-    fetch("http://localhost:3000/ai/interests")
-      .then(res => res.json())
-      .then(data => { setInterests(data); setIsFetching(false); })
-      .catch(err => { console.error(err); setIsFetching(false); });
+    const loadInterests = async () => {
+      try {
+        const data = await getInterests();
+        setInterests(data);
+      } catch (err) {
+        console.error("Error loading interests:", err);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+    loadInterests();
   }, []);
 
   // Filter the interests based on the search query
