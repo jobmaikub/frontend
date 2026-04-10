@@ -1,8 +1,8 @@
 import { createAuthenticatedApi } from "./apiClient";
 
-export const api = createAuthenticatedApi(
-  import.meta.env.VITE_API_URL + "/ai"
-);
+const AI_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+
+export const api = createAuthenticatedApi(`${AI_BASE_URL}/ai`);
 
 // Type definitions
 export interface CareerMatch {
