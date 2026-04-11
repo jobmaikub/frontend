@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, ChevronDown, Bell, Settings, User, LogOut } from "lucide-react";
+import { ChevronDown, Bell, Settings, User, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContexts";
@@ -47,9 +47,11 @@ export function Navbar() {
     <header className="fixed left-0 top-0 z-50 flex h-20 w-screen items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-12 font-['Inter']">
       {/* Brand Section */}
       <div className="flex items-center gap-2 ml-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#4A5DF9]">
-          <Box className="h-5 w-5 text-white" />
-        </div>
+        <img
+          src="/jobmaikub-logo.png"
+          alt="Jobmaikub logo"
+          className="h-10 w-auto object-contain"
+        />
         <span className="text-xl font-bold text-[#4A5DF9] tracking-tight uppercase">JOBMAIKUB</span>
       </div>
       

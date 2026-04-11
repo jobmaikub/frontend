@@ -18,7 +18,6 @@ export interface UpdateCoursePayload {
   career_path: string;
   level: "beginner" | "intermediate" | "advanced";
   duration: number;
-  external_url: string;
   course_order: number;
   skills_taught: string[];
   learning_outcome?: string;

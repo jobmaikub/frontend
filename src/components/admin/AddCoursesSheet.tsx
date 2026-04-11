@@ -32,7 +32,6 @@ export interface CourseFormData {
   career_path: string;
   image_url: string;
   level: "beginner" | "intermediate" | "advanced";
-  external_url: string;
   course_order: number;
   skills_taught: string;
   learning_outcome: string;
@@ -51,7 +50,6 @@ export function AddCoursesSheet({
     career_path: "",
     image_url: "",
     level: "beginner",
-    external_url: "",
     course_order: 1,
     skills_taught: "",
     learning_outcome: "",
@@ -68,7 +66,6 @@ export function AddCoursesSheet({
         career_path: formData.career_path,
         image_url: formData.image_url,
         level: formData.level,
-        external_url: formData.external_url,
         course_order: formData.course_order,
         skills_taught: formData.skills_taught,
         learning_outcome: formData.learning_outcome,
@@ -80,7 +77,6 @@ export function AddCoursesSheet({
         career_path: "",
         image_url: "",
         level: "beginner",
-        external_url: "",
         course_order: 1,
         skills_taught: "",
         learning_outcome: "",
@@ -173,18 +169,6 @@ export function AddCoursesSheet({
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="external_url">External URL <span className="text-destructive">*</span></Label>
-            <Input
-              id="external_url"
-              placeholder="https://..."
-              value={formData.external_url}
-              onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
-              required
-              className="bg-white"
-            />
           </div>
 
           <div className="space-y-2">
