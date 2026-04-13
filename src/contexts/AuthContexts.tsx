@@ -23,6 +23,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const forceRedirectToLoginForBan = async (reason?: string, until?: string | null) => {
+    const params = new URLSearchParams({
+      banned: '1',
+      reason: reason || 'Your account has been suspended by admin',
+      until: until || '',
+    });
+
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    window.location.href = `/login?${params.toString()}`;
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -69,16 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const activeBan = await fetchActiveBanByUser(userId);
       if (activeBan) {
-        const params = new URLSearchParams({
-          banned: '1',
-          reason: activeBan.reason || 'Your account has been suspended by admin',
-          until: activeBan.unban_date || '',
-        });
-
-        await supabase.auth.signOut();
-        setUser(null);
-        setProfile(null);
-        window.location.href = `/login?${params.toString()}`;
+        await forceRedirectToLoginForBan(
+          activeBan.reason || 'Your account has been suspended by admin',
+          activeBan.unban_date || ''
+        );
         return;
       }
 
@@ -89,15 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (data) {
-        if (data.is_banned) {
-          console.log('🚫 User is banned');
-          await supabase.auth.signOut();
-          setUser(null);
-          setProfile(null);
-        } else {
-          console.log('✅ Profile loaded:', data);
-          setProfile(data);
-        }
+        console.log('✅ Profile loaded:', data);
+        setProfile(data);
       } else {
         // profile ไม่เจอ → สร้างใหม่ (กันกรณี reset password)
         console.log('📝 Creating new profile for user:', userId);
@@ -120,6 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (err) {
+      const errMsg = String((err as any)?.message || '').toLowerCase();
+      if (errMsg.includes('banned') || errMsg.includes('suspend')) {
+        await forceRedirectToLoginForBan('Your account has been suspended by admin');
+        return;
+      }
+
       console.error('🚨 Profile load error:', err);
       // Fallback: ตั้ง profile ด้วย default role === null เพื่อให้ admin สามารถเข้าได้
       setProfile({ id: userId, email, role: null });

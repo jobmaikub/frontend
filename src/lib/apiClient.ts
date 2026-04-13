@@ -30,5 +30,38 @@ export function createAuthenticatedApi(baseURL: string): AxiosInstance {
     return config;
   });
 
+  api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const status = error?.response?.status;
+      const message = String(
+        error?.response?.data?.message || error?.message || ""
+      );
+      const lower = message.toLowerCase();
+      const isBannedError =
+        lower.includes("user is banned") ||
+        lower.includes("banned") ||
+        lower.includes("suspended");
+
+      if ((status === 401 || status === 403) && isBannedError) {
+        try {
+          await supabase.auth.signOut();
+        } catch {
+          // no-op: still force redirect below
+        }
+
+        if (!window.location.pathname.startsWith("/login")) {
+          const params = new URLSearchParams({
+            banned: "1",
+            reason: message || "Your account has been suspended by admin",
+          });
+          window.location.href = `/login?${params.toString()}`;
+        }
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
   return api;
 }

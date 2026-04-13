@@ -7,9 +7,12 @@ export interface BanHistory {
 
 export interface UserReport {
   reportId: string | number;
+  reporterId?: string | number;
   offenderId: string | number;
   lastUpdate: string;
   reason: string;
+  status?: string;
+  reportType?: string;
 }
 
 export interface User {
@@ -18,6 +21,7 @@ export interface User {
   email: string;
   role: "admin" | "user";
   joinedDate: string;
+  is_banned?: boolean;
   banHistory: BanHistory[];
   reports?: UserReport[];
 }
