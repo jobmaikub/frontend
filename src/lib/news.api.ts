@@ -10,8 +10,9 @@ export const api = axios.create({
 export interface News {
   news_id: number;
   title: string;
-  summary: string;
-  industry: any;
+  description: string;
+  industry_id: number;
+  industry?: string; // Full industry object with all fields
   image_url: string;
   source_url: string;
   source_name: string;
@@ -20,6 +21,16 @@ export interface News {
 
 export const getNews = async (): Promise<News[]> => {
   const res = await api.get("/");
+  return res.data;
+};
+
+export const searchNews = async (query: string, industry?: string): Promise<News[]> => {
+  const params = new URLSearchParams();
+  params.append('q', query);
+  if (industry && industry !== 'All Industries') {
+    params.append('industry', industry);
+  }
+  const res = await api.get(`/search/query?${params.toString()}`);
   return res.data;
 };
 

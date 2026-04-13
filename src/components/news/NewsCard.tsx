@@ -54,10 +54,10 @@
 // src/components/news/NewsCard.tsx
 import React, { useState } from "react";
 import { Bookmark, Clock } from "lucide-react";
-import { NewsArticle } from "./mockData";
+import { News } from "@/lib/news.api";
 
 interface NewsCardProps {
-  article: NewsArticle;
+  article: News;
 }
 
 export default function NewsCard({ article }: NewsCardProps) {
@@ -69,7 +69,7 @@ export default function NewsCard({ article }: NewsCardProps) {
       {/* Image */}
       <div className="h-48 w-full overflow-hidden">
         <img 
-          src={article.imageUrl} 
+          src={article.image_url} 
           alt={article.title} 
           className="w-full h-full object-cover"
         />
@@ -79,7 +79,7 @@ export default function NewsCard({ article }: NewsCardProps) {
       <div className="p-6 flex flex-col flex-grow">
         <div className="flex justify-between items-center mb-3">
           <span className="text-blue-500 text-sm font-medium">
-            {article.category}
+            {article.industry?.name || 'Unknown'}
           </span>
           <button 
             onClick={() => setIsBookmarked(!isBookmarked)}
@@ -98,11 +98,24 @@ export default function NewsCard({ article }: NewsCardProps) {
         </p>
 
         {/* Footer */}
-        <div className="flex items-center text-xs text-gray-500 pt-4 border-t border-gray-100 mt-auto">
-          <span className="font-medium mr-3">{article.source}</span>
+        <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100 mt-auto">
+          <div className="flex items-center gap-1">
+            {article.source_url ? (
+              <a 
+                href={article.source_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-medium text-[#4A5DF9] hover:text-blue-700 transition-colors truncate max-w-xs"
+              >
+                {article.source_name}
+              </a>
+            ) : (
+              <span className="font-medium">{article.source_name}</span>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            <span>{article.date}</span>
+            <span>{new Date(article.created_at).toLocaleDateString('en-GB')}</span>
           </div>
         </div>
       </div>
