@@ -74,6 +74,20 @@ export function CareersTable() {
     3: "High",
   };
 
+  const getGrowthBadgeClassName = (growth: string) => {
+    const normalizedGrowth = growth.toLowerCase();
+
+    if (normalizedGrowth.includes("high")) {
+      return "bg-[#E5F7ED] text-[#1FAA52] border-transparent";
+    }
+
+    if (normalizedGrowth.includes("medium")) {
+      return "bg-[#F0F4FF] text-[#4A5DF9] border-transparent";
+    }
+
+    return "bg-gray-100 text-gray-600 border-transparent";
+  };
+
   const filteredCareers = careers.filter(
     (career) =>
       career.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -322,7 +336,12 @@ export function CareersTable() {
                   {career.min_salary ? career.min_salary.toLocaleString() : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="bg-white text-black border-border font-normal">
+                  <Badge
+                    variant="outline"
+                    className={`font-normal ${getGrowthBadgeClassName(
+                      String(growthRateMap[Number(career.growth_rate)] || career.growth_rate || "")
+                    )}`}
+                  >
                     {growthRateMap[Number(career.growth_rate)] || career.growth_rate || "N/A"}
                   </Badge>
                 </TableCell>

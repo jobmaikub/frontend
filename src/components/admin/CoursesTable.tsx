@@ -202,6 +202,19 @@ export function CoursesTable() {
     }
   };
 
+  const getLevelBadgeClassName = (level: string) => {
+    switch ((level || "").toLowerCase()) {
+      case "beginner":
+        return "bg-[#1FAA52] text-white border-transparent";
+      case "intermediate":
+        return "bg-[#4A5DF9] text-white border-transparent";
+      case "advanced":
+        return "bg-[#A855F7] text-white border-transparent";
+      default:
+        return "bg-white text-black border-slate-200";
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -318,7 +331,9 @@ export function CoursesTable() {
                 <TableCell>
                   <Badge
                     variant="outline"
-                    className="bg-white text-black border-slate-200 hover:bg-white hover:text-black capitalize font-normal"
+                    className={`hover:bg-inherit hover:text-inherit capitalize font-normal ${getLevelBadgeClassName(
+                      String(course.level)
+                    )}`}
                   >
                     {course.level}
                   </Badge>
