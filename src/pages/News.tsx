@@ -125,7 +125,8 @@ import { Navbar } from "@/components/navbar and footer/Navbar";
 import { Footer } from "@/components/navbar and footer/Footer";
 import { Search, Filter, ChevronDown, Loader, ChevronLeft, ChevronRight } from "lucide-react";
 import NewsCard from "@/components/news/NewsCard";
-import { getNews, searchNews, News } from "@/lib/news.api";
+import { getNews, searchNews } from "@/lib/news.api";
+import type { News } from "@/lib/news.api";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -133,7 +134,7 @@ export default function News() {
   // Application States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("All Industries");
-  const [newsArticles, setNewsArticles] = useState<any[]>([]);
+  const [newsArticles, setNewsArticles] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -141,11 +142,6 @@ export default function News() {
 
   // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
-
-  // Transform backend data to frontend format
-  const transformArticles = (data: any[]) => {
-    return data; // Pass backend data directly to NewsCard
-  };
 
   // Fetch News Data from Backend
   useEffect(() => {
@@ -159,15 +155,13 @@ export default function News() {
         
         console.log('Backend news response sample:', newsData[0]); // Debug
         
-        // Transform backend data to match frontend format
-        const transformedData = transformArticles(newsData);
-        setNewsArticles(transformedData);
+        setNewsArticles(newsData);
         
         // Extract unique industries from news data
         const industriesSet = new Set<string>();
-        newsData.forEach((article: any) => {
-          if (article.industry?.name) {
-            industriesSet.add(article.industry.name);
+        newsData.forEach((article) => {
+          if (article.industries?.name) {
+            industriesSet.add(article.industries.name);
           }
         });
         
@@ -188,14 +182,14 @@ export default function News() {
   }, []);
 
   // Search and Filter with Backend
-  const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
+  const [filteredArticles, setFilteredArticles] = useState<News[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
     const performSearch = async () => {
       try {
         setSearchLoading(true);
-        let results: any[];
+        let results: News[];
         
         if (searchQuery.trim()) {
           // Call backend search API
@@ -204,7 +198,7 @@ export default function News() {
           if (selectedIndustry !== "All Industries") {
             // Filter by industry if selected
             results = results.filter(
-              (article) => article.industry?.name === selectedIndustry
+              (article) => article.industries?.name === selectedIndustry
             );
           }
         } else {
@@ -213,11 +207,15 @@ export default function News() {
           
           if (selectedIndustry !== "All Industries") {
             results = results.filter(
-              (article) => article.industry?.name === selectedIndustry
+              (article) => article.industries?.name === selectedIndustry
             );
           }
         }
-        
+
+        results = [...results].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
         setFilteredArticles(results);
         setCurrentPage(1); // Reset to first page when search/filter changes
       } catch (err) {
@@ -322,7 +320,7 @@ export default function News() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedArticles.map((article) => (
-                  <NewsCard key={article.id} article={article} />
+                  <NewsCard key={article.news_id} article={article} />
                 ))}
               </div>
 

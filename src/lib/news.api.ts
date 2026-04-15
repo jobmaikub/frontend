@@ -12,7 +12,7 @@ export interface News {
   image_url: string;
   source_url: string;
   source_name: string;
-  date?: string;
+  date: string;
   created_at?: string;
   industries?: {
     industry_id: number;
@@ -20,9 +20,15 @@ export interface News {
   };
 }
 
+const sortNewsByDateDesc = (articles: News[]): News[] => {
+  return [...articles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+};
+
 export const getNews = async (): Promise<News[]> => {
   const res = await api.get("/");
-  return res.data;
+  return sortNewsByDateDesc(res.data);
 };
 
 export const searchNews = async (query: string, industry?: string): Promise<News[]> => {
@@ -32,7 +38,7 @@ export const searchNews = async (query: string, industry?: string): Promise<News
     params.append('industry', industry);
   }
   const res = await api.get(`/search/query?${params.toString()}`);
-  return res.data;
+  return sortNewsByDateDesc(res.data);
 };
 
 export const createNews = async (
