@@ -25,6 +25,16 @@ export const getNews = async (): Promise<News[]> => {
   return res.data;
 };
 
+export const searchNews = async (query: string, industry?: string): Promise<News[]> => {
+  const params = new URLSearchParams();
+  params.append('q', query);
+  if (industry && industry !== 'All Industries') {
+    params.append('industry', industry);
+  }
+  const res = await api.get(`/search/query?${params.toString()}`);
+  return res.data;
+};
+
 export const createNews = async (
   data: Partial<News>
 ): Promise<News> => {
