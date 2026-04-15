@@ -1,18 +1,13 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/faculties",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/faculties"
+);
 
 export interface Faculty {
   faculty_id: number;
-  name: string;
-  name_th?: string;
-  icon?: string;
-  theme_color?: string;
+  eng_name: string;
+  th_name?: string;
 }
 
 export const getFaculties = async (): Promise<Faculty[]> => {
@@ -20,14 +15,14 @@ export const getFaculties = async (): Promise<Faculty[]> => {
   return res.data;
 };
 
-export const createFaculty = async (data: { name: string }) => {
+export const createFaculty = async (data: { eng_name: string; th_name?: string }) => {
   const res = await api.post("/", data);
   return res.data;
 };
 
 export const updateFaculty = async (
   id: number,
-  data: { name: string }
+  data: { eng_name?: string; th_name?: string }
 ) => {
   const res = await api.patch(`/${id}`, data);
   return res.data;

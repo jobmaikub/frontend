@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -30,6 +40,9 @@ export function MajorsTable() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedMajor, setSelectedMajor] = useState<Major | null>(null);
+  const [majorToDelete, setMajorToDelete] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // 🔹 load majors
   useEffect(() => {
@@ -53,14 +66,28 @@ export function MajorsTable() {
 
   const filteredMajors = majors.filter(
     (major) =>
-      major.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      major.eng_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       String(major.faculty_id).includes(searchQuery)
   );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredMajors.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedMajors = filteredMajors.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   // 🔹 create
   const handleAddMajor = async (data: MajorFormData) => {
     const created = await createMajor(data);
     setMajors((prev) => [created, ...prev]);
+    setCurrentPage(1);
   };
 
   // 🔹 edit click
@@ -72,7 +99,8 @@ export function MajorsTable() {
   // 🔹 update
   const handleUpdateMajor = async (updated: Major) => {
     const result = await updateMajor(updated.major_id, {
-      name: updated.name,
+      eng_name: updated.eng_name,
+      th_name: updated.th_name,
       faculty_id: updated.faculty_id,
     });
 
@@ -90,13 +118,15 @@ export function MajorsTable() {
   const handleDelete = async (id: number) => {
     await deleteMajor(id);
     setMajors((prev) => prev.filter((m) => m.major_id !== id));
+    setMajorToDelete(null);
+    setCurrentPage(1);
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">Majors</h1>
+        <h1 className="text-3xl font-bold text-foreground">Majors</h1>
 
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -104,7 +134,10 @@ export function MajorsTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[200px] pl-9 bg-white"
             />
           </div>
@@ -141,45 +174,47 @@ export function MajorsTable() {
       <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Major Name</TableHead>
-              <TableHead>Faculty ID</TableHead>
-              <TableHead className="text-center">Edit</TableHead>
-              <TableHead className="text-center">Delete</TableHead>
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Major Name</TableHead>
+              <TableHead className="text-white font-semibold">Faculty</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {loading && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-6">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            )}
-
-            {!loading && filteredMajors.length === 0 && (
+            {loading && filteredMajors.length === 0 ? (
+              // Loading skeleton rows - match actual row height
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : filteredMajors.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-6">
                   No majors found
                 </TableCell>
               </TableRow>
-            )}
-
-            {filteredMajors.map((major) => (
-              <TableRow key={major.major_id}>
-                <TableCell>{major.name}</TableCell>
-                <TableCell>
+            ) : (
+              paginatedMajors.map((major) => (
+              <TableRow key={major.major_id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
+                <TableCell className="text-foreground font-medium">{major.eng_name}</TableCell>
+                <TableCell className="text-muted-foreground">
                   {
                     faculties.find(
                       (f) => f.faculty_id === major.faculty_id
-                    )?.name ?? "-"
+                    )?.eng_name ?? "-"
                   }
                 </TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(major)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -190,16 +225,76 @@ export function MajorsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(major.major_id)}
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    onClick={() => setMajorToDelete(major.major_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredMajors.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredMajors.length)} of {filteredMajors.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <AlertDialog open={majorToDelete !== null} onOpenChange={(open) => !open && setMajorToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this major?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (majorToDelete !== null) {
+                  void handleDelete(majorToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,12 +1,10 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { LessonsTable } from "@/components/admin/LessonsTable";
 
-const Lessons = () => {
+export default function AdminLessons() {
   return (
     <AdminLayout>
       <LessonsTable />
     </AdminLayout>
   );
-};
-
-export default Lessons;
+}

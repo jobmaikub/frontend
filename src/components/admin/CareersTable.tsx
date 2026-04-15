@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import axios from "axios";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -11,143 +22,181 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Career } from "@/data/careersData";
+import {
+  Career,
+  fetchCareers,
+  createCareer,
+  updateCareer,
+  deleteCareer,
+  replaceCareerInterestLinks,
+  replaceCareerSkillLinks,
+} from "@/lib/careers.api";
+import { getIndustries, Industry } from "@/lib/industries.api";
+import { getMajors, Major } from "@/lib/majors.api";
+import { getSkills, Skill } from "@/lib/skills.api";
+import { getInterests, Interest } from "@/lib/interests.api";
 import { AddCareerSheet, CareerFormData } from "./AddCareerSheet";
 import { EditCareerSheet } from "./EditCareerSheet";
+import { useToast } from "@/hooks/use-toast";
 
 export function CareersTable() {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [careers, setCareers] = useState<Career[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [majors, setMajors] = useState<Major[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [interests, setInterests] = useState<Interest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
+  const [careerToDelete, setCareerToDelete] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
-    fetch("http://localhost:3000/careers")
-      .then(res => res.json())
-      .then(data => {
-        const mapped = data.map((c: any) => ({
-          id: c.career_id,
-          title: c.title,
-          industry: c.industry,
-          minSalary: c.min_salary ?? 0,
-          growth:
-            c.growth_rate === 3 ? "High" :
-              c.growth_rate === 2 ? "Medium" : "Stable",
-          image: c.image_url,
-          interests: c.interest,
-          responsibilities: c.responsibilities?.join("\n") ?? "",
-          skills: c.required_skills?.join("\n") ?? "",
-        }));
-        setCareers(mapped);
-      });
+    Promise.all([fetchCareers(), getIndustries(), getMajors(), getSkills(), getInterests()])
+      .then(([careersData, industriesData, majorsData, skillsData, interestsData]) => {
+        setCareers(Array.isArray(careersData) ? careersData : []);
+        setIndustries(Array.isArray(industriesData) ? industriesData : []);
+        setMajors(Array.isArray(majorsData) ? majorsData : []);
+        setSkills(Array.isArray(skillsData) ? skillsData : []);
+        setInterests(Array.isArray(interestsData) ? interestsData : []);
+      })
+      .catch((err) => console.error("Failed to load careers data:", err))
+      .finally(() => setLoading(false));
   }, []);
+
+  const growthRateMap: Record<number, string> = {
+    1: "Stable",
+    2: "Medium",
+    3: "High",
+  };
+
+  const getGrowthBadgeClassName = (growth: string) => {
+    const normalizedGrowth = growth.toLowerCase();
+
+    if (normalizedGrowth.includes("high")) {
+      return "bg-[#E5F7ED] text-[#1FAA52] border-transparent";
+    }
+
+    if (normalizedGrowth.includes("medium")) {
+      return "bg-[#F0F4FF] text-[#4A5DF9] border-transparent";
+    }
+
+    return "bg-gray-100 text-gray-600 border-transparent";
+  };
 
   const filteredCareers = careers.filter(
     (career) =>
-      career.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      career.industry.toLowerCase().includes(searchQuery.toLowerCase())
+      career.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      career.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddCareer = async (data: CareerFormData) => {
-    const res = await fetch("http://localhost:3000/careers", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: data.title,
-        description: data.description,
-        industry: data.industry,
+  // Pagination
+  const totalPages = Math.ceil(filteredCareers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCareers = filteredCareers.slice(startIndex, startIndex + itemsPerPage);
 
-        minSalary: data.minSalary ?? 0,
-        maxSalary: data.maxSalary ?? 0,
-        image: data.image || "",
-
-        growth:
-          data.growth === "High" ? 3 :
-            data.growth === "Medium" ? 2 : 1,
-
-        interest: data.interests,
-        required_skills: data.skills.split("\n"),
-        responsibilities: data.responsibilities.split("\n"),
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      console.error("POST /careers error:", err);
-      return;
-    }
-
-    // reload
-    const careers = await (await fetch("http://localhost:3000/careers")).json();
-    setCareers(
-      careers.map((c: any) => ({
-        id: c.career_id,
-        title: c.title,
-        industry: c.industry,
-        minSalary: c.min_salary ?? 0,
-        growth:
-          c.growth_rate === 3 ? "High" :
-            c.growth_rate === 2 ? "Medium" : "Stable",
-        image: c.image_url,
-        interests: c.interest,
-        responsibilities: c.responsibilities?.join("\n") ?? "",
-        skills: c.required_skills?.join("\n") ?? "",
-      }))
-    );
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleUpdateCareer = async (data: any) => {
-    await fetch(`http://localhost:3000/careers/${data.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handleAddCareer = async (data: CareerFormData) => {
+    try {
+      const created = await createCareer({
         title: data.title,
         description: data.description,
-        industry: data.industry,
+        industry_id: data.industry_id,
+        major_id: data.major_id,
+        min_salary: data.min_salary,
+        max_salary: data.max_salary,
+        growth_rate: Number(data.growth_rate),
+        image_url: data.image_url || "",
+        required_skills: data.required_skills.split("\n").filter(Boolean),
+        responsibilities: data.responsibilities.split("\n").filter(Boolean),
+      });
+      await Promise.all([
+        replaceCareerSkillLinks(created.career_id, data.skill_ids ?? []),
+        replaceCareerInterestLinks(created.career_id, data.interest_ids ?? []),
+      ]);
+      const updated = await fetchCareers();
+      setCareers(Array.isArray(updated) ? updated : []);
+      setIsAddSheetOpen(false);
+      setCurrentPage(1);
+    } catch (err) {
+      let message = "Failed to add career";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as any)?.message ||
+          (err.response?.data as any)?.error ||
+          err.message ||
+          message;
+        console.error("Failed to add career:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+      }
+      toast({
+        title: "Add Career Failed",
+        description: String(message),
+        variant: "destructive",
+      });
+      console.error("Failed to add career:", err);
+    }
+  };
 
-        minSalary: data.minSalary,
-        maxSalary: data.maxSalary,
-
-        growth:
-          data.growth === "High" ? 3 :
-            data.growth === "Medium" ? 2 : 1,
-
-        image: data.image,
-
-        interest: data.interests,
-
-        required_skills: data.skills.split("\n"),
-        responsibilities: data.responsibilities.split("\n"),
-
-        learningOutcome: data.learningOutcome,
-      }),
-    });
-
-    // reload list
-    const res = await fetch("http://localhost:3000/careers");
-    const careers = await res.json();
-
-    setCareers(
-      careers.map((c: any) => ({
-        id: c.career_id,
-        title: c.title,
-        industry: c.industry,
-        minSalary: c.min_salary ?? 0,
-        growth:
-          c.growth_rate === 3 ? "High" :
-            c.growth_rate === 2 ? "Medium" : "Stable",
-        image: c.image_url,
-        interests: c.interest,
-        responsibilities: c.responsibilities?.join("\n") ?? "",
-        skills: c.required_skills?.join("\n") ?? "",
-        learningOutcome: c.learning_outcome ?? "",
-      }))
-    );
+  const handleUpdateCareer = async (data: Partial<Career> & { skill_ids?: number[]; interest_ids?: number[] }) => {
+    try {
+      const careerId = data.career_id ?? selectedCareer?.career_id;
+      if (!careerId) throw new Error("Career ID is required");
+      await updateCareer(careerId, {
+        title: data.title,
+        description: data.description,
+        industry_id: data.industry_id,
+        major_id: data.major_id,
+        min_salary: data.min_salary,
+        max_salary: data.max_salary,
+        growth_rate: data.growth_rate ? Number(data.growth_rate) : undefined,
+        image_url: data.image_url,
+        required_skills: data.required_skills,
+        responsibilities: data.responsibilities,
+      });
+      await Promise.all([
+        replaceCareerSkillLinks(careerId, data.skill_ids ?? []),
+        replaceCareerInterestLinks(careerId, data.interest_ids ?? []),
+      ]);
+      const updated = await fetchCareers();
+      setCareers(Array.isArray(updated) ? updated : []);
+      setIsEditSheetOpen(false);
+      setSelectedCareer(null);
+    } catch (err) {
+      let message = "Failed to update career";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as any)?.message ||
+          (err.response?.data as any)?.error ||
+          err.message ||
+          message;
+        console.error("Failed to update career:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+      }
+      toast({
+        title: "Update Career Failed",
+        description: String(message),
+        variant: "destructive",
+      });
+      console.error("Failed to update career:", err);
+    }
   };
 
   const handleEditClick = (career: Career) => {
@@ -156,11 +205,27 @@ export function CareersTable() {
   };
 
   const handleDelete = async (id: number) => {
-    await fetch(`http://localhost:3000/careers/${id}`, {
-      method: "DELETE",
-    });
-
-    setCareers((prev) => prev.filter((career) => career.id !== id));
+    try {
+      await deleteCareer(id);
+      setCareers((prev) => prev.filter((career) => career.career_id !== id));
+      setCurrentPage(1);
+      setCareerToDelete(null);
+    } catch (err) {
+      let message = "Unable to delete this career.";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as any)?.message ||
+          (err.response?.data as any)?.error ||
+          err.message ||
+          message;
+      }
+      toast({
+        title: "Delete Career Failed",
+        description: String(message),
+        variant: "destructive",
+      });
+      console.error("Failed to delete career:", err);
+    }
   };
 
   return (
@@ -174,7 +239,10 @@ export function CareersTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[200px] pl-9 bg-[#FFFFFF]"
             />
           </div>
@@ -192,6 +260,10 @@ export function CareersTable() {
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}
         onSubmit={handleAddCareer}
+        industries={industries}
+        majors={majors}
+        skills={skills}
+        interests={interests}
       />
 
       <EditCareerSheet
@@ -199,60 +271,85 @@ export function CareersTable() {
         onOpenChange={setIsEditSheetOpen}
         onSubmit={handleUpdateCareer}
         career={selectedCareer}
+        industries={industries}
+        majors={majors}
+        skills={skills}
+        interests={interests}
       />
 
-
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-table-header hover:bg-table-header">
-              <TableHead className="text-table-header-foreground font-semibold">Image</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Title</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Industry</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Min Salary</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Growth</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Edit</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Delete</TableHead>
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Image</TableHead>
+              <TableHead className="text-white font-semibold">Career Name</TableHead>
+              <TableHead className="text-white font-semibold">Industry</TableHead>
+              <TableHead className="text-white font-semibold">Min Salary</TableHead>
+              <TableHead className="text-white font-semibold">Growth</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {filteredCareers.map((career) => (
+            {loading && filteredCareers.length === 0 ? (
+              // Loading skeleton rows - match actual row height
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-12 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-20 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : filteredCareers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6">
+                  No careers found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedCareers.map((career) => (
               <TableRow
-                key={career.id}
+                key={career.career_id}
                 className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
               >
                 <TableCell>
                   <div className="h-12 w-20 overflow-hidden rounded-md bg-muted">
                     <img
-                      src={career.image}
+                      src={career.image_url}
                       alt={career.title}
                       className="h-full w-full object-cover"
                     />
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">{career.title}</TableCell>
-
+                <TableCell className="font-medium text-foreground">{career.title}</TableCell>
                 <TableCell>
-                  <span className="text-[#4A5DF9] font-medium">
-                    {career.industry}
+                  <span className="text-muted-foreground font-medium">
+                    {career.industries?.name || "N/A"}
                   </span>
                 </TableCell>
-
-                <TableCell className="text-muted-foreground">
-                  {career.minSalary.toLocaleString()}
+                <TableCell className="text-foreground">
+                  {career.min_salary ? career.min_salary.toLocaleString() : "N/A"}
                 </TableCell>
                 <TableCell>
-                  {/* UPDATED: Added font-normal to make the text regular weight */}
-                  <Badge variant="outline" className="bg-white text-black border-border font-normal">
-                    {career.growth}
+                  <Badge
+                    variant="outline"
+                    className={`font-normal ${getGrowthBadgeClassName(
+                      String(growthRateMap[Number(career.growth_rate)] || career.growth_rate || "")
+                    )}`}
+                  >
+                    {growthRateMap[Number(career.growth_rate)] || career.growth_rate || "N/A"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-transparent"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(career)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -262,17 +359,76 @@ export function CareersTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-transparent hover:text-destructive"
-                    onClick={() => handleDelete(career.id)}
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    onClick={() => setCareerToDelete(career.career_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredCareers.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCareers.length)} of {filteredCareers.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <AlertDialog open={careerToDelete !== null} onOpenChange={(open) => !open && setCareerToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this career?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (careerToDelete !== null) {
+                  void handleDelete(careerToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

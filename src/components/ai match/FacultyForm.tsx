@@ -1,40 +1,38 @@
 import React, { useState } from "react";
 import { Search, GraduationCap, ArrowRight } from "lucide-react";
-
-// Expanded list of faculties to ensure the scrollbar is visible
-const faculties = [
-  "Engineering", 
-  "Science", 
-  "Business Administration", 
-  "Art & Humanities", 
-  "Information Technology", 
-  "Medicine",
-  "Law",
-  "Education",
-  "Architecture",
-  "Agriculture",
-  "Fine Arts",
-  "Social Sciences",
-  "Economics",
-  "Dentistry",
-  "Pharmacy",
-  "Veterinary Science",
-  "Nursing"
-];
+import { getFaculties } from "@/lib/ai.api";
 
 interface FacultyFormProps {
-  onNext: () => void;
+  initialFacultyId: number | null;
+  onNext: (facultyId: number) => void;
 }
 
-export function FacultyForm({ onNext }: FacultyFormProps) {
+export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
   // State for search input and the currently selected faculty
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFaculty, setSelectedFaculty] = useState<string | null>(null);
+  const [selectedFacultyId, setSelectedFacultyId] = useState<number | null>(initialFacultyId);
+  const [faculties, setFaculties] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const loadFaculties = async () => {
+      try {
+        const data = await getFaculties();
+        setFaculties(data);
+      } catch (err) {
+        console.error("Error loading faculties:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadFaculties();
+  }, []);
 
   // Filter the faculties based on the search query
-  const filteredFaculties = faculties.filter((faculty) =>
-    faculty.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFaculties = faculties.filter((faculty) => {
+    const name = faculty.eng_name || faculty.th_name || "";
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <>
@@ -64,18 +62,20 @@ export function FacultyForm({ onNext }: FacultyFormProps) {
 
         {/* Faculty Grid with Custom Scrollbar */}
         <div className="grid grid-cols-2 gap-4 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
-          {filteredFaculties.length > 0 ? (
+          {isLoading ? (
+            <div className="col-span-2 text-center text-gray-500 py-4">Loading faculties...</div>
+          ) : filteredFaculties.length > 0 ? (
             filteredFaculties.map((f) => (
               <button 
-                key={f}
-                onClick={() => setSelectedFaculty(f)}
+                key={f.faculty_id}
+                onClick={() => setSelectedFacultyId(f.faculty_id)}
                 className={`flex w-full items-center justify-start rounded-xl border px-6 py-4 text-[18px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] ${
-                  selectedFaculty === f 
+                  selectedFacultyId === f.faculty_id 
                     ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]" // Active state styling
                     : "border-gray-200 text-gray-700 bg-white"      // Default state styling
                 }`}
               >
-                {f}
+                {f.eng_name || f.th_name}
               </button>
             ))
           ) : (
@@ -89,8 +89,11 @@ export function FacultyForm({ onNext }: FacultyFormProps) {
       {/* Navigation Buttons */}
       <div className="mt-8 flex justify-end">
         <button 
-          onClick={onNext}
-          className="flex items-center gap-2 rounded-xl bg-[#4A5DF9] px-8 py-3 text-[16px] font-medium text-white transition-opacity hover:opacity-90 shadow-sm"
+          onClick={() => selectedFacultyId && onNext(selectedFacultyId)}
+          disabled={!selectedFacultyId}
+          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
+            selectedFacultyId ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          }`}
         >
           Continue
           <ArrowRight size={16} />

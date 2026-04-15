@@ -1,51 +1,34 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/lessons",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export interface Lesson {
+  lesson_id: number;
+  title: string;
+  course_id: number;
+  lesson_order: number;
+  duration_mins: number;
+  external_url: string;
+}
 
-export const lessonsApi = {
-  getAll: (courseId?: number) =>
-    api.get("/", {
-      params: courseId ? { course_id: courseId } : {},
-    }),
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/lessons"
+);
 
-  create: (data: {
-    title: string;
-    courseId: number;
-    order: number;
-    duration?: number;
-    externalUrl?: string;
-  }) =>
-    api.post("/", {
-      title: data.title,
-      course_id: data.courseId,
-      lesson_order: data.order,
-      duration: data.duration,
-      external_url: data.externalUrl,
-    }),
+export async function getLessons(): Promise<Lesson[]> {
+  const res = await api.get("/");
+  return res.data;
+}
 
-  update: (
-    id: number,
-    data: {
-      title?: string;
-      courseId?: number;
-      order?: number;
-      duration?: number;
-      externalUrl?: string;
-    }
-  ) =>
-    api.patch(`/${id}`, {
-      title: data.title,
-      course_id: data.courseId,
-      lesson_order: data.order,
-      duration: data.duration,
-      external_url: data.externalUrl,
-    }),
+export async function createLesson(data: Partial<Lesson>) {
+  const res = await api.post("/", data);
+  return res.data;
+}
 
-  delete: (id: number) =>
-    api.delete(`/${id}`),
-};
+export async function updateLesson(id: number, data: Partial<Lesson>) {
+  const res = await api.patch(`/${id}`, data);
+  return res.data;
+}
+
+export async function deleteLesson(id: number) {
+  const res = await api.delete(`/${id}`);
+  return res.data;
+}

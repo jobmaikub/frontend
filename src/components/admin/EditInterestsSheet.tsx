@@ -8,29 +8,33 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Interest } from "@/data/interestsData";
+import { Interest } from "@/lib/interests.api";
 
 interface EditInterestsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Interest) => void;
+  onSubmit: (data: Partial<Interest>) => Promise<void>;
   interest: Interest | null;
 }
 
 export function EditInterestsSheet({ open, onOpenChange, onSubmit, interest }: EditInterestsSheetProps) {
-  const [formData, setFormData] = useState({ name: "" });
+  const [formData, setFormData] = useState({ interest_name: "" });
 
   useEffect(() => {
     if (interest) {
-      setFormData({ name: interest.name });
+      setFormData({ interest_name: interest.interest_name || "" });
     }
   }, [interest]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (interest) {
-      onSubmit({ ...interest, name: formData.name });
-      onOpenChange(false);
+      try {
+        await onSubmit({ interest_name: formData.interest_name });
+        onOpenChange(false);
+      } catch (error) {
+        console.error("Error updating interest:", error);
+      }
     }
   };
 
@@ -48,8 +52,8 @@ export function EditInterestsSheet({ open, onOpenChange, onSubmit, interest }: E
             </Label>
             <Input
               id="edit-name"
-              value={formData.name}
-              onChange={(e) => setFormData({ name: e.target.value })}
+              value={formData.interest_name}
+              onChange={(e) => setFormData({ interest_name: e.target.value })}
               required
               className="bg-white"
             />
@@ -59,12 +63,12 @@ export function EditInterestsSheet({ open, onOpenChange, onSubmit, interest }: E
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-white text-black hover:text-black border-slate-200 shadow-none"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white">
               Update
             </Button>
           </div>

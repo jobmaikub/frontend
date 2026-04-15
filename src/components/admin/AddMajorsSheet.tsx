@@ -25,7 +25,8 @@ interface AddMajorsSheetProps {
 }
 
 export interface MajorFormData {
-  name: string;
+  eng_name: string;
+  th_name?: string;
   faculty_id: number;
 }
 
@@ -36,23 +37,25 @@ export function AddMajorsSheet({
   faculties,
 }: AddMajorsSheetProps) {
   const [formData, setFormData] = useState<MajorFormData>({
-    name: "",
+    eng_name: "",
+    th_name: "",
     faculty_id: 0,
   });
 
   const isValid =
-    formData.name.trim().length > 0 && formData.faculty_id > 0;
+    formData.eng_name.trim().length > 0 && formData.faculty_id > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) return;
 
     await onSubmit({
-      name: formData.name.trim(),
+      eng_name: formData.eng_name.trim(),
+      th_name: formData.th_name?.trim(),
       faculty_id: formData.faculty_id,
     });
 
-    setFormData({ name: "", faculty_id: 0 });
+    setFormData({ eng_name: "", th_name: "", faculty_id: 0 });
     onOpenChange(false);
   };
 
@@ -68,14 +71,29 @@ export function AddMajorsSheet({
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Major name */}
           <div className="space-y-2">
-            <Label>
-              Major Name <span className="text-destructive">*</span>
+            <Label>(English) <span className="text-destructive">*</span>
             </Label>
             <Input
               placeholder="e.g., Computer Science"
-              value={formData.name}
+              value={formData.eng_name}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, eng_name: e.target.value })
+              }
+              className="bg-white"
+              required
+            />
+          </div>
+
+          {/* Major name Thai */}
+          <div className="space-y-2">
+            <Label>
+              Major Name (Thai)
+            </Label>
+            <Input
+              placeholder="e.g., วิทยาการคอมพิวเตอร์"
+              value={formData.th_name || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, th_name: e.target.value })
               }
               className="bg-white"
               required
@@ -110,7 +128,7 @@ export function AddMajorsSheet({
                     key={faculty.faculty_id}
                     value={faculty.faculty_id.toString()}
                   >
-                    {faculty.name}
+                    {faculty.eng_name}
                   </SelectItem>
                 ))}
               </SelectContent>

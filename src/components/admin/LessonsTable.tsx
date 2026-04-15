@@ -1,7 +1,17 @@
 import { useState } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -10,68 +20,110 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { Lesson } from "@/data/lessonsData";
+import { Lesson, getLessons, deleteLesson, createLesson, updateLesson } from "@/lib/lessons.api";
+import { getCourses, Course } from "@/lib/courses.api";
 import { AddLessonsSheet, LessonFormData } from "./AddLessonsSheet";
-import { EditLessonsSheet } from "./EditLessonsSheet"; // Import the edit sheet
+import { EditLessonsSheet } from "./EditLessonsSheet";
 import { useEffect } from "react";
-import { lessonsApi } from "@/lib/lessons.api";
 
-const mapLesson = (l: any) => ({
-  id: l.lesson_id,
-  title: l.title,
-  courseId: l.course_id,
-  course: l.courses?.title ?? "",
-  order: l.lesson_order,
-  duration: l.duration,
-  externalUrl: l.external_url,
-});
+const mapLesson = (l: any, courses: Course[]) => {
+  const course = courses.find((c) => c.course_id === l.course_id);
+  return {
+    lesson_id: l.lesson_id,
+    id: l.lesson_id,
+    title: l.title,
+    course_id: l.course_id,
+    courseId: l.course_id,
+    course: course?.title || `Course #${l.course_id}`,
+    lesson_order: l.lesson_order,
+    order: l.lesson_order,
+    duration_mins: l.duration_mins,
+    external_url: l.external_url,
+    externalUrl: l.external_url,
+  };
+};
 
 export function LessonsTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const filteredLessons = lessons.filter(
     (lesson) =>
       lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lesson.course.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination
+  const totalPages = Math.ceil(filteredLessons.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLessons = filteredLessons.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   useEffect(() => {
-  lessonsApi.getAll().then((res) => {
-    setLessons(res.data.map(mapLesson));
-  });
-}, []);
+    const fetchData = async () => {
+      try {
+        const [lessonsData, coursesData] = await Promise.all([
+          getLessons(),
+          getCourses(),
+        ]);
+        setCourses(Array.isArray(coursesData) ? coursesData : []);
+        setLessons((lessonsData || []).map((l) => mapLesson(l, Array.isArray(coursesData) ? coursesData : [])));
+      } catch (err) {
+        console.error('Failed to load lessons or courses:', err);
+        setLessons([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const handleAddLesson = async (data: LessonFormData) => {
-  await lessonsApi.create(data);
-  const res = await lessonsApi.getAll();
-  setLessons(res.data.map(mapLesson));
-};
+  const handleAddLesson = async (data: Partial<Lesson>) => {
+    try {
+      await createLesson(data as Lesson);
+      const lessonsData = await getLessons();
+      setLessons((lessonsData || []).map((l) => mapLesson(l, courses)));
+      setCurrentPage(1);
+    } catch (err) {
+      console.error("Failed to add lesson:", err);
+    }
+  };
 
 
-  const handleUpdateLesson = async (lesson: Lesson) => {
-  await lessonsApi.update(lesson.id, {
-    title: lesson.title,
-    courseId: lesson.courseId,
-    order: lesson.order,
-    duration: lesson.duration,
-    externalUrl: lesson.externalUrl,
-  });
+  const handleUpdateLesson = async (data: Partial<Lesson>) => {
+    if (!selectedLesson?.lesson_id) return;
+    await updateLesson(selectedLesson.lesson_id, data);
 
-  const res = await lessonsApi.getAll();
-  setLessons(res.data.map(mapLesson));
-};
+    const lessonsData = await getLessons();
+    setLessons((lessonsData || []).map((l) => mapLesson(l, courses)));
+    setCurrentPage(1);
+  };
 
-  const handleEditClick = (lesson: Lesson) => {
+  const handleEditClick = (lesson: any) => {
     setSelectedLesson(lesson);
     setIsEditSheetOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    await lessonsApi.delete(id);
+    await deleteLesson(id);
     setLessons(lessons.filter((l) => l.id !== id));
+    setLessonToDelete(null);
+    setCurrentPage(1);
   };
 
   return (
@@ -85,7 +137,10 @@ export function LessonsTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[200px] pl-9 bg-[#FFFFFF]"
             />
           </div>
@@ -112,33 +167,52 @@ export function LessonsTable() {
         lesson={selectedLesson}
       />
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-table-header hover:bg-table-header">
-              <TableHead className="text-table-header-foreground font-semibold">Title</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold">Course</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Order</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Duration (min)</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Edit</TableHead>
-              <TableHead className="text-table-header-foreground font-semibold text-center">Delete</TableHead>
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Lesson Name</TableHead>
+              <TableHead className="text-white font-semibold">Course</TableHead>
+              <TableHead className="text-white font-semibold text-center">Order</TableHead>
+              <TableHead className="text-white font-semibold text-center">Duration (min)</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredLessons.map((lesson) => (
+            {loading && filteredLessons.length === 0 ? (
+              // Loading skeleton rows
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-3 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-3 bg-gray-200 rounded animate-pulse w-12 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-8 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : filteredLessons.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
+                  No lessons found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedLessons.map((lesson) => (
               <TableRow
                 key={lesson.id}
                 className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
               >
-                <TableCell className="font-medium">{lesson.title}</TableCell>
+                <TableCell className="font-medium text-foreground">{lesson.title}</TableCell>
                 <TableCell className="text-muted-foreground">{lesson.course}</TableCell>
-                <TableCell className="text-center">{lesson.order}</TableCell>
-                <TableCell className="text-center">{lesson.duration}</TableCell>
+                <TableCell className="text-center text-foreground">{lesson.order}</TableCell>
+                <TableCell className="text-center text-muted-foreground">{lesson.duration_mins}</TableCell>
                 <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-transparent"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(lesson)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -148,17 +222,76 @@ export function LessonsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-transparent hover:text-destructive"
-                    onClick={() => handleDelete(lesson.id)}
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    onClick={() => setLessonToDelete(lesson.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredLessons.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredLessons.length)} of {filteredLessons.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <AlertDialog open={lessonToDelete !== null} onOpenChange={(open) => !open && setLessonToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this lesson?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (lessonToDelete !== null) {
+                  void handleDelete(lessonToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
