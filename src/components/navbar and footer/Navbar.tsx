@@ -18,7 +18,7 @@ const navItems = [
   { name: "News", path: "/news" },
   { name: "AI Match", path: "/ai-match" },
   { name: "Learning Path", path: "/learning-path" },
-  { name: "Track Progress", path: "/not-found" },
+  { name: "Track Progress", path: "/track-progress" },
 ];
 
 export function Navbar() {

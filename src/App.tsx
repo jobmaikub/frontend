@@ -25,6 +25,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import News from "./pages/News";
+import TrackProgress from "./pages/TrackProgress";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +50,8 @@ const App = () => (
             {/* User-facing Routes */}
             <Route path="/" element={<Navigate to="/ai-match" replace />} /> 
             <Route path="/ai-match" element={<ProtectedRoute><AIMatch /></ProtectedRoute>} /> 
-            <Route path="/learning-path" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} /> 
+            <Route path="/learning-path" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
+            <Route path="/track-progress" element={<ProtectedRoute><TrackProgress /></ProtectedRoute>} /> 
             {/* Add the user-facing News route here */}
             <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} /> 
             <Route path="/not-found" element={<NotFound />} />

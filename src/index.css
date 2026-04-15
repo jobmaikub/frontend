@@ -39,6 +39,12 @@ All colors MUST be HSL.
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 227 71% 55%;
+    
+    --heatmap-0: 230 25% 93%;
+    --heatmap-1: 234 40% 82%;
+    --heatmap-2: 234 50% 72%;
+    --heatmap-3: 234 55% 62%;
+    --heatmap-4: 234 60% 50%;
 
     --radius: 0.75rem;
 
