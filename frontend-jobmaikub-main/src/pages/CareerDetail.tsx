@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import {
   ArrowLeft,
   TrendingUp,
@@ -19,7 +20,8 @@ import {
 import IndustryNewsDialog from '@/components/IndustryNewsDialog';
 import ReviewSection from '@/components/ReviewSection';
 import { useCareers } from '@/hooks/useCareers';
-import { industryNews, getCareerStats } from '@/data/mockData';
+import { getCareerStats, fetchIndustryNewsFromDatabase } from '@/data/mockData';
+import type { NewsArticle } from '@/data/mockData';
 
 const growthConfig = {
   high: {
@@ -50,8 +52,27 @@ const CareerDetail = () => {
   const navigate = useNavigate();
   const { careers, loading, error } = useCareers();
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
 
-  const career = careers.find((c) => c.id === id);
+  // Fetch industry news from database
+  useEffect(() => {
+    const loadNews = async () => {
+      setNewsLoading(true);
+      try {
+        const newsData = await fetchIndustryNewsFromDatabase();
+        setNews(newsData);
+      } catch (err) {
+        console.error('Error loading news:', err);
+        setNews([]);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+    loadNews();
+  }, []);
+
+  const career = careers.find((c) => String(c.id) === id);
 
   if (loading) {
     return (
@@ -78,7 +99,7 @@ const CareerDetail = () => {
   }
 
   const growth = growthConfig[career.growthRate];
-  const sidebarNews = industryNews.slice(0, 3);
+  const sidebarNews = news.slice(0, 3);
   const { totalCourses, totalHours } = getCareerStats(career);
 
   return (
@@ -139,7 +160,7 @@ const CareerDetail = () => {
                 </div>
               </div>
               <p className="mt-4 text-4xl font-bold">
-                ฿{career.salaryMin}K - ฿{career.salaryMax}K
+                ฿{career.salaryMin} - ฿{career.salaryMax}
               </p>
               <p className="mt-1 text-sm opacity-70">Per month</p>
             </div>
@@ -184,8 +205,8 @@ const CareerDetail = () => {
                       Key Responsibilities
                     </h3>
                     <div className="space-y-3">
-                      {career.keyResponsibilities.map((resp, i) => (
-                        <div key={i} className="flex items-start gap-3">
+                      {career.keyResponsibilities.map((resp) => (
+                        <div key={resp} className="flex items-start gap-3">
                           <CheckCircle2 className="h-5 w-5 text-growth-high mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-muted-foreground">
                             {resp}
@@ -201,8 +222,8 @@ const CareerDetail = () => {
                   <div className="bg-card rounded-xl p-6 border border-border">
                     <h3 className="text-lg font-bold mb-4">Required Skills</h3>
                     <div className="grid grid-cols-2 gap-4">
-                      {career.requiredSkills.map((skill, i) => (
-                        <div key={i} className="flex items-center gap-3">
+                      {career.requiredSkills.map((skill) => (
+                        <div key={`${skill.name}-${skill.type}`} className="flex items-center gap-3">
                           <div
                             className={`h-10 w-10 rounded-xl flex items-center justify-center ${
                               skillIconColors[skill.type] ||
@@ -226,7 +247,11 @@ const CareerDetail = () => {
                 {/* Reviews */}
                 <TabsContent value="reviews" className="mt-3">
                   <div className="bg-card rounded-xl p-6 border border-border">
-                    <ReviewSection reviews={career.reviews} />
+                    <ReviewSection 
+                      careerId={Number(id)} 
+                      userId=""
+                      reviews={career.reviews}
+                    />
                   </div>
                 </TabsContent>
               </Tabs>
@@ -276,6 +301,7 @@ const CareerDetail = () => {
       <IndustryNewsDialog
         open={newsDialogOpen}
         onOpenChange={setNewsDialogOpen}
+        news={news}
       />
     </div>
   );

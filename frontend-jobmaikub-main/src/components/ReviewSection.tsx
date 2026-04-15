@@ -1,5 +1,5 @@
       {/* เก่า */}
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Star, Heart, MoreVertical, ChevronDown } from 'lucide-react'
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import type { Review } from '@/data/mockData'
 import { toast } from 'sonner'
+import * as reviewsApi from '@/lib/reviews.api'
 
 import {
   AlertDialog,
@@ -353,14 +354,36 @@ const ReviewItem = ({
 /* ---------------- REVIEW SECTION ---------------- */
 
 interface ReviewSectionProps {
-  reviews: Review[]
+  reviews?: Review[]
+  careerId: number
+  userId: string
 }
 
-const ReviewSection = ({ reviews }: ReviewSectionProps) => {
-  const [reviewList, setReviewList] = useState<Review[]>(reviews)
+const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: ReviewSectionProps) => {
+  const [reviewList, setReviewList] = useState<Review[]>(initialReviews)
   const [sortBy, setSortBy] = useState('newest')
   const [userRating, setUserRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [userName, setUserName] = useState('You')
+
+  // Fetch reviews from API on mount or when careerId changes
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true)
+        const data = await reviewsApi.getReviewsByCareer(careerId)
+        setReviewList(data)
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error)
+        toast.error('Failed to load reviews')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchReviews()
+  }, [careerId])
 
   const isSubmitDisabled =
     userRating === 0 || reviewText.trim() === ''
@@ -386,73 +409,83 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
       : parseDate(a.date) - parseDate(b.date)
   })
 
-  const handleDelete = (id: string) => {
-    const deleteRecursive = (list: Review[]): Review[] =>
-      list
-        .filter((item) => item.id !== id)
-        .map((item) => ({
-          ...item,
-          replies: item.replies
-            ? deleteRecursive(item.replies)
-            : [],
-        }))
+  const handleDelete = async (id: string) => {
+    try {
+      await reviewsApi.deleteReview(Number(id))
+      
+      const deleteRecursive = (list: Review[]): Review[] =>
+        list
+          .filter((item) => item.id !== id)
+          .map((item) => ({
+            ...item,
+            replies: item.replies
+              ? deleteRecursive(item.replies)
+              : [],
+          }))
 
-    setReviewList((prev) => deleteRecursive(prev))
+      setReviewList((prev) => deleteRecursive(prev))
+      toast.success('Review deleted')
+    } catch (error) {
+      console.error('Failed to delete review:', error)
+      toast.error('Failed to delete review')
+    }
   }
 
-  const handleAddReply = (parentId: string, text: string) => {
-    const today = new Date().toLocaleDateString('th-TH')
-
-    const newReply: Review = {
-      id: crypto.randomUUID(),
-      author: 'You',
-      rating: 0,
-      comment: text,
-      date: today,
-      likes: 0,
-      replies: [],
-    }
-
-    const addReplyRecursive = (list: Review[]): Review[] =>
-      list.map((item) => {
-        if (item.id === parentId) {
-          return {
-            ...item,
-            replies: [...(item.replies || []), newReply],
-          }
-        }
-        if (item.replies) {
-          return {
-            ...item,
-            replies: addReplyRecursive(item.replies),
-          }
-        }
-        return item
+  const handleAddReply = async (parentId: string, text: string) => {
+    try {
+      const newReply = await reviewsApi.addReply(Number(parentId), {
+        user_id: userId,
+        author: userName,
+        comment: text,
       })
 
-    setReviewList((prev) => addReplyRecursive(prev))
-    toast.success('Reply sent')
+      const addReplyRecursive = (list: Review[]): Review[] =>
+        list.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              replies: [...(item.replies || []), newReply],
+            }
+          }
+          if (item.replies) {
+            return {
+              ...item,
+              replies: addReplyRecursive(item.replies),
+            }
+          }
+          return item
+        })
+
+      setReviewList((prev) => addReplyRecursive(prev))
+      toast.success('Reply sent')
+    } catch (error) {
+      console.error('Failed to add reply:', error)
+      toast.error('Failed to add reply')
+    }
   }
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (isSubmitDisabled) return
 
-    const today = new Date().toLocaleDateString('th-TH')
+    try {
+      const newReview = await reviewsApi.createReview({
+        career_id: careerId,
+        user_id: userId,
+        author: userName,
+        rating: userRating,
+        comment: reviewText,
+      })
 
-    const newReview: Review = {
-      id: crypto.randomUUID(),
-      author: 'You',
-      rating: userRating,
-      comment: reviewText,
-      date: today,
-      likes: 0,
-      replies: [],
+      setReviewList((prev) => [newReview, ...prev])
+      toast.success('Review submitted successfully!')
+      setUserRating(0)
+      setReviewText('')
+    } catch (error: any) {
+      console.error('Failed to submit review:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to submit review'
+      console.error('Backend error:', errorMessage)
+      toast.error(errorMessage)
     }
-
-    setReviewList((prev) => [...prev, newReview])
-    toast.success('Review submitted successfully!')
-    setUserRating(0)
-    setReviewText('')
   }
 
   return (
@@ -506,10 +539,10 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
 
         <Button
           onClick={handleSubmitReview}
-          disabled={!userRating || !reviewText.trim()}
+          disabled={!userRating || !reviewText.trim() || loading}
           className="mt-3"
         >
-          Submit Review
+          {loading ? 'Submitting...' : 'Submit Review'}
         </Button>
       </div>
 
@@ -529,15 +562,25 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
         </div>
 
         <div className="space-y-4">
-          {sortedReviews.map((review) => (
-            <ReviewItem
-              key={review.id}
-              review={review}
-              onReply={handleAddReply}
-              onDelete={handleDelete}
-              
-            />
-          ))}
+          {loading && reviewList.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              Loading reviews...
+            </p>
+          ) : sortedReviews.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              No reviews yet. Be the first to review!
+            </p>
+          ) : (
+            sortedReviews.map((review) => (
+              <ReviewItem
+                key={review.id}
+                review={review}
+                onReply={handleAddReply}
+                onDelete={handleDelete}
+                
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

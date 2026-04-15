@@ -12,17 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Filter, FileText } from 'lucide-react';
-import { industryNews, industries } from '@/data/mockData';
+import { Search, Filter, FileText, Image as ImageIcon } from 'lucide-react';
+import { industries, type NewsArticle } from '@/data/mockData';
 
 interface IndustryNewsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  news: NewsArticle[];
 }
 
-const IndustryNewsDialog = ({ open, onOpenChange }: IndustryNewsDialogProps) => {
+const IndustryNewsDialog = ({ open, onOpenChange, news: industryNews }: IndustryNewsDialogProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('All Industries');
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+
+  const handleImageError = (newsId: string) => {
+    setFailedImages((prev) => new Set(prev).add(newsId));
+  };
 
   const filteredNews = industryNews.filter((news) => {
     const matchesSearch = news.title
@@ -81,12 +87,20 @@ const IndustryNewsDialog = ({ open, onOpenChange }: IndustryNewsDialogProps) => 
                 key={news.id}
                 className="flex gap-4 p-4 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
               >
-                <img
-                  src={news.image}
-                  alt={news.title}
-                  className="h-16 w-20 rounded-lg object-cover flex-shrink-0"
-                  loading="lazy"
-                />
+                {/* Image or Placeholder */}
+                {!failedImages.has(news.id) && news.image ? (
+                  <img
+                    src={news.image}
+                    alt={news.title}
+                    className="h-16 w-20 rounded-lg object-cover flex-shrink-0"
+                    loading="lazy"
+                    onError={() => handleImageError(news.id)}
+                  />
+                ) : (
+                  <div className="h-16 w-20 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
                 <div className="min-w-0">
                   <h4 className="font-semibold text-sm text-card-foreground">
                     {news.title}
