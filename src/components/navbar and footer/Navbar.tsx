@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Home", path: "/not-found" },
-  { name: "Career", path: "/not-found" },
+  { name: "Home", path: "/home" },
+  { name: "Career", path: "/careers" },
   { name: "News", path: "/news" },
   { name: "AI Match", path: "/ai-match" },
   { name: "Learning Path", path: "/learning-path" },

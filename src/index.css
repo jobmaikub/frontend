@@ -52,6 +52,24 @@ All colors MUST be HSL.
     --stat-teal: 168 76% 42%;
     --stat-mint: 162 63% 51%;
 
+    /* Growth indicators */
+    --growth-high: 152 60% 40%;
+    --growth-high-bg: 152 60% 95%;
+    --growth-high-foreground: 152 60% 25%;
+    --growth-medium: 35 85% 50%;
+    --growth-medium-bg: 35 85% 95%;
+    --growth-medium-foreground: 35 85% 30%;
+    --growth-stable: 210 65% 55%;
+    --growth-stable-bg: 210 65% 95%;
+    --growth-stable-foreground: 210 65% 30%;
+
+    /* Custom semantic tokens */
+    --cta-bg: 228 55% 12%;
+    --cta-foreground: 0 0% 100%;
+    --section-bg: 232 30% 97%;
+    --star: 45 93% 58%;
+    --star-muted: 220 10% 85%;
+
     /* Admin layout */
     --sidebar-width: 240px;
     --header-height: 64px;

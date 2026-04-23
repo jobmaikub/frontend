@@ -30,7 +30,7 @@ const CareerCard = ({ career }: CareerCardProps) => {
 
   return (
     <div
-      onClick={() => navigate(`/career/${career.id}`)}
+      onClick={() => navigate(`/careers/${career.id}`)}
       className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1"
     >
       <div className="relative aspect-[3/2] overflow-hidden">
