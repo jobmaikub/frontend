@@ -56,7 +56,7 @@ const CareerCard = ({ career }: CareerCardProps) => {
           {career.description}
         </p>
         <p className="mt-2 font-semibold text-card-foreground">
-          ฿{career.salaryMin}K - ฿{career.salaryMax}K
+          ฿{career.salaryMin} - ฿{career.salaryMax}
         </p>
       </div>
     </div>

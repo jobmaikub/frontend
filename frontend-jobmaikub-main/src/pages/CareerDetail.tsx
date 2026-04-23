@@ -170,9 +170,6 @@ const CareerDetail = () => {
               <BookOpen className="h-5 w-5" />
               Start Learning Path
             </Button>
-            <p className="text-center text-xs text-muted-foreground -mt-2">
-              {totalCourses} courses • {totalHours} hours total
-            </p>
 
             {/* Tabs container */}
             <div className="rounded-2xl bg-section border border-border p-1.5">
