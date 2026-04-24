@@ -52,6 +52,24 @@ All colors MUST be HSL.
     --stat-teal: 168 76% 42%;
     --stat-mint: 162 63% 51%;
 
+    /* Growth indicators */
+    --growth-high: 152 60% 40%;
+    --growth-high-bg: 152 60% 95%;
+    --growth-high-foreground: 152 60% 25%;
+    --growth-medium: 35 85% 50%;
+    --growth-medium-bg: 35 85% 95%;
+    --growth-medium-foreground: 35 85% 30%;
+    --growth-stable: 210 65% 55%;
+    --growth-stable-bg: 210 65% 95%;
+    --growth-stable-foreground: 210 65% 30%;
+
+    /* Custom semantic tokens */
+    --cta-bg: 228 55% 12%;
+    --cta-foreground: 0 0% 100%;
+    --section-bg: 232 30% 97%;
+    --star: 45 93% 58%;
+    --star-muted: 220 10% 85%;
+
     /* Admin layout */
     --sidebar-width: 240px;
     --header-height: 64px;
@@ -69,6 +87,15 @@ All colors MUST be HSL.
     --table-header: 234 94% 63%;
     --table-header-foreground: 0 0% 100%;
     --table-row-hover: 220 14% 98%;
+
+    --brand: 234 94% 63%;
+    --brand-light: 234 80% 96%;
+    --success: 152 60% 50%;
+    --success-light: 152 60% 94%;
+    --warning: 30 90% 55%;
+    --warning-light: 30 80% 94%;
+    --info: 200 80% 55%;
+    --info-light: 200 80% 94%
   }
 
   .dark {
@@ -112,6 +139,15 @@ All colors MUST be HSL.
     --table-header: 234 94% 63%;
     --table-header-foreground: 0 0% 100%;
     --table-row-hover: 220 20% 15%;
+
+    --brand: 234 94% 63%;
+    --brand-light: 234 80% 96%;
+    --success: 152 60% 50%;
+    --success-light: 152 60% 94%;
+    --warning: 30 90% 55%;
+    --warning-light: 30 80% 94%;
+    --info: 200 80% 55%;
+    --info-light: 200 80% 94%; 
   }
 }
 
@@ -123,6 +159,34 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
   }
+}
+
+.profile-theme {
+  --background: 230 25% 95%;
+  --foreground: 230 25% 10%;
+  --primary: 234 94% 63%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 234 60% 95%;
+  --secondary-foreground: 234 94% 50%;
+  --muted: 230 20% 92%;
+  --muted-foreground: 230 10% 45%;
+  --accent: 234 60% 95%;
+  --accent-foreground: 234 94% 50%;
+  --border: 230 20% 88%;
+  --input: 230 20% 88%;
+  --ring: 234 94% 63%;
+  --radius: 0.75rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.profile-theme.dark,
+.dark .profile-theme {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --border: 217.2 32.6% 17.5%;
 }

@@ -25,6 +25,10 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import News from "./pages/News";
+import Home from "./pages/Home";
+import CareerList from "./pages/CareerList";
+import CareerDetail from "./pages/CareerDetail";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -47,11 +51,15 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* User-facing Routes */}
-            <Route path="/" element={<Navigate to="/ai-match" replace />} /> 
+            <Route path="/" element={<Navigate to="/home" replace />} /> 
+            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/careers" element={<ProtectedRoute><CareerList /></ProtectedRoute>} />
+            <Route path="/careers/:id" element={<ProtectedRoute><CareerDetail /></ProtectedRoute>} />
             <Route path="/ai-match" element={<ProtectedRoute><AIMatch /></ProtectedRoute>} /> 
             <Route path="/learning-path" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} /> 
             {/* Add the user-facing News route here */}
             <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} /> 
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/not-found" element={<NotFound />} />
 
             {/* Admin Routes - Protected by AdminProtectedRoute */}

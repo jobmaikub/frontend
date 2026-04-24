@@ -60,6 +60,16 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
 
+        cta: {
+          DEFAULT: "hsl(var(--cta-bg))",
+          foreground: "hsl(var(--cta-foreground))",
+        },
+
+        star: {
+          DEFAULT: "hsl(var(--star))",
+          muted: "hsl(var(--star-muted))",
+        },
+
         /* Sidebar */
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -79,7 +89,42 @@ export default {
           "row-hover": "hsl(var(--table-row-hover))",
         },
 
+        /* Growth indicators */
+        "growth-high": {
+          DEFAULT: "hsl(var(--growth-high))",
+          bg: "hsl(var(--growth-high-bg))",
+          foreground: "hsl(var(--growth-high-foreground))",
+        },
+        "growth-medium": {
+          DEFAULT: "hsl(var(--growth-medium))",
+          bg: "hsl(var(--growth-medium-bg))",
+          foreground: "hsl(var(--growth-medium-foreground))",
+        },
+        "growth-stable": {
+          DEFAULT: "hsl(var(--growth-stable))",
+          bg: "hsl(var(--growth-stable-bg))",
+          foreground: "hsl(var(--growth-stable-foreground))",
+        },
+
+        section: "hsl(var(--section-bg))",
+
         /* Stat cards */
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          light: "hsl(var(--brand-light))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          light: "hsl(var(--success-light))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          light: "hsl(var(--warning-light))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          light: "hsl(var(--info-light))",
+        },
         "stat-blue": "hsl(var(--stat-blue))",
         "stat-pink": "hsl(var(--stat-pink))",
         "stat-purple": "hsl(var(--stat-purple))",

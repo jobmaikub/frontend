@@ -36,6 +36,7 @@ type AuthContextType = {
   profile: any;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -129,11 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!mounted) return;
 
-      // ✅ LOGIN SUCCESS HERE
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // ⬇️ profile โหลดทีหลัง ไม่ block login
       if (session?.user) {
         loadProfile(session.user.id, session.user.email);
       }
@@ -189,7 +188,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('✅ Profile loaded:', profileWithStreak);
         setProfile(profileWithStreak);
       } else {
-        // profile ไม่เจอ → สร้างใหม่ (กันกรณี reset password)
         console.log('📝 Creating new profile for user:', userId);
         const todayKey = toLocalDateKey(new Date());
         const { data: newProfile, error: insertError } = await supabase
@@ -205,7 +203,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (insertError) {
           console.error('❌ Failed to create profile:', insertError);
-          // ยังคง set profile ด้วย default role === null
           setProfile({
             id: userId,
             email,
@@ -226,7 +223,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.error('🚨 Profile load error:', err);
-      // Fallback: ตั้ง profile ด้วย default role === null เพื่อให้ admin สามารถเข้าได้
       setProfile({ id: userId, email, role: null });
     }
   };
@@ -237,8 +233,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      await loadProfile(user.id, user.email);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

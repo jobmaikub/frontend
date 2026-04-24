@@ -136,6 +136,26 @@ export async function updateUserStatus(
   return normalizeUser(res.data);
 }
 
+export async function updateProfile(
+  userId: string,
+  data: Partial<{
+    full_name: string;
+    username: string;
+    avatar_url: string;
+    skills: string[];
+  }>
+) {
+  const { data: updated, error } = await supabase
+    .from("profiles")
+    .update(data)
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updated;
+}
+
 export async function fetchBanHistory(userId?: string | number): Promise<BanUserRow[]> {
   const res = await banApi.get("/");
   const rows = Array.isArray(res.data) ? (res.data as BanUserRow[]) : [];
