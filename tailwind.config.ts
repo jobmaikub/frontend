@@ -109,6 +109,22 @@ export default {
         section: "hsl(var(--section-bg))",
 
         /* Stat cards */
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          light: "hsl(var(--brand-light))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          light: "hsl(var(--success-light))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          light: "hsl(var(--warning-light))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          light: "hsl(var(--info-light))",
+        },
         "stat-blue": "hsl(var(--stat-blue))",
         "stat-pink": "hsl(var(--stat-pink))",
         "stat-purple": "hsl(var(--stat-purple))",
