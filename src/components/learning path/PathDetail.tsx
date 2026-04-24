@@ -29,7 +29,7 @@ const LevelAccordion = ({ level, isFirst, onCourseSelect }: { level: any, isFirs
 
       <div className={`overflow-hidden transition-all duration-300 ease-in-out pl-[4.5rem] mt-6 ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 mt-0"}`}>
         <div className="flex flex-col gap-5">
-          {level.courses.map((course: any, idx: number) => (
+          {level?.courses?.map((course: any, idx: number) => (
             <div 
               key={idx} 
               onClick={() => onCourseSelect(course, safeLevelColor, level.title)}
@@ -158,7 +158,7 @@ export function PathDetail({ path, onBack }: PathDetailProps) {
         <div className="relative pl-4 md:pl-8">
           <div className="absolute left-[2.4rem] md:left-[3.4rem] top-6 bottom-12 w-0.5 bg-gray-200 -z-10" />
 
-          {path.levels.map((level: any, index: number) => (
+          {Array.isArray(path?.levels) && path.levels.map((level: any, index: number) => (
             <LevelAccordion 
               key={level.id} 
               level={level} 
