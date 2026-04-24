@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import CareerCard from '@/components/CareerCard';
+import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
 import { industries } from '@/data/mockData';
 
@@ -38,7 +39,8 @@ const CareerList = () => {
   }, [careers, searchQuery, selectedIndustry, selectedGrowth]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <OldThemeWrapper>
+      <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center">
@@ -122,6 +124,7 @@ const CareerList = () => {
         )}
       </div>
     </div>
+    </OldThemeWrapper>
   );
 };
 

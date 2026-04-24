@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CareerCard from '@/components/CareerCard';
+import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
 import heroImage from '@/assets/hero-career.jpg';
 
@@ -47,7 +48,8 @@ const Home = () => {
   const trendingCareers = careers.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background">
+    <OldThemeWrapper>
+      <div className="min-h-screen bg-background">
       {/* ── Hero ── */}
       <section className="max-w-6xl mx-auto px-6 pt-16 pb-20">
         <div className="flex items-center gap-12">
@@ -207,6 +209,7 @@ const Home = () => {
         </div>
       </section>
     </div>
+    </OldThemeWrapper>
   );
 };
 
