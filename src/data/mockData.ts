@@ -20,6 +20,7 @@ export interface LearningLevel {
 
 export interface Review {
   id: string;
+  userId?: string | number;
   author: string;
   rating: number;
   date: string;
@@ -143,16 +144,18 @@ export const industryNews: NewsArticle[] = [
 ];
 
 // Fetch industry news from database
-export async function fetchIndustryNewsFromDatabase(): Promise<NewsArticle[]> {
+export async function fetchIndustryNewsFromDatabase(industry?: string): Promise<NewsArticle[]> {
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    console.log('[News] Fetching from:', `${apiUrl}/home/industry-news`);
-    const response = await fetch(`${apiUrl}/home/industry-news`);
+    const limit = industry ? 10 : 20;
+    const finalUrl = `${apiUrl}/home/industry-news?limit=${limit}${industry ? `&industry=${encodeURIComponent(industry)}` : ''}`;
+    console.log('[News] Fetching from:', finalUrl);
+    const response = await fetch(finalUrl);
     console.log('[News] Response status:', response.status, response.ok);
     
     if (!response.ok) {
-      console.warn('[News] Response not ok, using fallback data:', response.status);
-      return industryNews;
+      console.warn('[News] Response not ok, using empty data:', response.status);
+      return [];
     }
     
     const data = await response.json();
@@ -163,11 +166,53 @@ export async function fetchIndustryNewsFromDatabase(): Promise<NewsArticle[]> {
       return industryNews;
     }
     
-    // Reverse the order to show newest first (database returns oldest first)
-    return (data as NewsArticle[]).reverse();
+    // Map database fields to interface fields based on your Supabase structure
+    const normalizedData = (data as any[]).map(item => {
+      console.log(`[News Debug] ID: ${item.news_id}, Title: ${item.title}, Industry: ${item.industry}`);
+      return {
+        ...item,
+        id: String(item.news_id || item.id),
+        // Map image_url from DB to image in Frontend
+        image: item.image_url || item.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+        // Map source_name from DB to source in Frontend
+        source: item.source_name || item.source || 'Industry News',
+        // Map source_url from DB to url in Frontend
+        url: item.source_url || item.url || '#',
+        // Ensure industry field exists for filtering
+        industry: item.industry || item.industry_name || 'All Industries'
+      };
+    });
+    
+    return normalizedData.reverse();
+  } catch (error: any) {
+    console.error('[News] Failed to fetch industry news:', error.message || error);
+    return [];
+  }
+}
+
+// Fetch industries from database
+export async function fetchIndustriesFromDatabase(): Promise<string[]> {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const finalUrl = `${apiUrl}/home/industries`;
+    console.log('[Industries] Fetching from:', finalUrl);
+    const response = await fetch(finalUrl);
+    
+    if (!response.ok) {
+      return industries;
+    }
+    
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      return industries;
+    }
+    
+    // Extract names and add 'All Industries'
+    const names = data.map((item: any) => item.name);
+    return ['All Industries', ...names];
   } catch (error) {
-    console.warn('[News] Failed to fetch industry news:', error);
-    return industryNews;
+    console.warn('[Industries] Failed to fetch industries:', error);
+    return industries;
   }
 }
 
@@ -400,8 +445,9 @@ export async function initializeCareers(): Promise<Career[]> {
   
   careers = supabaseData.map((supabaseCareer) => {
     const careerId = supabaseCareer.career_id;
-    const mockPath = mockLearningPaths[careerId] || [];
-    const mockRevs = mockReviews[careerId] || [];
+    // We no longer use mock reviews or mock learning paths
+    const mockPath: any[] = [];
+    const mockRevs: any[] = [];
     
     // Map growth_rate number to string value
     const growthRate = mapGrowthRate(supabaseCareer.growth_rate);

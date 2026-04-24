@@ -22,9 +22,12 @@ export async function createReview(data: {
 }
 
 /* ===== GET REVIEWS BY CAREER ===== */
-export async function getReviewsByCareer(careerId: number) {
+export async function getReviewsByCareer(careerId: number, userId?: string) {
   const res = await reviewsApi.get("/", {
-    params: { career_id: careerId },
+    params: { 
+      career_id: careerId,
+      user_id: userId
+    },
   });
   return res.data;
 }
@@ -59,9 +62,9 @@ export async function deleteReview(id: number) {
   return res.data;
 }
 
-/* ===== ADD LIKE ===== */
-export async function addLike(id: number) {
-  const res = await reviewsApi.patch(`/${id}/like`);
+/* ===== TOGGLE LIKE ===== */
+export async function addLike(id: number, userId: string) {
+  const res = await reviewsApi.patch(`/${id}/like`, { userId });
   return res.data;
 }
 

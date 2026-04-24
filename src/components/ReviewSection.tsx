@@ -36,6 +36,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 
@@ -74,16 +75,23 @@ const StarRating = ({
 const ReviewItem = ({
   review,
   isReply,
+  currentUserId,
+  likedReviewIds,
+  onLike,
   onReply,
   onDelete,
+  onUpdate,
 }: {
   review: Review
   isReply?: boolean
+  currentUserId: string
+  likedReviewIds: Set<string>
+  onLike: (id: string, isLiking: boolean) => void
   onReply: (parentId: string, text: string) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, text: string) => void
 }) => {
   const [showReplies, setShowReplies] = useState(false)
-  const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(review.likes)
   const [replying, setReplying] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -96,11 +104,26 @@ const ReviewItem = ({
   const [reportReason, setReportReason] = useState('')
   const [reportOther, setReportOther] = useState('')
 
-  const isOwner = review.author === 'You'
+  // Enhanced owner check
+  const isOwner = String(review.userId) === String(currentUserId) || (review.userId === undefined && review.author === 'You')
+  const isLiked = likedReviewIds.has(String(review.id))
 
-  const handleLike = () => {
-    setLiked(!liked)
-    setLikes((prev) => (liked ? prev - 1 : prev + 1))
+  const handleLike = async () => {
+    try {
+      const newIsLiking = !isLiked
+      // Update parent state first
+      onLike(String(review.id), newIsLiking)
+      // Update local like count
+      setLikes((prev) => (newIsLiking ? prev + 1 : prev - 1))
+      
+      // Call API
+      await reviewsApi.addLike(Number(review.id), currentUserId)
+    } catch (error) {
+      // Rollback
+      onLike(String(review.id), isLiked)
+      setLikes(likes)
+      toast.error('Could not update like')
+    }
   }
 
   const handleSendReply = () => {
@@ -112,9 +135,9 @@ const ReviewItem = ({
   }
 
   const handleSaveEdit = () => {
-    review.comment = editText
+    if (!editText.trim()) return
+    onUpdate(String(review.id), editText)
     setEditing(false)
-    toast.success('Comment updated')
   }
 
   return (
@@ -202,12 +225,12 @@ const ReviewItem = ({
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-1 ${
-                  liked ? 'text-red-500' : 'hover:text-primary'
+                  isLiked ? 'text-red-500' : 'hover:text-primary'
                 }`}
               >
                 <Heart
                   className="h-3.5 w-3.5"
-                  fill={liked ? 'currentColor' : 'none'}
+                  fill={isLiked ? 'currentColor' : 'none'}
                 />
                 {likes}
               </button>
@@ -249,16 +272,22 @@ const ReviewItem = ({
               </button>
             )}
 
-            {showReplies &&
-              review.replies?.map((reply) => (
+            {/* Use CSS to hide/show to preserve internal component state (like the heart) */}
+            <div className={showReplies ? 'block' : 'hidden'}>
+              {review.replies?.map((reply) => (
                 <ReviewItem
                   key={reply.id}
                   review={reply}
                   isReply
+                  currentUserId={currentUserId}
+                  likedReviewIds={likedReviewIds}
+                  onLike={onLike}
                   onReply={onReply}
                   onDelete={onDelete}
+                  onUpdate={onUpdate}
                 />
               ))}
+            </div>
           </div>
         </div>
       </div>
@@ -294,6 +323,9 @@ const ReviewItem = ({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Report Comment</DialogTitle>
+            <DialogDescription className="sr-only">
+              Please select a reason for reporting this comment.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2 mt-2">
@@ -357,23 +389,52 @@ interface ReviewSectionProps {
   reviews?: Review[]
   careerId: number
   userId: string
+  userName?: string
 }
 
-const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: ReviewSectionProps) => {
+const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userName: propUserName }: ReviewSectionProps) => {
   const [reviewList, setReviewList] = useState<Review[]>(initialReviews)
-  const [sortBy, setSortBy] = useState('newest')
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest')
   const [userRating, setUserRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
   const [loading, setLoading] = useState(false)
-  const [userName, setUserName] = useState('You')
+  const [userName, setUserName] = useState(propUserName || 'Anonymous')
+  
+  // Track liked reviews
+  const [likedReviewIds, setLikedReviewIds] = useState<Set<string>>(new Set())
+
+  const handleToggleLike = (id: string, isLiking: boolean) => {
+    setLikedReviewIds(prev => {
+      const next = new Set(prev)
+      if (isLiking) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
+
+  useEffect(() => {
+    if (propUserName) {
+      setUserName(propUserName)
+    }
+  }, [propUserName])
 
   // Fetch reviews from API on mount or when careerId changes
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         setLoading(true)
-        const data = await reviewsApi.getReviewsByCareer(careerId)
+        const data = await reviewsApi.getReviewsByCareer(careerId, userId)
         setReviewList(data)
+        
+        // Initialize liked state from database
+        const likedIds = new Set<string>()
+        data.forEach((r: any) => {
+          if (r.isLikedByMe) likedIds.add(String(r.id))
+          r.replies?.forEach((rep: any) => {
+            if (rep.isLikedByMe) likedIds.add(String(rep.id))
+          })
+        })
+        setLikedReviewIds(likedIds)
       } catch (error) {
         console.error('Failed to fetch reviews:', error)
         toast.error('Failed to load reviews')
@@ -400,13 +461,13 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: Revie
   const maxCount = Math.max(...ratingCounts, 1)
 
   const sortedReviews = [...reviewList].sort((a, b) => {
-    const parseDate = (d: string) => {
-      const [day, month, year] = d.split('/').map(Number)
-      return new Date(2000 + year, month - 1, day).getTime()
+    if (sortBy === 'newest') {
+      return Number(b.id) - Number(a.id)
     }
-    return sortBy === 'newest'
-      ? parseDate(b.date) - parseDate(a.date)
-      : parseDate(a.date) - parseDate(b.date)
+    if (sortBy === 'oldest') {
+      return Number(a.id) - Number(b.id)
+    }
+    return (b.likes || 0) - (a.likes || 0)
   })
 
   const handleDelete = async (id: string) => {
@@ -415,7 +476,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: Revie
       
       const deleteRecursive = (list: Review[]): Review[] =>
         list
-          .filter((item) => item.id !== id)
+          .filter((item) => String(item.id) !== String(id))
           .map((item) => ({
             ...item,
             replies: item.replies
@@ -428,6 +489,29 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: Revie
     } catch (error) {
       console.error('Failed to delete review:', error)
       toast.error('Failed to delete review')
+    }
+  }
+
+  const handleUpdate = async (id: string, text: string) => {
+    try {
+      await reviewsApi.updateReview(Number(id), { comment: text })
+      
+      const updateRecursive = (list: Review[]): Review[] =>
+        list.map((item) => {
+          if (String(item.id) === String(id)) {
+            return { ...item, comment: text }
+          }
+          if (item.replies) {
+            return { ...item, replies: updateRecursive(item.replies) }
+          }
+          return item
+        })
+
+      setReviewList((prev) => updateRecursive(prev))
+      toast.success('Review updated')
+    } catch (error) {
+      console.error('Failed to update review:', error)
+      toast.error('Failed to update review')
     }
   }
 
@@ -550,13 +634,14 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: Revie
       <div>
         <div className="flex justify-between mb-4">
           <h4 className="font-semibold">All Reviews</h4>
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">Newest</SelectItem>
               <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="popular">Popular</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -575,9 +660,12 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId }: Revie
               <ReviewItem
                 key={review.id}
                 review={review}
+                currentUserId={userId}
+                likedReviewIds={likedReviewIds}
+                onLike={handleToggleLike}
                 onReply={handleAddReply}
                 onDelete={handleDelete}
-                
+                onUpdate={handleUpdate}
               />
             ))
           )}

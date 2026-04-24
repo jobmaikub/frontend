@@ -21,6 +21,7 @@ import IndustryNewsDialog from '@/components/IndustryNewsDialog';
 import ReviewSection from '@/components/ReviewSection';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
+import { useAuth } from '@/contexts/AuthContexts';
 import { getCareerStats, fetchIndustryNewsFromDatabase } from '@/data/mockData';
 import type { NewsArticle } from '@/data/mockData';
 
@@ -52,17 +53,51 @@ const CareerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { careers, loading, error } = useCareers();
+  const { user, profile } = useAuth();
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
 
+  const career = careers.find((c) => String(c.id) === id);
+
   // Fetch industry news from database
   useEffect(() => {
-    const loadNews = async () => {
+    window.scrollTo(0, 0);
+    const fetchNews = async () => {
+      if (!career) return;
       setNewsLoading(true);
       try {
-        const newsData = await fetchIndustryNewsFromDatabase();
-        setNews(newsData);
+        // Fetch news for this specific industry from database
+        const dbNews = await fetchIndustryNewsFromDatabase(career.track);
+        console.log('[CareerDetail] News fetched from DB for industry:', career.track, dbNews.length);
+        
+        if (career) {
+          console.log('[News Debug] Career Track:', career.track);
+          // Since backend already filters, we don't need much frontend filtering
+          // but we'll keep the logic as a safety measure
+          const careerTrack = career.track?.toLowerCase() || '';
+          
+          let filteredNews = dbNews.filter(n => {
+            if (!n.industry) return false;
+            if (n.industry === 'All Industries') return true;
+            
+            const newsIndustry = n.industry.toLowerCase();
+            return newsIndustry.includes(careerTrack) || careerTrack.includes(newsIndustry);
+          });
+
+          // If still no filtered news (backend returned something unexpected), 
+          // or if it's empty, try fetching all news as fallback
+          if (filteredNews.length === 0) {
+            console.log('[CareerDetail] No specific news found, fetching all latest news...');
+            const allNews = await fetchIndustryNewsFromDatabase();
+            setNews(allNews);
+          } else {
+            setNews(filteredNews);
+          }
+        }
+ else {
+          setNews(dbNews);
+        }
       } catch (err) {
         console.error('Error loading news:', err);
         setNews([]);
@@ -70,10 +105,8 @@ const CareerDetail = () => {
         setNewsLoading(false);
       }
     };
-    loadNews();
-  }, []);
-
-  const career = careers.find((c) => String(c.id) === id);
+    fetchNews();
+  }, [career, id]);
 
   if (loading) {
     return (
@@ -100,7 +133,16 @@ const CareerDetail = () => {
   }
 
   const growth = growthConfig[career.growthRate];
-  const sidebarNews = news.slice(0, 3);
+  
+  // Filter news for sidebar: show news matching the career industry or fallback to latest
+  const filteredSidebarNews = news.filter(n => 
+    (n.industry && career.track && n.industry.toLowerCase() === career.track.toLowerCase()) || 
+    n.industry === 'All Industries'
+  );
+  const sidebarNews = filteredSidebarNews.length > 0 
+    ? filteredSidebarNews.slice(0, 3) 
+    : news.slice(0, 3);
+
   const { totalCourses, totalHours } = getCareerStats(career);
 
   return (
@@ -247,7 +289,8 @@ const CareerDetail = () => {
                     <div className="bg-card rounded-xl p-6 border border-border">
                       <ReviewSection
                         careerId={Number(id)}
-                        userId=""
+                        userId={user?.id || ''}
+                        userName={profile?.full_name || profile?.username || 'Guest'}
                         reviews={career.reviews}
                       />
                     </div>
@@ -272,8 +315,14 @@ const CareerDetail = () => {
                   </button>
                 </div>
                 <div className="space-y-4">
-                  {sidebarNews.map((news) => (
-                    <div key={news.id} className="flex gap-3 cursor-pointer group">
+                  {sidebarNews.map((news, index) => (
+                    <a
+                      key={news.id || index}
+                      href={news.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex gap-3 cursor-pointer group"
+                    >
                       <img
                         src={news.image}
                         alt={news.title}
@@ -288,7 +337,7 @@ const CareerDetail = () => {
                           {news.source}
                         </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
