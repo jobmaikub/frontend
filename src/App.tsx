@@ -25,6 +25,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import News from "./pages/News";
+import Bookmark from "./pages/Bookmark";
 import Home from "./pages/Home";
 import CareerList from "./pages/CareerList";
 import CareerDetail from "./pages/CareerDetail";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/learning-path" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} /> 
             {/* Add the user-facing News route here */}
             <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} /> 
+            <Route path="/bookmark" element={<ProtectedRoute><Bookmark /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/not-found" element={<NotFound />} />
 

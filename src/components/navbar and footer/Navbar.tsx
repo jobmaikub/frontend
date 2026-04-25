@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Bell, Settings, User, LogOut } from "lucide-react";
+import { ChevronDown, Bookmark, Settings, User, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContexts";
@@ -80,9 +80,17 @@ export function Navbar() {
       
       {/* Right Actions Section */}
       <div className="flex items-center gap-4 mr-4">
-        <div className="p-2 cursor-pointer text-muted-foreground hover:text-[#4A5DF9] transition-colors">
-          <Bell className="h-5 w-5" />
-        </div>
+        <Link
+          to="/bookmark"
+          className={`p-2 rounded-md transition-colors ${
+            location.pathname === "/bookmark"
+              ? "text-[#4A5DF9] bg-[#D5E3FF]/30"
+              : "text-muted-foreground hover:text-[#4A5DF9]"
+          }`}
+          aria-label="Bookmarks"
+        >
+          <Bookmark className="h-5 w-5" />
+        </Link>
 
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>

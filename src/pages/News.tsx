@@ -127,6 +127,7 @@ import { Search, Filter, ChevronDown, Loader, ChevronLeft, ChevronRight } from "
 import NewsCard from "@/components/news/NewsCard";
 import { getNews, searchNews } from "@/lib/news.api";
 import type { News } from "@/lib/news.api";
+import { getBookmarkedNews } from "@/lib/newsBookmarks";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -139,6 +140,7 @@ export default function News() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [industries, setIndustries] = useState<string[]>([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
 
   // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
@@ -149,13 +151,18 @@ export default function News() {
       try {
         setLoading(true);
         setError(null);
-        
-        // Fetch news data
-        const newsData = await getNews();
+        const [newsData, bookmarkedNews] = await Promise.all([
+          getNews(),
+          getBookmarkedNews().catch((err) => {
+            console.error('Failed to load bookmarked news:', err);
+            return [] as News[];
+          }),
+        ]);
         
         console.log('Backend news response sample:', newsData[0]); // Debug
         
         setNewsArticles(newsData);
+        setBookmarkedIds(new Set(bookmarkedNews.map((article) => article.news_id)));
         
         // Extract unique industries from news data
         const industriesSet = new Set<string>();
@@ -320,7 +327,11 @@ export default function News() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedArticles.map((article) => (
-                  <NewsCard key={article.news_id} article={article} />
+                  <NewsCard
+                    key={article.news_id}
+                    article={article}
+                    initiallyBookmarked={bookmarkedIds.has(article.news_id)}
+                  />
                 ))}
               </div>
 
