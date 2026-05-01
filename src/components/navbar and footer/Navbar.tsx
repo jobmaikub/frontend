@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, ChevronDown, Bell, Settings, User, LogOut } from "lucide-react";
+import { ChevronDown, Bell, Settings, User, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContexts";
@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Home", path: "/not-found" },
-  { name: "Career", path: "/not-found" },
+  { name: "Home", path: "/home" },
+  { name: "Career", path: "/careers" },
   { name: "News", path: "/news" },
   { name: "AI Match", path: "/ai-match" },
   { name: "Learning Path", path: "/learning-path" },
@@ -47,9 +47,11 @@ export function Navbar() {
     <header className="fixed left-0 top-0 z-50 flex h-20 w-screen items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-12 font-['Inter']">
       {/* Brand Section */}
       <div className="flex items-center gap-2 ml-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#4A5DF9]">
-          <Box className="h-5 w-5 text-white" />
-        </div>
+        <img
+          src="/jobmaikub-logo.png"
+          alt="Jobmaikub logo"
+          className="h-10 w-auto object-contain"
+        />
         <span className="text-xl font-bold text-[#4A5DF9] tracking-tight uppercase">JOBMAIKUB</span>
       </div>
       
@@ -85,12 +87,20 @@ export function Navbar() {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-1 ml-2 cursor-pointer group outline-none">
-              <Avatar className="h-9 w-9 border border-[#D5E3FF]">
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-[#D5E3FF] text-[#4A5DF9] font-bold text-sm">
-                  {userInitial}
-                </AvatarFallback>
-              </Avatar>
+              <div className="h-9 w-9 rounded-full border border-[#D5E3FF] overflow-hidden bg-[#D5E3FF] flex items-center justify-center">
+                {profile?.avatar_url ? (
+                  <img 
+                    key={profile.avatar_url}
+                    src={profile.avatar_url} 
+                    alt={fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[#4A5DF9] font-bold text-sm">
+                    {userInitial}
+                  </span>
+                )}
+              </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-[#4A5DF9] transition-colors" />
             </div>
           </DropdownMenuTrigger>
@@ -106,14 +116,17 @@ export function Navbar() {
             <DropdownMenuSeparator />
             
             <div className="p-1 space-y-1">
-              <DropdownMenuItem 
-                onMouseEnter={() => setHoveredItem('profile')}
-                onMouseLeave={() => setHoveredItem(null)}
-                style={getStyle('profile')}
-                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
-              >
-                <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
-                <span className="text-sm font-medium">My Profile</span>
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/profile"
+                  onMouseEnter={() => setHoveredItem('profile')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  style={getStyle('profile')}
+                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
+                >
+                  <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
+                  <span className="text-sm font-medium">My Profile</span>
+                </Link>
               </DropdownMenuItem>
               
               {isAdmin && (

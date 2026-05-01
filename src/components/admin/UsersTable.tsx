@@ -20,14 +20,36 @@ import {
 import type { User } from "@/data/usersData";
 import { UserDetailsSheet } from "./UserDetailsSheet";
 import { useEffect } from "react";
-import { fetchUsers, fetchBanHistory, banUser, unbanUser } from "@/lib/users.api";
+import {
+  fetchUsers,
+  fetchUserById,
+  fetchBanHistory,
+  banUser,
+  unbanUser,
+  BanUserRow,
+} from "@/lib/users.api";
 import { useAuth } from "@/contexts/AuthContexts";
+
+type UIBanHistory = {
+  banId: string;
+  banDate: string;
+  unbanDate: string | null;
+  reason: string;
+};
+
+const hasActiveBanFromHistory = (banHistory: UIBanHistory[]) =>
+  banHistory.some((entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date());
+
+const isUserBanned = (user: User, banHistory?: UIBanHistory[]) => {
+  const history = banHistory ?? ((user.banHistory as UIBanHistory[]) || []);
+  return Boolean(user.is_banned) || hasActiveBanFromHistory(history);
+};
 
 export function UsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   // State for side sheets
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -42,19 +64,18 @@ export function UsersTable() {
     Promise.all([fetchUsers(), fetchBanHistory()])
       .then(([usersData, banRows]) => {
         const now = new Date();
-        const mapped = usersData.map((u) => {
+        const mapped = usersData.map((u: User) => {
           const userBans = banRows
-            .filter((b) => String(b.user_id) === String(u.id))
-            .map((b) => ({
+            .filter((b: BanUserRow) => String(b.user_id) === String(u.id))
+            .map((b: BanUserRow): UIBanHistory => ({
               banId: b.ban_id,
               banDate: b.ban_date,
               unbanDate: b.unban_date,
               reason: b.reason || "No reason",
             }));
-          const activeBan = userBans.some((b) => !b.unbanDate || new Date(b.unbanDate) > now);
           return {
             ...u,
-            is_banned: activeBan,
+            is_banned: isUserBanned(u, userBans),
             banHistory: userBans,
           };
         });
@@ -69,21 +90,26 @@ export function UsersTable() {
   }, []);
 
   const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (user) => {
+      const q = searchQuery.toLowerCase();
+      const userId = String(user.id ?? "").toLowerCase();
+      const name = String(user.name ?? "").toLowerCase();
+      const email = String(user.email ?? "").toLowerCase();
+
+      return (
+        userId.includes(q) ||
+        name.includes(q) ||
+        email.includes(q)
+      );
+    }
   );
 
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     let result = 0;
 
     if (statusSort !== "") {
-      const aBanned = a.banHistory?.some(
-        (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
-      ) ? 1 : 0;
-      const bBanned = b.banHistory?.some(
-        (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
-      ) ? 1 : 0;
+      const aBanned = isUserBanned(a) ? 1 : 0;
+      const bBanned = isUserBanned(b) ? 1 : 0;
 
       result = statusSort === "banned-first" ? bBanned - aBanned : aBanned - bBanned;
     }
@@ -114,9 +140,17 @@ export function UsersTable() {
   };
 
   // Function to trigger the detail side sheet
-  const handleShowDetails = (user: User) => {
+  const handleShowDetails = async (user: User) => {
     setSelectedUser(user);
     setIsDetailsOpen(true);
+
+    try {
+      const fullUser = await fetchUserById(user.id);
+      setSelectedUser(fullUser);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "Failed to load user details";
+      setError(errorMsg);
+    }
   };
 
   // Function to handle Ban/Unban logic from the detail sheet
@@ -124,53 +158,39 @@ export function UsersTable() {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
 
-    const hasActiveBan = user.banHistory.some(
-      (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
-    );
+    const hasActiveBan = isUserBanned(user);
 
-    if (hasActiveBan) {
-      await unbanUser(userId);
-    } else {
-      await banUser(userId, reason || "Banned by admin", authUser?.id ?? null, banUntil);
+    try {
+      if (hasActiveBan) {
+        await unbanUser(userId);
+      } else {
+        await banUser(userId, reason || "Banned by admin", authUser?.id ?? null, banUntil);
+      }
+
+      const [usersData, banRows] = await Promise.all([fetchUsers(), fetchBanHistory()]);
+      const now = new Date();
+      const mapped = usersData.map((u: User) => {
+        const userBans = banRows
+          .filter((b: BanUserRow) => String(b.user_id) === String(u.id))
+          .map((b: BanUserRow): UIBanHistory => ({
+            banId: b.ban_id,
+            banDate: b.ban_date,
+            unbanDate: b.unban_date,
+            reason: b.reason || "No reason",
+          }));
+        return {
+          ...u,
+          is_banned: isUserBanned(u, userBans),
+          banHistory: userBans,
+        };
+      });
+      setUsers(mapped);
+      setError(null);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "Failed to update ban status";
+      setError(errorMsg);
     }
-
-    const [usersData, banRows] = await Promise.all([fetchUsers(), fetchBanHistory()]);
-    const now = new Date();
-    const mapped = usersData.map((u) => {
-      const userBans = banRows
-        .filter((b) => String(b.user_id) === String(u.id))
-        .map((b) => ({
-          banId: b.ban_id,
-          banDate: b.ban_date,
-          unbanDate: b.unban_date,
-          reason: b.reason || "No reason",
-        }));
-      const activeBan = userBans.some((b) => !b.unbanDate || new Date(b.unbanDate) > now);
-      return {
-        ...u,
-        is_banned: activeBan,
-        banHistory: userBans,
-      };
-    });
-    setUsers(mapped);
   };
-
-  if (error) {
-    return (
-      <div className="p-6 space-y-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h3 className="font-semibold text-red-800 mb-2">Error Loading Users</h3>
-          <p className="text-red-700 text-sm">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   if (users.length === 0 && !loading) {
     return (
@@ -239,7 +259,7 @@ export function UsersTable() {
       <UserDetailsSheet
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
-        user={users.find(u => u.id === selectedUser?.id) || null}
+        user={selectedUser}
         onBanToggle={handleBanToggle}
       />
 
@@ -280,9 +300,7 @@ export function UsersTable() {
               </TableRow>
             ) : (
               paginatedUsers.map((user) => {
-                const isBanned = user.banHistory?.some(
-                  (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
-                );
+                const isBanned = isUserBanned(user);
                 return (
                   <TableRow
                     key={user.id}

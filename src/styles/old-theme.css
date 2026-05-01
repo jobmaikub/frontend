@@ -1,0 +1,53 @@
+/* Old theme CSS variables for home, careerList, careerDetail pages */
+
+.old-theme-root {
+  --background: 0 0% 100%;
+  --foreground: 228 20% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 228 20% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 228 20% 15%;
+  --primary: 235 69% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 232 30% 96%;
+  --secondary-foreground: 228 20% 15%;
+  --muted: 232 25% 96%;
+  --muted-foreground: 220 10% 46%;
+  --accent: 235 100% 97%;
+  --accent-foreground: 235 69% 45%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 15% 91%;
+  --input: 220 15% 91%;
+  --ring: 235 69% 55%;
+  --radius: 0.75rem;
+
+  /* Custom semantic tokens */
+  --cta-bg: 228 55% 12%;
+  --cta-foreground: 0 0% 100%;
+  --growth-high: 152 60% 40%;
+  --growth-high-bg: 152 60% 95%;
+  --growth-high-foreground: 152 60% 25%;
+  --growth-medium: 35 85% 50%;
+  --growth-medium-bg: 35 85% 95%;
+  --growth-medium-foreground: 35 85% 30%;
+  --growth-stable: 210 65% 55%;
+  --growth-stable-bg: 210 65% 95%;
+  --growth-stable-foreground: 210 65% 30%;
+  --section-bg: 232 30% 97%;
+  --star: 45 93% 58%;
+  --star-muted: 220 10% 85%;
+
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+.old-theme-wrapper {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}

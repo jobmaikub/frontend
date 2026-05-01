@@ -9,7 +9,6 @@ export interface Course {
   career_name?: string;
   level: "beginner" | "intermediate" | "advanced";
   duration_mins: number;
-  external_url: string;
   course_order: number;
   skills_taught: string[];
   learning_outcome: string[];
@@ -36,7 +35,6 @@ export async function createCourse(data: Partial<Course>) {
     career_path: data.career_path,
     level: data.level,
     duration_mins: data.duration_mins,
-    external_url: data.external_url,
     course_order: data.course_order,
     image_url: data.image_url,
     skills_taught: data.skills_taught,
@@ -54,7 +52,6 @@ export async function updateCourse(id: number, data: Partial<Course>) {
     career_path: data.career_path,
     level: data.level,
     duration_mins: data.duration_mins,
-    external_url: data.external_url,
     course_order: data.course_order,
     image_url: data.image_url,
     skills_taught: data.skills_taught,

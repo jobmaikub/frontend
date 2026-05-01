@@ -31,7 +31,10 @@ export function UserDetailsSheet({ open, onOpenChange, user, onBanToggle }: User
   const [banUntilTime, setBanUntilTime] = useState("");
   if (!user) return null;
 
-  const isBanned = user.banHistory?.some((entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date());
+  const hasActiveBanHistory = user.banHistory?.some(
+    (entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date()
+  );
+  const isBanned = Boolean(user.is_banned) || Boolean(hasActiveBanHistory);
 
   const getDurationLabel = (banDate: string, unbanDate: string | null) => {
     if (!unbanDate) return "Permanent";
@@ -49,6 +52,12 @@ export function UserDetailsSheet({ open, onOpenChange, user, onBanToggle }: User
     const dt = new Date(value);
     if (Number.isNaN(dt.getTime())) return value;
     return dt.toLocaleString();
+  };
+
+  const getReportStatusBadgeClass = (status?: string) => {
+    return status === "resolved"
+      ? "bg-green-100 text-green-600"
+      : "bg-red-100 text-red-600";
   };
 
   return (
@@ -76,25 +85,41 @@ export function UserDetailsSheet({ open, onOpenChange, user, onBanToggle }: User
 
           <div className="space-y-2">
             <Label className="text-sm font-bold text-slate-700">List User Reports</Label>
-            <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-              <Table>
+            <div className="rounded-xl border border-slate-200 overflow-x-auto shadow-sm">
+              <Table className="table-fixed min-w-[760px]">
                 <TableHeader className="bg-slate-50">
                   <TableRow>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Report ID</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Offender ID</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Last update</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Reason</TableHead>
+                    <TableHead className="w-[120px] text-[10px] uppercase font-bold h-9">Report ID</TableHead>
+                    <TableHead className="w-[120px] text-[10px] uppercase font-bold h-9">Reporter ID</TableHead>
+                    <TableHead className="w-[120px] text-[10px] uppercase font-bold h-9">Offender ID</TableHead>
+                    <TableHead className="w-[88px] text-[10px] uppercase font-bold h-9">Status</TableHead>
+                    <TableHead className="w-[130px] text-[10px] uppercase font-bold h-9">Last update</TableHead>
+                    <TableHead className="w-[220px] text-[10px] uppercase font-bold h-9">Reason</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {user.reports?.map((report, idx) => (
-                    <TableRow key={idx} className="border-b last:border-0">
-                      <TableCell className="text-[10px] py-3">{report.reportId}</TableCell>
-                      <TableCell className="text-[10px] py-3">{report.offenderId}</TableCell>
-                      <TableCell className="text-[10px] py-3">{report.lastUpdate}</TableCell>
-                      <TableCell className="text-[10px] py-3 italic">{report.reason}</TableCell>
+                  {user.reports && user.reports.length > 0 ? (
+                    user.reports.map((report, idx) => (
+                      <TableRow key={idx} className="border-b last:border-0">
+                        <TableCell className="text-[10px] py-3 align-top">{report.reportId}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top">{report.reporterId ?? "-"}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top">{report.offenderId}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top">
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getReportStatusBadgeClass(report.status)}`}>
+                            {report.status ?? "pending"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-[10px] py-3 align-top whitespace-normal break-all leading-relaxed">{report.lastUpdate}</TableCell>
+                        <TableCell className="text-[10px] py-3 italic align-top">{report.reason}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-[10px] py-3 text-center text-slate-500">
+                        No reports for this user
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -103,26 +128,34 @@ export function UserDetailsSheet({ open, onOpenChange, user, onBanToggle }: User
           <div className="space-y-2">
             <Label className="text-sm font-bold text-slate-700">Ban History</Label>
             <div className="rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-              <Table>
+              <Table className="table-fixed min-w-[760px]">
                 <TableHeader className="bg-slate-50">
                   <TableRow>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Ban ID</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Ban Date</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">UnBan Date</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Duration</TableHead>
-                    <TableHead className="text-[10px] uppercase font-bold h-10">Reason</TableHead>
+                    <TableHead className="w-[120px] text-[10px] uppercase font-bold h-9 whitespace-nowrap">Ban ID</TableHead>
+                    <TableHead className="w-[130px] text-[10px] uppercase font-bold h-9 whitespace-nowrap">Ban Date</TableHead>
+                    <TableHead className="w-[130px] text-[10px] uppercase font-bold h-9 whitespace-nowrap">UnBan Date</TableHead>
+                    <TableHead className="w-[80px] text-[10px] uppercase font-bold h-9 whitespace-nowrap">Duration</TableHead>
+                    <TableHead className="w-[220px] text-[10px] uppercase font-bold h-9 whitespace-nowrap">Reason</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {user.banHistory?.map((history, idx) => (
-                    <TableRow key={idx} className="border-b last:border-0">
-                      <TableCell className="text-[10px] py-3 whitespace-nowrap">{history.banId}</TableCell>
-                      <TableCell className="text-[10px] py-3 whitespace-nowrap">{formatDateTime(history.banDate)}</TableCell>
-                      <TableCell className="text-[10px] py-3 whitespace-nowrap">{formatDateTime(history.unbanDate)}</TableCell>
-                      <TableCell className="text-[10px] py-3 whitespace-nowrap">{getDurationLabel(history.banDate, history.unbanDate)}</TableCell>
-                      <TableCell className="text-[10px] py-3 max-w-[160px] truncate">{history.reason}</TableCell>
+                  {user.banHistory && user.banHistory.length > 0 ? (
+                    user.banHistory.map((history, idx) => (
+                      <TableRow key={idx} className="border-b last:border-0">
+                        <TableCell className="text-[10px] py-3 align-top break-all leading-relaxed">{history.banId}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top break-words leading-relaxed">{formatDateTime(history.banDate)}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top break-words leading-relaxed">{formatDateTime(history.unbanDate)}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top leading-relaxed">{getDurationLabel(history.banDate, history.unbanDate)}</TableCell>
+                        <TableCell className="text-[10px] py-3 align-top whitespace-pre-wrap break-words leading-relaxed">{history.reason}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-[10px] py-3 text-center text-slate-500">
+                        No ban history for this user
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>

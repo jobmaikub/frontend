@@ -37,7 +37,6 @@ type CourseFormData = {
   career_path: string;
   image_url: string;
   level: CourseLevel;
-  external_url: string;
   course_order: number;
   skills_taught: string;
   learning_outcome: string;
@@ -62,7 +61,6 @@ export function EditCoursesSheet({
       career_path: course.career_path || course.career_name || "",
       image_url: course.image_url || (course as any).image || "",
       level: course.level,
-      external_url: course.external_url,
       course_order: course.course_order,
       skills_taught: (course.skills_taught || []).join("\n"),
       learning_outcome: (course.learning_outcome || []).join("\n"),
@@ -90,7 +88,6 @@ export function EditCoursesSheet({
       career_path: formData.career_path ?? "",
       image_url: formData.image_url ?? "",
       level: formData.level ?? "beginner",
-      external_url: formData.external_url ?? "",
       course_order: Number(formData.course_order ?? 1),
       skills_taught: parsedSkills,
       learning_outcome: parsedOutcome,
@@ -200,21 +197,6 @@ export function EditCoursesSheet({
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-external_url">External URL</Label>
-            <Input
-              id="edit-external_url"
-              value={formData.external_url ?? ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  external_url: e.target.value,
-                })
-              }
-              className="bg-white"
-            />
           </div>
 
           <div className="space-y-2">
