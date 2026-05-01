@@ -40,8 +40,17 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setSelected(url);
+      // Check file size (limit to 2MB for base64 storage)
+      if (file.size > 2 * 1024 * 1024) {
+        alert("ไฟล์มีขนาดใหญ่เกินไป (จำกัดไม่เกิน 2MB)");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelected(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 

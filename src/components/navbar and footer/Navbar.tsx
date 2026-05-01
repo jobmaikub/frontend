@@ -108,14 +108,17 @@ export function Navbar() {
             <DropdownMenuSeparator />
             
             <div className="p-1 space-y-1">
-              <DropdownMenuItem 
-                onMouseEnter={() => setHoveredItem('profile')}
-                onMouseLeave={() => setHoveredItem(null)}
-                style={getStyle('profile')}
-                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
-              >
-                <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
-                <span className="text-sm font-medium">My Profile</span>
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/profile"
+                  onMouseEnter={() => setHoveredItem('profile')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  style={getStyle('profile')}
+                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
+                >
+                  <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
+                  <span className="text-sm font-medium">My Profile</span>
+                </Link>
               </DropdownMenuItem>
               
               {isAdmin && (

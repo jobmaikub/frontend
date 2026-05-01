@@ -9,6 +9,7 @@ import { getAllReviews, updateReview, deleteReview } from "@/lib/reviews.api";
 import { fetchCareers, Career } from "@/lib/careers.api";
 import { updateProfile } from "@/lib/users.api";
 import { toast } from "sonner";
+import { Navbar } from "@/components/navbar and footer/Navbar";
 
 const Profile = () => {
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
@@ -89,11 +90,11 @@ const Profile = () => {
     );
   }
 
-  const joinedDate = profile?.joined_at 
-    ? new Date(profile.joined_at).toLocaleDateString('th-TH', { 
-        month: 'long', 
-        year: 'numeric' 
-      }) 
+  const joinedDate = profile?.joined_at
+    ? new Date(profile.joined_at).toLocaleDateString('th-TH', {
+      month: 'long',
+      year: 'numeric'
+    })
     : "ไม่ระบุ";
 
   const dayStreak = profile?.current_streak || 0;
@@ -122,68 +123,69 @@ const Profile = () => {
 
   return (
     <div className="profile-theme">
-      <div className="min-h-screen bg-background">
-      {/* Header band */}
-      <div className="h-40 bg-primary" />
+      <div className="min-h-screen bg-background pt-20">
+        <Navbar />
+        {/* Header band */}
+        <div className="h-40 bg-primary" />
 
-      <div className="mx-auto -mt-20 max-w-5xl px-4 pb-12">
-        <div className="grid gap-6 md:grid-cols-[280px_1fr]">
-          {/* Left column */}
-          <div>
-            <ProfileCard
-              name={userName}
-              email={user?.email || "No email"}
-              joinedDate={joinedDate}
-              avatarUrl={avatarUrl}
-              onAvatarChange={handleAvatarChange}
-              onNameChange={handleNameChange}
-            />
-          </div>
-
-          {/* Right column */}
-          <div className="space-y-6">
-            {/* Stats row */}
-            <div className="grid grid-cols-3 gap-4">
-              <StatsCard
-                icon={BookOpen}
-                value={0}
-                label="Courses Completed"
-                colorClass="bg-brand-light text-primary"
-              />
-              <StatsCard
-                icon={Flame}
-                value={dayStreak}
-                label="Day Streak"
-                colorClass="bg-warning-light text-warning"
-              />
-              <StatsCard
-                icon={TrendingUp}
-                value="0h"
-                label="Learning Hours"
-                colorClass="bg-success-light text-success"
+        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-12">
+          <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+            {/* Left column */}
+            <div>
+              <ProfileCard
+                name={userName}
+                email={user?.email || "No email"}
+                joinedDate={joinedDate}
+                avatarUrl={avatarUrl}
+                onAvatarChange={handleAvatarChange}
+                onNameChange={handleNameChange}
               />
             </div>
 
-            {/* Skills */}
-            <SkillsMastered
-              skills={profile?.skills || []}
-            />
-
-            {/* Reviews */}
-            {loadingReviews ? (
-              <div className="flex justify-center p-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            {/* Right column */}
+            <div className="space-y-6">
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-4">
+                <StatsCard
+                  icon={BookOpen}
+                  value={profile?.courses_completed || 0}
+                  label="Courses Completed"
+                  colorClass="bg-brand-light text-primary"
+                />
+                <StatsCard
+                  icon={Flame}
+                  value={dayStreak}
+                  label="Day Streak"
+                  colorClass="bg-warning-light text-warning"
+                />
+                <StatsCard
+                  icon={TrendingUp}
+                  value={`${profile?.total_learning_hours || 0}h`}
+                  label="Learning Hours"
+                  colorClass="bg-success-light text-success"
+                />
               </div>
-            ) : (
-              <MyReviews
-                reviews={reviews.map(r => ({ ...r, author: userName }))}
-                onEdit={handleEditReview}
-                onDelete={handleDeleteReview}
+
+              {/* Skills */}
+              <SkillsMastered
+                skills={profile?.skills || []}
               />
-            )}
+
+              {/* Reviews */}
+              {loadingReviews ? (
+                <div className="flex justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <MyReviews
+                  reviews={reviews.map(r => ({ ...r, author: userName }))}
+                  onEdit={handleEditReview}
+                  onDelete={handleDeleteReview}
+                />
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
