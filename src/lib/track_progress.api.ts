@@ -1,18 +1,20 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-const API_URL = "http://localhost:3000/track-progress";
+const api = createAuthenticatedApi(
+  `${import.meta.env.VITE_API_URL}/track-progress`
+);
 
 export const getUserStats = async () => {
-  const res = await axios.get(`${API_URL}/stats`);
+  const res = await api.get(`/stats`);
   return res.data;
 };
 
 export const getCompletedCourses = async () => {
-  const res = await axios.get(`${API_URL}/completed-courses`);
+  const res = await api.get(`/completed-courses`);
   return res.data;
 };
 
 export const getActivity = async () => {
-  const res = await axios.get(`${API_URL}/activity`);
+  const res = await api.get(`/activity`);
   return res.data;
 };

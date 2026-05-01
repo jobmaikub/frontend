@@ -4,11 +4,25 @@ import StatCard from "@/components/track progress/StatCard";
 import ActivityHeatmap from "@/components/track progress/ActivityHeatmap";
 import OverallProgress from "@/components/track progress/OverallProgress";
 import CompletedCoursesDialog from "@/components/track progress/CompletedCoursesDialog";
+import { Navbar } from "@/components/navbar and footer/Navbar";
 import {
   getUserStats,
   getCompletedCourses,
   getActivity, // ✅ เพิ่ม
 } from "@/lib/track_progress.api";
+
+type ActivityItem = {
+  date: string;
+  count: number;
+};
+
+type CompletedCourse = {
+  id: number;
+  title: string;
+  description?: string;
+  progress?: number;
+  complete?: boolean;
+};
 
 const TrackProgress = () => {
   const [showCourses, setShowCourses] = useState(false);
@@ -22,20 +36,36 @@ const TrackProgress = () => {
     perYear: {},
   });
 
-  const [activity, setActivity] = useState([]);
-  const [courses, setCourses] = useState([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [courses, setCourses] = useState<CompletedCourse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsRes = await getUserStats();
-        const coursesRes = await getCompletedCourses();
-        const activityRes = await getActivity(); // ✅ ใช้ axios แทน fetch
+        const [statsRes, coursesRes, activityRes] = await Promise.allSettled([
+          getUserStats(),
+          getCompletedCourses(),
+          getActivity(),
+        ]);
 
-        setStats(statsRes);
-        setCourses(coursesRes);
-        setActivity(activityRes);
+        if (statsRes.status === "fulfilled" && statsRes.value) {
+          setStats((prev) => ({ ...prev, ...statsRes.value }));
+        } else {
+          console.error("Failed to load stats:", statsRes.status === "rejected" ? statsRes.reason : "Unknown error");
+        }
+
+        if (coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value)) {
+          setCourses(coursesRes.value);
+        } else {
+          console.error("Failed to load completed courses:", coursesRes.status === "rejected" ? coursesRes.reason : "Unknown error");
+        }
+
+        if (activityRes.status === "fulfilled" && Array.isArray(activityRes.value)) {
+          setActivity(activityRes.value);
+        } else {
+          console.error("Failed to load activity:", activityRes.status === "rejected" ? activityRes.reason : "Unknown error");
+        }
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
@@ -51,7 +81,8 @@ const TrackProgress = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
+      <Navbar />
       {/* Hero */}
       <div className="bg-card border-b border-border py-12 text-center">
         <span className="inline-block px-4 py-1.5 rounded-full border border-primary/30 text-primary text-sm font-medium mb-4">
