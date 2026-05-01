@@ -32,9 +32,9 @@ const Profile = () => {
       await updateProfile(user.id, { full_name: newName });
       setUserName(newName);
       await refreshProfile();
-      toast.success("อัปเดตชื่อเรียบร้อยแล้ว");
+      toast.success("Name updated successfully");
     } catch (error) {
-      toast.error("ไม่สามารถอัปเดตชื่อได้");
+      toast.error("Failed to update name");
     }
   };
 
@@ -44,9 +44,9 @@ const Profile = () => {
       await updateProfile(user.id, { avatar_url: newUrl });
       setAvatarUrl(newUrl);
       await refreshProfile();
-      toast.success("อัปเดตรูปโปรไฟล์เรียบร้อยแล้ว");
+      toast.success("Profile picture updated successfully");
     } catch (error) {
-      toast.error("ไม่สามารถอัปเดตรูปโปรไฟล์ได้");
+      toast.error("Failed to update profile picture");
     }
   };
 
@@ -76,7 +76,7 @@ const Profile = () => {
       setReviews(userReviews);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
-      toast.error("ไม่สามารถโหลดข้อมูลรีวิวได้");
+      toast.error("Failed to load reviews");
     } finally {
       setLoadingReviews(false);
     }
@@ -91,11 +91,11 @@ const Profile = () => {
   }
 
   const joinedDate = profile?.joined_at
-    ? new Date(profile.joined_at).toLocaleDateString('th-TH', {
+    ? new Date(profile.joined_at).toLocaleDateString('en-US', {
       month: 'long',
       year: 'numeric'
     })
-    : "ไม่ระบุ";
+    : "N/A";
 
   const dayStreak = profile?.current_streak || 0;
 
@@ -105,9 +105,9 @@ const Profile = () => {
       setReviews((prev) =>
         prev.map((r) => (r.id === id ? { ...r, text, rating } : r))
       );
-      toast.success("แก้ไขรีวิวเรียบร้อยแล้ว");
+      toast.success("Review updated successfully");
     } catch (error) {
-      toast.error("ไม่สามารถแก้ไขรีวิวได้");
+      toast.error("Failed to update review");
     }
   };
 
@@ -115,9 +115,9 @@ const Profile = () => {
     try {
       await deleteReview(Number(id));
       setReviews((prev) => prev.filter((r) => r.id !== id));
-      toast.success("ลบรีวิวเรียบร้อยแล้ว");
+      toast.success("Review deleted successfully");
     } catch (error) {
-      toast.error("ไม่สามารถลบรีวิวได้");
+      toast.error("Failed to delete review");
     }
   };
 
