@@ -24,6 +24,8 @@ import { useCareers } from '@/hooks/useCareers';
 import { useAuth } from '@/contexts/AuthContexts';
 import { getCareerStats, fetchIndustryNewsFromDatabase } from '@/data/mockData';
 import type { NewsArticle } from '@/data/mockData';
+import { Navbar } from '@/components/navbar and footer/Navbar';
+import { Footer } from '@/components/navbar and footer/Footer';
 
 const growthConfig = {
   high: {
@@ -147,7 +149,8 @@ const CareerDetail = () => {
 
   return (
     <OldThemeWrapper>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pt-20">
+        <Navbar />
         <div className="max-w-6xl mx-auto px-6 py-8">
           {/* Back */}
           <button
@@ -351,6 +354,7 @@ const CareerDetail = () => {
           news={news}
         />
       </div>
+      <Footer />
     </OldThemeWrapper>
   );
 };

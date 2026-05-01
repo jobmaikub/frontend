@@ -38,12 +38,12 @@ const ProfileCard = ({ name, email, joinedDate, avatarUrl, onAvatarChange, onNam
           className="mt-4 w-full gap-2"
         >
           <Pencil className="h-4 w-4" />
-          แก้ไขโปรไฟล์
+          Edit Profile
         </Button>
 
         <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>เข้าร่วมเมื่อ {joinedDate}</span>
+          <span>Joined {joinedDate}</span>
         </div>
       </div>
 

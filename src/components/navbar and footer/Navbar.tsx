@@ -87,12 +87,20 @@ export function Navbar() {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-1 ml-2 cursor-pointer group outline-none">
-              <Avatar className="h-9 w-9 border border-[#D5E3FF]">
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-[#D5E3FF] text-[#4A5DF9] font-bold text-sm">
-                  {userInitial}
-                </AvatarFallback>
-              </Avatar>
+              <div className="h-9 w-9 rounded-full border border-[#D5E3FF] overflow-hidden bg-[#D5E3FF] flex items-center justify-center">
+                {profile?.avatar_url ? (
+                  <img 
+                    key={profile.avatar_url}
+                    src={profile.avatar_url} 
+                    alt={fullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[#4A5DF9] font-bold text-sm">
+                    {userInitial}
+                  </span>
+                )}
+              </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-[#4A5DF9] transition-colors" />
             </div>
           </DropdownMenuTrigger>
@@ -108,14 +116,17 @@ export function Navbar() {
             <DropdownMenuSeparator />
             
             <div className="p-1 space-y-1">
-              <DropdownMenuItem 
-                onMouseEnter={() => setHoveredItem('profile')}
-                onMouseLeave={() => setHoveredItem(null)}
-                style={getStyle('profile')}
-                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
-              >
-                <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
-                <span className="text-sm font-medium">My Profile</span>
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/profile"
+                  onMouseEnter={() => setHoveredItem('profile')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  style={getStyle('profile')}
+                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
+                >
+                  <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
+                  <span className="text-sm font-medium">My Profile</span>
+                </Link>
               </DropdownMenuItem>
               
               {isAdmin && (

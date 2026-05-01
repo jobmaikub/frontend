@@ -103,7 +103,7 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
             </div>
           ))}
           {reviews.length === 0 && (
-            <p className="text-center text-sm text-muted-foreground">ยังไม่มีรีวิว</p>
+            <p className="text-center text-sm text-muted-foreground">No reviews yet</p>
           )}
         </div>
       </div>
@@ -112,11 +112,11 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
       <Dialog open={!!editingReview} onOpenChange={() => setEditingReview(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>แก้ไขรีวิว</DialogTitle>
+            <DialogTitle>Edit Review</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">คะแนน</label>
+               <label className="mb-2 block text-sm font-medium text-foreground">Rating</label>
               <StarRating rating={editRating} onChange={setEditRating} />
             </div>
             <Textarea
@@ -126,8 +126,8 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingReview(null)}>ยกเลิก</Button>
-            <Button onClick={handleSaveEdit}>บันทึก</Button>
+            <Button variant="outline" onClick={() => setEditingReview(null)}>Cancel</Button>
+            <Button onClick={handleSaveEdit}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -136,12 +136,12 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>ยืนยันการลบ</DialogTitle>
+            <DialogTitle>Confirm Delete</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">คุณต้องการลบรีวิวนี้ใช่หรือไม่?</p>
+          <p className="text-sm text-muted-foreground">Are you sure you want to delete this review?</p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)}>ยกเลิก</Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>ลบ</Button>
+            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
