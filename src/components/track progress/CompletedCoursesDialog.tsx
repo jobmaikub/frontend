@@ -56,7 +56,7 @@ const CompletedCoursesDialog = ({
                 </p>
 
                 <p className="text-xs text-muted-foreground mt-1">
-                  {course.progress ?? 100}% completed
+                  {Math.round(course.progress ?? 100)}% completed
                 </p>
 
                 {course.description && (

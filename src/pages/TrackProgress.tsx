@@ -14,6 +14,8 @@ import {
 type ActivityItem = {
   date: string;
   count: number;
+  lessons: number;
+  courses: number;
 };
 
 type CompletedCourse = {
@@ -77,7 +79,24 @@ const TrackProgress = () => {
   }, []);
 
   if (loading) {
-    return <div className="p-10 text-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background pt-20">
+        <Navbar />
+        <div className="bg-card border-b border-border py-12 text-center">
+          <div className="h-6 w-32 bg-muted rounded-full mx-auto mb-4 animate-pulse" />
+          <div className="h-10 w-64 bg-muted rounded-lg mx-auto mb-2 animate-pulse" />
+          <div className="h-4 w-40 bg-muted rounded mx-auto animate-pulse" />
+        </div>
+        <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-xl border bg-card p-6 h-32 animate-pulse bg-muted/30" />
+            ))}
+          </div>
+          <div className="rounded-xl border bg-card p-6 h-52 animate-pulse bg-muted/30" />
+        </div>
+      </div>
+    );
   }
 
   return (

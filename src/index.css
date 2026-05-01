@@ -159,9 +159,9 @@ All colors MUST be HSL.
 
 @layer base {
   html {
-    scrollbar-gutter: stable;
+    overflow-y: scroll;
   }
-  
+
   * {
     @apply border-border;
   }
