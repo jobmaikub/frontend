@@ -40,8 +40,17 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setSelected(url);
+      // Check file size (limit to 2MB for base64 storage)
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File size is too large (max 2MB)");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelected(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -57,7 +66,7 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
     <Dialog open={open} onOpenChange={(o) => { if (o) { setEditName(name); setSelected(currentAvatar); } onOpenChange(o); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>แก้ไขโปรไฟล์</DialogTitle>
+          <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4">
@@ -70,16 +79,16 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
 
           {/* Name input */}
           <div className="w-full space-y-2">
-            <Label htmlFor="edit-name">ชื่อ - นามสกุล</Label>
+            <Label htmlFor="edit-name">Full Name</Label>
             <Input
               id="edit-name"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              placeholder="กรอกชื่อ-นามสกุล"
+              placeholder="Enter your name"
             />
           </div>
 
-          <p className="text-sm font-medium text-foreground">เลือกอวตาร</p>
+          <p className="text-sm font-medium text-foreground">Select Avatar</p>
           <div className="grid grid-cols-4 gap-3">
             {PRESET_AVATARS.map((url) => (
               <button
@@ -96,7 +105,7 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
 
           <div className="flex w-full items-center gap-2">
             <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">หรือ</span>
+            <span className="text-xs text-muted-foreground">or</span>
             <div className="h-px flex-1 bg-border" />
           </div>
 
@@ -106,7 +115,7 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
             onClick={() => fileRef.current?.click()}
           >
             <Upload className="h-4 w-4" />
-            อัปโหลดรูปจากเครื่อง
+            Upload from device
           </Button>
           <input
             ref={fileRef}
@@ -118,8 +127,8 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
-          <Button onClick={handleSave}>บันทึก</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

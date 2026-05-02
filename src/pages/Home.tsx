@@ -11,6 +11,8 @@ import CareerCard from '@/components/CareerCard';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
 import heroImage from '@/assets/hero-career.jpg';
+import { Navbar } from '@/components/navbar and footer/Navbar';
+import { Footer } from '@/components/navbar and footer/Footer';
 
 const journeySteps = [
   {
@@ -21,6 +23,7 @@ const journeySteps = [
       'Answer a few questions about your skills, interests, and goals. Our AI analyzes your profile to find the perfect career matches.',
     iconBg: 'bg-accent',
     iconColor: 'text-accent-foreground',
+    path: '/ai-match',
   },
   {
     number: '02',
@@ -30,6 +33,7 @@ const journeySteps = [
       'Get a roadmap with curated courses, resources, and milestones to guide your journey from beginner to advanced.',
     iconBg: 'bg-growth-high-bg',
     iconColor: 'text-growth-high',
+    path: '/learning-path',
   },
   {
     number: '03',
@@ -39,6 +43,7 @@ const journeySteps = [
       'Monitor your advancement with detailed analytics, achievement badges, and streak tracking to stay motivated.',
     iconBg: 'bg-accent',
     iconColor: 'text-accent-foreground',
+    path: '/not-found',
   },
 ];
 
@@ -49,7 +54,8 @@ const Home = () => {
 
   return (
     <OldThemeWrapper>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pt-20">
+        <Navbar />
       {/* ── Hero ── */}
       <section className="max-w-6xl mx-auto px-6 pt-16 pb-20">
         <div className="flex items-center gap-12">
@@ -67,7 +73,7 @@ const Home = () => {
               comprehensive progress tracking.
             </p>
             <div className="mt-8 flex gap-3">
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2" onClick={() => navigate('/ai-match')}>
                 Get Started <ArrowRight className="h-4 w-4" />
               </Button>
               <Button
@@ -111,7 +117,7 @@ const Home = () => {
               <div
                 key={step.number}
                 className="group relative rounded-2xl bg-card p-6 border border-border hover:shadow-lg transition-all cursor-pointer"
-                onClick={() => navigate('/careers')}
+                onClick={() => navigate(step.path)}
               >
                 <div className="flex items-start justify-between">
                   <div
@@ -183,7 +189,7 @@ const Home = () => {
             minutes.
           </p>
           <div className="mt-8 flex justify-center gap-3">
-            <Button size="lg" className="gap-2">
+            <Button size="lg" className="gap-2" onClick={() => navigate('/ai-match')}>
               Get Career Match <ArrowRight className="h-4 w-4" />
             </Button>
             <Button
@@ -208,6 +214,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
     </OldThemeWrapper>
   );
