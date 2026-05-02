@@ -15,7 +15,7 @@ import {
 import {
   addNewsBookmark,
   removeNewsBookmark,
-} from "@/lib/newsBookmarks";
+} from "@/lib/newsBookmarks.api";
 
 interface NewsCardProps {
   article: News;

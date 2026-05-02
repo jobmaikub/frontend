@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Career, initializeCareers, careersMockBase } from '@/data/mockData';
+import { Career, initializeCareers, careersMockBase } from '@/lib/careers.service';
 
 export function useCareers() {
   const [careers, setCareers] = useState<Career[]>(careersMockBase as Career[]);

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Minus } from 'lucide-react';
-import type { Career } from '@/data/mockData';
+import type { Career } from '@/types/careers.types';
 
 interface CareerCardProps {
   career: Career;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../supabase';
+import { supabase } from '../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
 import Toast, { ToastType } from '../components/Toast';
 
@@ -14,7 +14,7 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       setToast({ message: 'Passwords do not match', type: 'error' });
       return;
@@ -26,7 +26,7 @@ export default function Register() {
     }
 
     setLoading(true);
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -50,15 +50,15 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-8 sm:px-6 lg:px-8">
       {toast && (
-        <Toast 
-          message={toast.message} 
+        <Toast
+          message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
         />
       )}
 
       <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
-        
+
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -145,8 +145,8 @@ export default function Register() {
         {/* Footer */}
         <p className="text-center text-xs sm:text-sm text-slate-600">
           Already have an account?{' '}
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="font-bold text-blue-600 hover:text-blue-700 transition-colors"
           >
             Sign in

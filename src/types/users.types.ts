@@ -1,3 +1,5 @@
+// User-related TypeScript interfaces used across the application
+
 export interface BanHistory {
   banId: string;
   banDate: string;

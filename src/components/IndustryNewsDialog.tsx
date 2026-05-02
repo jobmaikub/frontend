@@ -14,7 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Search, Filter, FileText, Image as ImageIcon } from 'lucide-react';
-import { industries as staticIndustries, fetchIndustriesFromDatabase, type NewsArticle } from '@/data/mockData';
+import { industries as staticIndustries, fetchIndustriesFromDatabase } from '@/lib/news.service';
+import type { NewsArticle } from '@/types/careers.types';
 
 interface IndustryNewsDialogProps {
   open: boolean;

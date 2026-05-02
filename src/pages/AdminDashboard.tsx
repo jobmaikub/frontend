@@ -25,7 +25,7 @@ import { getCourses } from "@/lib/courses.api";
 import { getLessons } from "@/lib/lessons.api";
 import { getNews } from "@/lib/news.api";
 import { getInterests } from "@/lib/interests.api";
-import { reportsData } from "@/data/reportsData";
+import { fetchReports } from "@/lib/users.api";
 
 interface StatItem {
   icon: LucideIcon;
@@ -63,6 +63,7 @@ const AdminDashboard = () => {
           lessons,
           news,
           interests,
+          reports,
         ] = await Promise.all([
           fetchUsers().catch(() => []),
           getFaculties().catch(() => []),
@@ -73,11 +74,12 @@ const AdminDashboard = () => {
           getLessons().catch(() => []),
           getNews().catch(() => []),
           getInterests().catch(() => []),
+          fetchReports().catch(() => []),
         ]);
 
         setStats([
           { icon: Users, value: users?.length || 0, label: "Users", variant: "blue", path: "/admin/users" },
-          { icon: ClipboardList, value: reportsData.length || 0, label: "Reports", variant: "cyan", path: "/admin/reports" },
+          { icon: ClipboardList, value: reports?.length || 0, label: "Reports", variant: "cyan", path: "/admin/reports" },
           { icon: GraduationCap, value: faculties?.length || 0, label: "Faculties", variant: "pink", path: "/admin/faculties" },
           { icon: BookOpen, value: majors?.length || 0, label: "Majors", variant: "purple", path: "/admin/majors" },
           { icon: Lightbulb, value: skills?.length || 0, label: "Skills", variant: "green", path: "/admin/skills" },

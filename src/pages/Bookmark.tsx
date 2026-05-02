@@ -4,7 +4,7 @@ import { Footer } from "@/components/navbar and footer/Footer";
 import { Search, Filter, ChevronDown, BookmarkX, Loader } from "lucide-react";
 import NewsCard from "@/components/news/NewsCard";
 import type { News } from "@/lib/news.api";
-import { getBookmarkedNews } from "@/lib/newsBookmarks";
+import { getBookmarkedNews } from "@/lib/newsBookmarks.api";
 
 export default function Bookmark() {
 	const [searchQuery, setSearchQuery] = useState("");

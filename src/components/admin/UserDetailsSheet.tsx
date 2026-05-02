@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User } from "@/data/usersData";
+import { User } from "@/types/users.types";
 
 interface UserDetailsSheetProps {
   open: boolean;

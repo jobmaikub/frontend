@@ -6,7 +6,7 @@ import {
   useState,
   ReactNode,
 } from 'react';
-import { supabase } from '../supabase';
+import { supabase } from '../lib/supabase';
 import { fetchActiveBanByUser } from '@/lib/users.api';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

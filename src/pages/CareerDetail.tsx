@@ -22,8 +22,9 @@ import ReviewSection from '@/components/ReviewSection';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
 import { useAuth } from '@/contexts/AuthContexts';
-import { getCareerStats, fetchIndustryNewsFromDatabase } from '@/data/mockData';
-import type { NewsArticle } from '@/data/mockData';
+import { getCareerStats } from '@/lib/careers.service';
+import { fetchIndustryNewsFromDatabase } from '@/lib/news.service';
+import type { NewsArticle } from '@/types/careers.types';
 
 const growthConfig = {
   high: {

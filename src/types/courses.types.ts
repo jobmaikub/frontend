@@ -1,3 +1,5 @@
+// Course & Lesson TypeScript interfaces used across the application
+
 export interface Course {
   id: number;
   title: string;
@@ -7,8 +9,8 @@ export interface Course {
   hours: number;
   externalUrl: string;
   order: number;
-  skillsTaught: string[];     
-  learningOutcome?: string;    
+  skillsTaught: string[];
+  learningOutcome?: string;
   image?: string;
 }
 
@@ -23,4 +25,12 @@ export interface UpdateCoursePayload {
   learning_outcome?: string;
 }
 
-type CourseLevel = "beginner" | "intermediate" | "advanced";
+export interface Lesson {
+  id: number;
+  title: string;
+  courseId: number;
+  course: string;
+  order: number;
+  duration: number;
+  externalUrl: string;
+}

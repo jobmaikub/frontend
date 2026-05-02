@@ -127,7 +127,7 @@ import { Search, Filter, ChevronDown, Loader, ChevronLeft, ChevronRight } from "
 import NewsCard from "@/components/news/NewsCard";
 import { getNews, searchNews } from "@/lib/news.api";
 import type { News } from "@/lib/news.api";
-import { getBookmarkedNews } from "@/lib/newsBookmarks";
+import { getBookmarkedNews } from "@/lib/newsBookmarks.api";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -158,12 +158,12 @@ export default function News() {
             return [] as News[];
           }),
         ]);
-        
+
         console.log('Backend news response sample:', newsData[0]); // Debug
-        
+
         setNewsArticles(newsData);
         setBookmarkedIds(new Set(bookmarkedNews.map((article) => article.news_id)));
-        
+
         // Extract unique industries from news data
         const industriesSet = new Set<string>();
         newsData.forEach((article) => {
@@ -171,11 +171,11 @@ export default function News() {
             industriesSet.add(article.industries.name);
           }
         });
-        
+
         // Convert to sorted array and add "All Industries" at the start
         const sortedIndustries = Array.from(industriesSet).sort();
         setIndustries(["All Industries", ...sortedIndustries]);
-        
+
         console.log('Industries extracted:', sortedIndustries); // Debug
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -197,11 +197,11 @@ export default function News() {
       try {
         setSearchLoading(true);
         let results: News[];
-        
+
         if (searchQuery.trim()) {
           // Call backend search API
           results = await searchNews(searchQuery, selectedIndustry);
-          
+
           if (selectedIndustry !== "All Industries") {
             // Filter by industry if selected
             results = results.filter(
@@ -211,7 +211,7 @@ export default function News() {
         } else {
           // If no search query, use all articles
           results = newsArticles;
-          
+
           if (selectedIndustry !== "All Industries") {
             results = results.filter(
               (article) => article.industries?.name === selectedIndustry
@@ -353,10 +353,10 @@ export default function News() {
                       const pages = [];
                       const maxVisible = 5; // Show max 5 page buttons
                       const halfWindow = Math.floor(maxVisible / 2);
-                      
+
                       let startPage = Math.max(1, currentPage - halfWindow);
                       let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-                      
+
                       // Adjust start if we're near the end
                       if (endPage - startPage + 1 < maxVisible) {
                         startPage = Math.max(1, endPage - maxVisible + 1);
@@ -383,18 +383,17 @@ export default function News() {
                         pages.push(totalPages);
                       }
 
-                      return pages.map((page, idx) => 
+                      return pages.map((page, idx) =>
                         page === '...' ? (
                           <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">...</span>
                         ) : (
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page as number)}
-                            className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                              currentPage === page
+                            className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page
                                 ? 'bg-[#4A5DF9] text-white'
                                 : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>
