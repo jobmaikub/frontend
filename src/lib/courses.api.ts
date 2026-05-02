@@ -1,4 +1,4 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
 export interface Course {
   course_id: number;
@@ -15,12 +15,9 @@ export interface Course {
   image_url?: string;
 }
 
-export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL + "/admin/courses",
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/courses"
+);
 
 export async function getCourses(): Promise<Course[]> {
   const res = await api.get("/");

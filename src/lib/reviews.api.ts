@@ -1,13 +1,8 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-export const reviewsApi = axios.create({
-  baseURL: API_BASE_URL + "/reviews",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const reviewsApi = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/reviews"
+);
 
 /* ===== CREATE REVIEW ===== */
 export async function createReview(data: {
