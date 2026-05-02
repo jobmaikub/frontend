@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import type { User } from "@/data/usersData";
+import type { User } from "@/types/users.types";
 import { UserDetailsSheet } from "./UserDetailsSheet";
 import { useEffect } from "react";
 import {

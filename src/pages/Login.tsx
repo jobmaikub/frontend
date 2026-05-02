@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabase';
+import { supabase } from '../lib/supabase';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Toast, { ToastType } from '../components/Toast';
 
@@ -68,21 +68,21 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     console.log('🔐 Login attempt:', { email, passwordLength: password.length });
-    
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
-      
-      console.log('📊 Login response:', { 
-        hasSession: !!data?.session, 
+
+      console.log('📊 Login response:', {
+        hasSession: !!data?.session,
         hasUser: !!data?.user,
-        error: error?.message 
+        error: error?.message
       });
-      
+
       if (error) {
         console.error('❌ Login error detail:', error);
         setToast({ message: `Login failed: ${error.message}`, type: 'error' });
@@ -101,9 +101,9 @@ export default function Login() {
       }
     } catch (err) {
       console.error('💥 Unexpected error:', err);
-      setToast({ 
-        message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`, 
-        type: 'error' 
+      setToast({
+        message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        type: 'error'
       });
       setLoading(false);
     }
@@ -119,15 +119,15 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-8 sm:px-6 lg:px-8">
       {toast && (
-        <Toast 
-          message={toast.message} 
+        <Toast
+          message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
         />
       )}
 
       <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
-        
+
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -159,8 +159,8 @@ export default function Login() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-semibold text-slate-700">Password</label>
-                <Link 
-                  to="/forgot-password" 
+                <Link
+                  to="/forgot-password"
                   className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
                   Forgot password?
@@ -209,8 +209,8 @@ export default function Login() {
         {/* Footer */}
         <p className="text-center text-xs sm:text-sm text-slate-600">
           Don't have an account?{' '}
-          <Link 
-            to="/register" 
+          <Link
+            to="/register"
             className="font-bold text-blue-600 hover:text-blue-700 transition-colors"
           >
             Create one

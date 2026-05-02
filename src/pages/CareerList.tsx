@@ -11,7 +11,7 @@ import {
 import CareerCard from '@/components/CareerCard';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
-import { industries } from '@/data/mockData';
+import { industries } from '@/lib/careers.service';
 import { Navbar } from '@/components/navbar and footer/Navbar';
 import { Footer } from '@/components/navbar and footer/Footer';
 

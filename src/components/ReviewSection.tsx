@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import type { Review } from '@/data/mockData'
+import type { Review } from '@/types/careers.types'
 import { toast } from 'sonner'
 import * as reviewsApi from '@/lib/reviews.api'
 

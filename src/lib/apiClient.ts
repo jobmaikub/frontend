@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from "axios";
-import { supabase } from "../supabase";
+import { supabase } from "./supabase";
 
 /**
  * Create an authenticated axios instance that automatically adds Supabase auth token

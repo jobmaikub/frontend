@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../supabase'
+import { supabase } from '../lib/supabase'
 import { Link, useNavigate } from 'react-router-dom'
 import Toast, { ToastType } from '../components/Toast'
 
@@ -39,7 +39,7 @@ export default function ForgotPassword() {
       setStep('otp')
     } catch (err) {
       setLoading(false)
-      setToast({ 
+      setToast({
         message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
         type: 'error'
       })
@@ -118,8 +118,8 @@ export default function ForgotPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-8 sm:px-6 lg:px-8">
         {toast && (
-          <Toast 
-            message={toast.message} 
+          <Toast
+            message={toast.message}
             type={toast.type}
             onClose={() => setToast(null)}
           />
@@ -178,8 +178,8 @@ export default function ForgotPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-8 sm:px-6 lg:px-8">
         {toast && (
-          <Toast 
-            message={toast.message} 
+          <Toast
+            message={toast.message}
             type={toast.type}
             onClose={() => setToast(null)}
           />
@@ -244,8 +244,8 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-8 sm:px-6 lg:px-8">
       {toast && (
-        <Toast 
-          message={toast.message} 
+        <Toast
+          message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
         />

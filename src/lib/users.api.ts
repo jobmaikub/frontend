@@ -1,6 +1,6 @@
 import { createAuthenticatedApi } from "./apiClient";
-import { User } from "@/data/usersData";
-import { supabase } from "@/supabase";
+import { User } from "@/types/users.types";
+import { supabase } from "@/lib/supabase";
 
 export const api = createAuthenticatedApi(
   import.meta.env.VITE_API_URL + "/admin/users"
@@ -81,25 +81,25 @@ const normalizeUser = (raw: any): User => {
     banHistory: Array.isArray(raw.banHistory) ? raw.banHistory : [],
     reports: Array.isArray(raw.reports)
       ? raw.reports.map((report: RawUserReport) => ({
-          reportId: report.reportId ?? report.report_id ?? "",
-          reporterId: report.reporterId ?? report.by_user_id,
-          offenderId:
-            report.offenderId ??
-            report.report_user_id ??
-            raw.id ??
-            raw.user_id ??
-            raw.profile_id ??
-            "",
-          lastUpdate:
-            report.updatedAt ??
-            report.updated_at ??
-            report.createdAt ??
-            report.created_at ??
-            "",
-          reason: report.reason ?? "",
-          status: report.status,
-          reportType: report.type ?? report.report_type,
-        }))
+        reportId: report.reportId ?? report.report_id ?? "",
+        reporterId: report.reporterId ?? report.by_user_id,
+        offenderId:
+          report.offenderId ??
+          report.report_user_id ??
+          raw.id ??
+          raw.user_id ??
+          raw.profile_id ??
+          "",
+        lastUpdate:
+          report.updatedAt ??
+          report.updated_at ??
+          report.createdAt ??
+          report.created_at ??
+          "",
+        reason: report.reason ?? "",
+        status: report.status,
+        reportType: report.type ?? report.report_type,
+      }))
       : [],
   };
 };
