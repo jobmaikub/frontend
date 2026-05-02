@@ -1,30 +1,21 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/skills",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/skills"
+);
 
 /* ---------- types ---------- */
-export interface SkillCategory {
-  faculty_id: number;
-  major_id: number;
-}
-
 export interface Skill {
   skill_id: number;
   name: string;
-  category: SkillCategory;
+  category: any;
   icon?: string;
 }
 
 /* ใช้กับ form เท่านั้น */
 export interface SkillFormData {
   name: string;
-  faculty_id: number;
-  major_id: number;
+  category: any;
   icon?: string;
 }
 
@@ -36,7 +27,7 @@ export const getSkills = async (): Promise<Skill[]> => {
 
 export const createSkill = async (payload: {
   name: string;
-  category: SkillCategory;
+  category: any;
   icon?: string;
 }) => {
   const res = await api.post("/", payload);
@@ -47,7 +38,7 @@ export const updateSkill = async (
   id: number,
   payload: Partial<{
     name: string;
-    category: SkillCategory;
+    category: any;
     icon?: string;
   }>
 ): Promise<Skill> => {

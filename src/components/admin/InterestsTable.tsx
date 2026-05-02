@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -28,54 +38,83 @@ type UIInterest = {
 export function InterestsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [interests, setInterests] = useState<UIInterest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedInterest, setSelectedInterest] =
-    useState<UIInterest | null>(null);
+    useState<Interest | null>(null);
+  const [interestToDelete, setInterestToDelete] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // load data
   useEffect(() => {
-    getInterests().then((data: Interest[]) => {
-      setInterests(
-        data.map((i) => ({
-          id: i.interest_id,
-          name: i.interest_name,
-        })),
-      );
-    });
+    getInterests()
+      .then((data: Interest[]) => {
+        setInterests(
+          data.map((i) => ({
+            id: i.interest_id,
+            name: i.interest_name,
+          })),
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load interests:', err);
+        setInterests([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredInterests = interests.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleAddInterest = async (data: InterestFormData) => {
-    const result = await createInterest({
-      interest_name: data.name,
+  // Pagination
+  const totalPages = Math.ceil(filteredInterests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedInterests = filteredInterests.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handleAddInterest = async (data: Partial<Interest>) => {
+    await createInterest({
+      interest_name: data.interest_name || "",
     });
 
-    setInterests([
-      {
-        id: result.interest_id,
-        name: result.interest_name,
-      },
-      ...interests,
-    ]);
+    // Reload all interests to maintain correct count and order
+    const allInterests = await getInterests();
+    setInterests(
+      allInterests.map((i) => ({
+        id: i.interest_id,
+        name: i.interest_name,
+      })),
+    );
+    setCurrentPage(1);
   };
 
   const handleEditClick = (item: UIInterest) => {
-    setSelectedInterest(item);
+    setSelectedInterest({
+      interest_id: item.id,
+      interest_name: item.name,
+    } as Interest);
     setIsEditSheetOpen(true);
   };
 
-  const handleUpdateInterest = async (updatedItem: UIInterest) => {
-    const result = await updateInterest(updatedItem.id, {
-      interest_name: updatedItem.name,
+  const handleUpdateInterest = async (updatedItem: Partial<Interest>) => {
+    if (!selectedInterest?.interest_id) return;
+    const result = await updateInterest(selectedInterest.interest_id, {
+      interest_name: updatedItem.interest_name || "",
     });
 
     setInterests(
       interests.map((i) =>
-        i.id === updatedItem.id
+        i.id === selectedInterest.interest_id
           ? {
               id: result.interest_id,
               name: result.interest_name,
@@ -88,6 +127,8 @@ export function InterestsTable() {
   const handleDelete = async (id: number) => {
     await deleteInterest(id);
     setInterests(interests.filter((item) => item.id !== id));
+    setInterestToDelete(null);
+    setCurrentPage(1);
   };
 
   return (
@@ -100,7 +141,10 @@ export function InterestsTable() {
             <Input
               placeholder="Search interests..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[250px] pl-9 bg-white"
             />
           </div>
@@ -127,22 +171,38 @@ export function InterestsTable() {
         interest={selectedInterest}
       />
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Interest Name</TableHead>
-              <TableHead className="text-center w-[100px]">
+            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+              <TableHead className="text-white font-semibold">Interest Name</TableHead>
+              <TableHead className="text-white font-semibold text-center w-[100px]">
                 Edit
               </TableHead>
-              <TableHead className="text-center w-[100px]">
+              <TableHead className="text-white font-semibold text-center w-[100px]">
                 Delete
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredInterests.map((item) => (
-              <TableRow key={item.id}>
+            {loading && filteredInterests.length === 0 ? (
+              // Loading skeleton rows
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
+            ) : filteredInterests.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-6">
+                  No interests found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedInterests.map((item) => (
+              <TableRow key={item.id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
                 <TableCell className="font-medium">
                   {item.name}
                 </TableCell>
@@ -150,6 +210,7 @@ export function InterestsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="hover:bg-[#4A5DF9] hover:text-white"
                     onClick={() => handleEditClick(item)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -159,17 +220,76 @@ export function InterestsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive"
-                    onClick={() => handleDelete(item.id)}
+                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    onClick={() => setInterestToDelete(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {filteredInterests.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredInterests.length)} of {filteredInterests.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <AlertDialog open={interestToDelete !== null} onOpenChange={(open) => !open && setInterestToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Do you want to delete this interest?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (interestToDelete !== null) {
+                  void handleDelete(interestToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

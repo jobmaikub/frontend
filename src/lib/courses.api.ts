@@ -1,47 +1,64 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL + "/courses",
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+export interface Course {
+  course_id: number;
+  title: string;
+  description: string;
+  career_id: number;
+  career_path?: string;
+  career_name?: string;
+  level: "beginner" | "intermediate" | "advanced";
+  duration_mins: number;
+  course_order: number;
+  skills_taught: string[];
+  learning_outcome: string[];
+  image_url?: string;
+}
 
-export const coursesApi = {
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/courses"
+);
 
-    getAll: () => api.get("/"),
+export async function getCourses(): Promise<Course[]> {
+  const res = await api.get("/");
+  return res.data;
+}
 
-    create: (data: any) =>
-        api.post("/", {
-            title: data.title,
-            description: data.description,
-            career_path: data.career,
-            level: data.level,
-            duration: data.hours,
-            external_url: data.externalUrl,
-            course_order: data.order,
-            skills_taught: Array.isArray(data.skillsTaught)
-                ? data.skillsTaught
-                : data.skillsTaught
-                    ?.split("\n")
-                    .map((s: string) => s.trim())
-                    .filter(Boolean),
-            learning_outcome: data.learningOutcome,
-        }),
+export async function createCourse(data: Partial<Course>) {
+  const payload = {
+    title: data.title,
+    description: data.description,
+    career_id: data.career_id,
+    career_path: data.career_path,
+    level: data.level,
+    duration_mins: data.duration_mins,
+    course_order: data.course_order,
+    image_url: data.image_url,
+    skills_taught: data.skills_taught,
+    learning_outcome: data.learning_outcome,
+  };
+  const res = await api.post("/", payload);
+  return res.data;
+}
 
-    update: (id: number, data: any) =>
-        api.patch(`/${id}`, {
-            title: data.title,
-            description: data.description,
-            career_path: data.career_path,
-            level: data.level,
-            duration: data.duration,
-            external_url: data.external_url,
-            course_order: data.course_order,
-            skills_taught: data.skills_taught,
-            learning_outcome: data.learning_outcome,
-        }),
+export async function updateCourse(id: number, data: Partial<Course>) {
+  const payload = {
+    title: data.title,
+    description: data.description,
+    career_id: data.career_id,
+    career_path: data.career_path,
+    level: data.level,
+    duration_mins: data.duration_mins,
+    course_order: data.course_order,
+    image_url: data.image_url,
+    skills_taught: data.skills_taught,
+    learning_outcome: data.learning_outcome,
+  };
+  const res = await api.patch(`/${id}`, payload);
+  return res.data;
+}
 
-    delete: (id: number) =>
-        api.delete(`/${id}`),
-};
+export async function deleteCourse(id: number) {
+  const res = await api.delete(`/${id}`);
+  return res.data;
+}

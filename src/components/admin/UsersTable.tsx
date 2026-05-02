@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -10,26 +17,70 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import type { User } from "@/data/usersData";
+import type { User } from "@/types/users.types";
 import { UserDetailsSheet } from "./UserDetailsSheet";
-import { AddUsersSheet, UserFormData } from "./AddUsersSheet";
 import { useEffect } from "react";
-import { fetchUsers, updateUserStatus, createUser } from "@/lib/users.api";
+import {
+  fetchUsers,
+  fetchUserById,
+  fetchBanHistory,
+  banUser,
+  unbanUser,
+  BanUserRow,
+} from "@/lib/users.api";
+import { useAuth } from "@/contexts/AuthContexts";
+
+type UIBanHistory = {
+  banId: string;
+  banDate: string;
+  unbanDate: string | null;
+  reason: string;
+};
+
+const hasActiveBanFromHistory = (banHistory: UIBanHistory[]) =>
+  banHistory.some((entry) => !entry.unbanDate || new Date(entry.unbanDate) > new Date());
+
+const isUserBanned = (user: User, banHistory?: UIBanHistory[]) => {
+  const history = banHistory ?? ((user.banHistory as UIBanHistory[]) || []);
+  return Boolean(user.is_banned) || hasActiveBanFromHistory(history);
+};
 
 export function UsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   // State for side sheets
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [statusSort, setStatusSort] = useState<"" | "active-first" | "banned-first">("");
+  const [roleSort, setRoleSort] = useState<"" | "admin-first" | "user-first">("");
+  const itemsPerPage = 10;
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
-    fetchUsers()
-      .then(setUsers)
+    Promise.all([fetchUsers(), fetchBanHistory()])
+      .then(([usersData, banRows]) => {
+        const now = new Date();
+        const mapped = usersData.map((u: User) => {
+          const userBans = banRows
+            .filter((b: BanUserRow) => String(b.user_id) === String(u.id))
+            .map((b: BanUserRow): UIBanHistory => ({
+              banId: b.ban_id,
+              banDate: b.ban_date,
+              unbanDate: b.unban_date,
+              reason: b.reason || "No reason",
+            }));
+          return {
+            ...u,
+            is_banned: isUserBanned(u, userBans),
+            banHistory: userBans,
+          };
+        });
+        setUsers(mapped);
+      })
       .catch((err) => {
         const errorMsg = err.response?.data?.message || err.message || "Failed to fetch users";
         setError(errorMsg);
@@ -39,77 +90,113 @@ export function UsersTable() {
   }, []);
 
   const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (user) => {
+      const q = searchQuery.toLowerCase();
+      const userId = String(user.id ?? "").toLowerCase();
+      const name = String(user.name ?? "").toLowerCase();
+      const email = String(user.email ?? "").toLowerCase();
+
+      return (
+        userId.includes(q) ||
+        name.includes(q) ||
+        email.includes(q)
+      );
+    }
   );
 
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    let result = 0;
+
+    if (statusSort !== "") {
+      const aBanned = isUserBanned(a) ? 1 : 0;
+      const bBanned = isUserBanned(b) ? 1 : 0;
+
+      result = statusSort === "banned-first" ? bBanned - aBanned : aBanned - bBanned;
+    }
+
+    if (result === 0 && roleSort !== "") {
+      const aRole = (a.role || "user").toLowerCase();
+      const bRole = (b.role || "user").toLowerCase();
+      const aAdmin = aRole === "admin" ? 1 : 0;
+      const bAdmin = bRole === "admin" ? 1 : 0;
+
+      result = roleSort === "admin-first" ? bAdmin - aAdmin : aAdmin - bAdmin;
+    }
+
+    return result;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = sortedUsers.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevious = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
   // Function to trigger the detail side sheet
-  const handleShowDetails = (user: User) => {
+  const handleShowDetails = async (user: User) => {
     setSelectedUser(user);
     setIsDetailsOpen(true);
+
+    try {
+      const fullUser = await fetchUserById(user.id);
+      setSelectedUser(fullUser);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "Failed to load user details";
+      setError(errorMsg);
+    }
   };
-
-  // Function to handle adding a new user
-  const handleAddUser = async (data: UserFormData) => {
-    const newUser = await createUser({
-      name: data.name,
-      email: data.email,
-      role: data.role.toLowerCase() as "admin" | "user",
-    });
-
-    setUsers((prev) => [newUser, ...prev]);
-  };
-
 
   // Function to handle Ban/Unban logic from the detail sheet
-  const handleBanToggle = async (userId: number) => {
+  const handleBanToggle = async (userId: string | number, reason?: string, banUntil?: string) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
 
-    const isBanned = user.banHistory.length > 0;
-    const status = isBanned ? "unban" : "ban";
+    const hasActiveBan = isUserBanned(user);
 
-    const updated = await updateUserStatus(userId, status);
+    try {
+      if (hasActiveBan) {
+        await unbanUser(userId);
+      } else {
+        await banUser(userId, reason || "Banned by admin", authUser?.id ?? null, banUntil);
+      }
 
-    // ดึง user ใหม่อีกรอบ (ง่าย & ชัวร์)
-    const refreshed = await fetchUsers();
-    setUsers(refreshed);
+      const [usersData, banRows] = await Promise.all([fetchUsers(), fetchBanHistory()]);
+      const now = new Date();
+      const mapped = usersData.map((u: User) => {
+        const userBans = banRows
+          .filter((b: BanUserRow) => String(b.user_id) === String(u.id))
+          .map((b: BanUserRow): UIBanHistory => ({
+            banId: b.ban_id,
+            banDate: b.ban_date,
+            unbanDate: b.unban_date,
+            reason: b.reason || "No reason",
+          }));
+        return {
+          ...u,
+          is_banned: isUserBanned(u, userBans),
+          banHistory: userBans,
+        };
+      });
+      setUsers(mapped);
+      setError(null);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "Failed to update ban status";
+      setError(errorMsg);
+    }
   };
 
-  if (loading) {
-    return <div className="p-6">Loading users...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 space-y-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h3 className="font-semibold text-red-800 mb-2">Error Loading Users</h3>
-          <p className="text-red-700 text-sm">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (users.length === 0) {
+  if (users.length === 0 && !loading) {
     return (
       <div className="p-6">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">No users found</p>
-          <Button
-            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
-            onClick={() => setIsAddSheetOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add New
-          </Button>
         </div>
       </div>
     );
@@ -127,31 +214,52 @@ export function UsersTable() {
             <Input
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-[250px] pl-9 bg-[#FFFFFF]"
             />
           </div>
-          <Button
-            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
-            onClick={() => setIsAddSheetOpen(true)}
+          <Select
+            value={roleSort}
+            onValueChange={(value: "admin-first" | "user-first") => {
+              setRoleSort(value);
+              setCurrentPage(1);
+            }}
           >
-            <Plus className="h-4 w-4" />
-            Add New
-          </Button>
+            <SelectTrigger className="w-[170px] bg-[#FFFFFF]">
+              <SelectValue placeholder="Select Role" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#FFFFFF]">
+              <SelectItem value="admin-first">Admin First</SelectItem>
+              <SelectItem value="user-first">User First</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={statusSort}
+            onValueChange={(value: "active-first" | "banned-first") => {
+              setStatusSort(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[180px] bg-[#FFFFFF]">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#FFFFFF]">
+              <SelectItem value="banned-first">Banned First</SelectItem>
+              <SelectItem value="active-first">Active First</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Side Sheet Components */}
-      <AddUsersSheet
-        open={isAddSheetOpen}
-        onOpenChange={setIsAddSheetOpen}
-        onSubmit={handleAddUser}
-      />
-
       <UserDetailsSheet
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
-        user={users.find(u => u.id === selectedUser?.id) || null}
+        user={selectedUser}
         onBanToggle={handleBanToggle}
       />
 
@@ -171,37 +279,92 @@ export function UsersTable() {
           </TableHeader>
 
           <TableBody>
-            {filteredUsers.map((user) => {
-              const isBanned = user.banHistory && user.banHistory.length > 0;
-              return (
-                <TableRow
-                  key={user.id}
-                  className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
-                >
-                  <TableCell className="text-muted-foreground">{user.id}</TableCell>
-                  <TableCell className="font-medium text-foreground">{user.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.joinedDate}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${isBanned ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                      }`}>
-                      {isBanned ? "Banned" : "Active"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      className="bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white h-8 px-4 text-xs rounded-md shadow-none"
-                      onClick={() => handleShowDetails(user)}
-                    >
-                      Show Details
-                    </Button>
-                  </TableCell>
+            {loading && users.length === 0 ? (
+              // Loading skeleton rows - match actual row height
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell className="text-muted-foreground"><div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-28 mx-auto"></div></TableCell>
                 </TableRow>
-              );
-            })}
+              ))
+            ) : sortedUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                  No users found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedUsers.map((user) => {
+                const isBanned = isUserBanned(user);
+                return (
+                  <TableRow
+                    key={user.id}
+                    className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b"
+                  >
+                    <TableCell className="text-muted-foreground">{user.id}</TableCell>
+                    <TableCell className="font-medium text-foreground">{user.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell className="text-muted-foreground">{user.joinedDate}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${isBanned ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+                        }`}>
+                        {isBanned ? "Banned" : "Active"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        className="bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white h-8 px-4 text-xs rounded-md shadow-none"
+                        onClick={() => handleShowDetails(user)}
+                      >
+                        Show Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination Controls - Fixed Height */}
+        {sortedUsers.length > 0 && (
+          <div className="h-16 flex items-center justify-between px-4 border-t bg-[#F9FAFB] flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedUsers.length)} of {sortedUsers.length}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="gap-1 text-xs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-14 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-sm">
+                {currentPage} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="gap-1 text-xs"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

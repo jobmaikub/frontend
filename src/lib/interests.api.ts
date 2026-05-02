@@ -1,11 +1,8 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/interests",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/interests"
+);
 
 export interface Interest {
   interest_id: number;
@@ -14,7 +11,18 @@ export interface Interest {
 
 export const getInterests = async (): Promise<Interest[]> => {
   const res = await api.get("/");
-  return res.data;
+  const payload = Array.isArray(res.data)
+    ? res.data
+    : Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
+
+  return payload
+    .map((row: any) => ({
+      interest_id: Number(row?.interest_id ?? row?.id),
+      interest_name: String(row?.interest_name ?? row?.name ?? ""),
+    }))
+    .filter((row: Interest) => Number.isFinite(row.interest_id) && row.interest_id > 0);
 };
 
 export const createInterest = async (data: {

@@ -1,26 +1,44 @@
-import axios from "axios";
+import { createAuthenticatedApi } from "./apiClient";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/news",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const api = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL + "/admin/news"
+);
 
 export interface News {
   news_id: number;
   title: string;
-  summary: string;
-  industry: any;
+  description: string;
+  industry_id?: number;
   image_url: string;
   source_url: string;
   source_name: string;
-  created_at: string;
+  date: string;
+  created_at?: string;
+  industries?: {
+    industry_id: number;
+    name: string;
+  };
 }
+
+const sortNewsByDateDesc = (articles: News[]): News[] => {
+  return [...articles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+};
 
 export const getNews = async (): Promise<News[]> => {
   const res = await api.get("/");
-  return res.data;
+  return sortNewsByDateDesc(res.data);
+};
+
+export const searchNews = async (query: string, industry?: string): Promise<News[]> => {
+  const params = new URLSearchParams();
+  params.append('q', query);
+  if (industry && industry !== 'All Industries') {
+    params.append('industry', industry);
+  }
+  const res = await api.get(`/search/query?${params.toString()}`);
+  return sortNewsByDateDesc(res.data);
 };
 
 export const createNews = async (

@@ -38,7 +38,12 @@ const AlertDialogContent = React.forwardRef<
         className,
       )}
       {...props}
-    />
+    >
+      <AlertDialogPrimitive.Description className="sr-only">
+        Confirmation dialog
+      </AlertDialogPrimitive.Description>
+      {props.children}
+    </AlertDialogPrimitive.Content>
   </AlertDialogPortal>
 ));
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;

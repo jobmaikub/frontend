@@ -16,53 +16,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Career } from "@/lib/careers.api";
 
 interface AddCoursesSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CourseFormData) => void;
+  onSubmit: (data: CourseFormData) => Promise<void>;
+  careers: Career[];
 }
 
 export interface CourseFormData {
   title: string;
   description: string;
-  career: string;
+  career_id: number;
+  career_path: string;
+  image_url: string;
   level: "beginner" | "intermediate" | "advanced";
-  hours: number;
-  externalUrl: string;
-  order: number;
-  skillsTaught: string;
-  learningOutcome: string; // New Field
+  course_order: number;
+  skills_taught: string;
+  learning_outcome: string;
 }
 
-export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesSheetProps) {
+export function AddCoursesSheet({
+  open,
+  onOpenChange,
+  onSubmit,
+  careers,
+}: AddCoursesSheetProps) {
   const [formData, setFormData] = useState<CourseFormData>({
     title: "",
     description: "",
-    career: "",
+    career_id: 0,
+    career_path: "",
+    image_url: "",
     level: "beginner",
-    hours: 1,
-    externalUrl: "",
-    order: 1,
-    skillsTaught: "",
-    learningOutcome: "", // New Field Initial State
+    course_order: 1,
+    skills_taught: "",
+    learning_outcome: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    onOpenChange(false);
-    setFormData({
-      title: "",
-      description: "",
-      career: "",
-      level: "beginner",
-      hours: 1,
-      externalUrl: "",
-      order: 1,
-      skillsTaught: "",
-      learningOutcome: "",
-    });
+
+    try {
+      await onSubmit({
+        title: formData.title,
+        description: formData.description,
+        career_id: formData.career_id,
+        career_path: formData.career_path,
+        image_url: formData.image_url,
+        level: formData.level,
+        course_order: formData.course_order,
+        skills_taught: formData.skills_taught,
+        learning_outcome: formData.learning_outcome,
+      });
+      setFormData({
+        title: "",
+        description: "",
+        career_id: 0,
+        career_path: "",
+        image_url: "",
+        level: "beginner",
+        course_order: 1,
+        skills_taught: "",
+        learning_outcome: "",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating course:", error);
+    }
   };
 
   return (
@@ -98,23 +120,46 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
           </div>
 
           <div className="space-y-2">
-            <Label>Career Path <span className="text-destructive">*</span></Label>
-            <Select onValueChange={(v) => setFormData({ ...formData, career: v })} required>
+            <Label htmlFor="career_id">Career Path <span className="text-destructive">*</span></Label>
+            <Select
+              value={formData.career_id ? formData.career_id.toString() : ""}
+              onValueChange={(v) => {
+                const selectedCareer = careers.find((career) => career.career_id === Number(v));
+                setFormData({
+                  ...formData,
+                  career_id: Number(v),
+                  career_path: selectedCareer?.title || "",
+                });
+              }}
+            >
               <SelectTrigger className="bg-white">
-                <SelectValue placeholder="Select Career Path" />
+                <SelectValue placeholder="Select Career" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="UX Designer">UX Designer</SelectItem>
-                <SelectItem value="Data Scientist">Data Scientist</SelectItem>
-                <SelectItem value="Software Engineer">Software Engineer</SelectItem>
-                <SelectItem value="Product Manager">Product Manager</SelectItem>
+                {careers.map((career) => (
+                  <SelectItem key={career.career_id} value={career.career_id.toString()}>
+                    {career.title}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="image_url">Image URL <span className="text-destructive">*</span></Label>
+            <Input
+              id="image_url"
+              placeholder="https://..."
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              required
+              className="bg-white"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label>Level <span className="text-destructive">*</span></Label>
-            <Select onValueChange={(v: any) => setFormData({ ...formData, level: v })} required>
+            <Select value={formData.level} onValueChange={(v: any) => setFormData({ ...formData, level: v })}>
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select Level" />
               </SelectTrigger>
@@ -127,61 +172,36 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (hours) <span className="text-destructive">*</span></Label>
+            <Label htmlFor="course_order">Course Order <span className="text-destructive">*</span></Label>
             <Input
-              id="duration"
+              id="course_order"
               type="number"
-              value={formData.hours}
-              onChange={(e) => setFormData({ ...formData, hours: Number(e.target.value) })}
+              value={formData.course_order}
+              onChange={(e) => setFormData({ ...formData, course_order: Number(e.target.value) })}
               required
               className="bg-white"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="url">External URL <span className="text-destructive">*</span></Label>
-            <Input
-              id="url"
-              placeholder="https://..."
-              value={formData.externalUrl}
-              onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })}
-              required
-              className="bg-white"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="order">Order <span className="text-destructive">*</span></Label>
-            <Input
-              id="order"
-              type="number"
-              value={formData.order}
-              onChange={(e) => setFormData({ ...formData, order: Number(e.target.value) })}
-              required
-              className="bg-white"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="skills">Skills Taught <span className="text-destructive">*</span></Label>
+            <Label htmlFor="skills_taught">Skills Taught (one per line) <span className="text-destructive">*</span></Label>
             <Textarea
-              id="skills"
+              id="skills_taught"
               placeholder="Write skills taught in this course. One skill per line..."
-              value={formData.skillsTaught}
-              onChange={(e) => setFormData({ ...formData, skillsTaught: e.target.value })}
+              value={formData.skills_taught}
+              onChange={(e) => setFormData({ ...formData, skills_taught: e.target.value })}
               required
               className="bg-white min-h-[100px]"
             />
           </div>
 
-          {/* New Learning Outcome Field */}
           <div className="space-y-2">
-            <Label htmlFor="learningOutcome">Learning Outcome <span className="text-destructive">*</span></Label>
+            <Label htmlFor="learning_outcome">Learning Outcome (one per line) <span className="text-destructive">*</span></Label>
             <Textarea
-              id="learningOutcome"
+              id="learning_outcome"
               placeholder="What will students achieve after this course?..."
-              value={formData.learningOutcome}
-              onChange={(e) => setFormData({ ...formData, learningOutcome: e.target.value })}
+              value={formData.learning_outcome}
+              onChange={(e) => setFormData({ ...formData, learning_outcome: e.target.value })}
               required
               className="bg-white min-h-[100px]"
             />
@@ -191,7 +211,7 @@ export function AddCoursesSheet({ open, onOpenChange, onSubmit }: AddCoursesShee
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-white text-black hover:text-black border-slate-200 shadow-none"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel

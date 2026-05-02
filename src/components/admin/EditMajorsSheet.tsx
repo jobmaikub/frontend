@@ -34,19 +34,22 @@ export function EditMajorsSheet({
   major,
   faculties,
 }: EditMajorsSheetProps) {
-  const [name, setName] = useState("");
+  const [eng_name, setEngName] = useState("");
+  const [th_name, setThName] = useState("");
   const [facultyId, setFacultyId] = useState<number | "">("");
 
   useEffect(() => {
     if (major) {
-      setName(major.name);
+      setEngName(major.eng_name);
+      setThName(major.th_name || "");
       setFacultyId(major.faculty_id);
     }
   }, [major]);
 
   useEffect(() => {
     if (!open) {
-      setName("");
+      setEngName("");
+      setThName("");
       setFacultyId("");
     }
   }, [open]);
@@ -57,14 +60,15 @@ export function EditMajorsSheet({
 
     onSubmit({
       ...major,
-      name: name.trim(),
+      eng_name: eng_name.trim(),
+      th_name: th_name.trim(),
       faculty_id: facultyId,
     });
 
     onOpenChange(false);
   };
 
-  const isDisabled = !name.trim() || facultyId === "";
+  const isDisabled = !eng_name.trim() || facultyId === "";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -78,12 +82,23 @@ export function EditMajorsSheet({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label>
-              Major Name <span className="text-destructive">*</span>
+              Major Name (English) <span className="text-destructive">*</span>
             </Label>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={eng_name}
+              onChange={(e) => setEngName(e.target.value)}
               required
+              className="bg-white"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>
+              Major Name (Thai)
+            </Label>
+            <Input
+              value={th_name}
+              onChange={(e) => setThName(e.target.value)}
               className="bg-white"
             />
           </div>
@@ -107,7 +122,7 @@ export function EditMajorsSheet({
                     key={faculty.faculty_id}
                     value={faculty.faculty_id.toString()}
                   >
-                    {faculty.name}
+                    {faculty.eng_name}
                   </SelectItem>
                 ))}
               </SelectContent>

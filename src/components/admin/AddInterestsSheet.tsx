@@ -8,27 +8,32 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Interest } from "@/lib/interests.api";
 
 interface AddInterestsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: InterestFormData) => void;
+  onSubmit: (data: Partial<Interest>) => Promise<void>;
 }
 
 export interface InterestFormData {
-  name: string;
+  interest_name: string;
 }
 
 export function AddInterestsSheet({ open, onOpenChange, onSubmit }: AddInterestsSheetProps) {
   const [formData, setFormData] = useState<InterestFormData>({
-    name: "",
+    interest_name: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({ name: "" });
-    onOpenChange(false);
+    try {
+      await onSubmit({ interest_name: formData.interest_name });
+      setFormData({ interest_name: "" });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating interest:", error);
+    }
   };
 
   return (
@@ -46,8 +51,8 @@ export function AddInterestsSheet({ open, onOpenChange, onSubmit }: AddInterests
             <Input
               id="name"
               placeholder="e.g., Technology"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData.interest_name}
+              onChange={(e) => setFormData({ ...formData, interest_name: e.target.value })}
               required
               className="bg-white"
             />
@@ -57,12 +62,12 @@ export function AddInterestsSheet({ open, onOpenChange, onSubmit }: AddInterests
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-white text-black hover:text-black border-slate-200 shadow-none"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white">
               Create
             </Button>
           </div>

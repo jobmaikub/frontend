@@ -245,13 +245,11 @@
 //     </Sheet>
 //   );
 // }
-import { useState, KeyboardEvent } from "react";
-import { X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -265,71 +263,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Industry } from "@/lib/industries.api";
 
 interface AddNewsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: NewsFormData) => void;
+  industries: Industry[];
 }
 
 export interface NewsFormData {
   title: string;
-  summary: string;
-  industry: string;
-  imageUrl: string;
-  sourceUrl: string;
-  sourceName: string;
-  skills: string[];
+  description: string;
+  industry_id?: number;
+  image_url: string;
+  source_url: string;
+  source_name: string;
   date: string;
 }
 
-export function AddNewsSheet({ open, onOpenChange, onSubmit }: AddNewsSheetProps) {
-  const [skillInput, setSkillInput] = useState("");
+export function AddNewsSheet({
+  open,
+  onOpenChange,
+  onSubmit,
+  industries,
+}: AddNewsSheetProps) {
   const [formData, setFormData] = useState<NewsFormData>({
     title: "",
-    summary: "",
-    industry: "",
-    imageUrl: "",
-    sourceUrl: "",
-    sourceName: "",
-    skills: [],
-    date: new Date().toISOString().split('T')[0],
+    description: "",
+    industry_id: undefined,
+    image_url: "",
+    source_url: "",
+    source_name: "",
+    date: new Date().toISOString().split("T")[0],
   });
 
-  const handleAddSkill = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && skillInput.trim()) {
-      e.preventDefault();
-      if (!formData.skills.includes(skillInput.trim())) {
-        setFormData({
-          ...formData,
-          skills: [...formData.skills, skillInput.trim()],
-        });
-      }
-      setSkillInput("");
-    }
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((skill) => skill !== skillToRemove),
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      title: "",
-      summary: "",
-      industry: "",
-      imageUrl: "",
-      sourceUrl: "",
-      sourceName: "",
-      skills: [],
-      date: new Date().toISOString().split('T')[0],
-    });
-    onOpenChange(false);
+    try {
+      await onSubmit(formData);
+      setFormData({
+        title: "",
+        description: "",
+        industry_id: undefined,
+        image_url: "",
+        source_url: "",
+        source_name: "",
+        date: new Date().toISOString().split("T")[0],
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating news:", error);
+    }
   };
 
   return (
@@ -346,34 +331,29 @@ export function AddNewsSheet({ open, onOpenChange, onSubmit }: AddNewsSheetProps
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="summary">Summary <span className="text-destructive">*</span></Label>
-            <Textarea id="summary" placeholder="Write your summary" value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} className="min-h-[100px] bg-[#FFFFFF]" required />
+            <Label htmlFor="description">Description <span className="text-destructive">*</span></Label>
+            <Textarea id="description" placeholder="Write description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="min-h-[100px] bg-[#FFFFFF]" required />
           </div>
 
-          <div className="space-y-2 relative">
-            <Label htmlFor="industry">Industry <span className="text-destructive">*</span></Label>
-            <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
-              <SelectTrigger className="bg-[#FFFFFF]"><SelectValue placeholder="Select Industry" /></SelectTrigger>
+          <div className="space-y-2">
+            <Label htmlFor="industry_id">Industry</Label>
+            <Select
+              value={formData.industry_id ? formData.industry_id.toString() : ""}
+              onValueChange={(v) =>
+                setFormData({ ...formData, industry_id: v ? Number(v) : undefined })
+              }
+            >
+              <SelectTrigger className="bg-[#FFFFFF]">
+                <SelectValue placeholder="Select Industry (Optional)" />
+              </SelectTrigger>
               <SelectContent className="bg-[#FFFFFF]">
-                <SelectItem value="Technology">Technology</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-                <SelectItem value="Design">Design & Creative</SelectItem>
-                <SelectItem value="Education">Education</SelectItem>
-                <SelectItem value="Health">Health</SelectItem>
+                {industries.map((ind) => (
+                  <SelectItem key={ind.industry_id} value={ind.industry_id.toString()}>
+                    {ind.name || ind.industry_name || `Industry ${ind.industry_id}`}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2 relative">
-            <Label htmlFor="skills">Skill Tags <span className="text-destructive">*</span></Label>
-            <Input id="skills" placeholder="e.g. React, UI Design" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={handleAddSkill} className="bg-[#FFFFFF]" />
-            <div className="flex flex-wrap gap-2 mt-2">
-              {formData.skills.map((skill) => (
-                <Badge key={skill} variant="secondary" className="gap-1 bg-slate-100 text-slate-800">
-                  {skill} <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => removeSkill(skill)} />
-                </Badge>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -384,23 +364,23 @@ export function AddNewsSheet({ open, onOpenChange, onSubmit }: AddNewsSheetProps
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               required
-              className="bg-[#FFFFFF] text-left block w-full [appearance:none] [&::-webkit-calendar-picker-indicator]:ml-auto"
+              className="bg-[#FFFFFF]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Image URL <span className="text-destructive">*</span></Label>
-            <Input id="image" placeholder="https://..." value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} required className="bg-[#FFFFFF]" />
+            <Label htmlFor="image_url">Image URL <span className="text-destructive">*</span></Label>
+            <Input id="image_url" placeholder="https://..." value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} required className="bg-[#FFFFFF]" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sourceUrl">Source URL <span className="text-destructive">*</span></Label>
-            <Input id="sourceUrl" placeholder="https://..." value={formData.sourceUrl} onChange={(e) => setFormData({ ...formData, sourceUrl: e.target.value })} required className="bg-[#FFFFFF]" />
+            <Label htmlFor="source_url">Source URL (Optional)</Label>
+            <Input id="source_url" placeholder="https://..." value={formData.source_url} onChange={(e) => setFormData({ ...formData, source_url: e.target.value })} className="bg-[#FFFFFF]" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sourceName">Source Name <span className="text-destructive">*</span></Label>
-            <Input id="sourceName" placeholder="e.g. Tech News" value={formData.sourceName} onChange={(e) => setFormData({ ...formData, sourceName: e.target.value })} required className="bg-[#FFFFFF]" />
+            <Label htmlFor="source_name">Source Name (Optional)</Label>
+            <Input id="source_name" placeholder="e.g. Tech News" value={formData.source_name} onChange={(e) => setFormData({ ...formData, source_name: e.target.value })} className="bg-[#FFFFFF]" />
           </div>
 
           <div className="flex gap-3 pt-4">

@@ -1,35 +1,27 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Faculty } from "@/lib/faculties.api";
-import { Major } from "@/lib/majors.api";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { Skill } from "@/lib/skills.api";
-import { SkillFormData } from "./AddSkillsSheet";
 
 interface EditSkillsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   skill: Skill | null;
-  faculties: Faculty[];
-  majors: Major[];
-  onSubmit: (
-    data: SkillFormData & { skill_id: number }
-  ) => Promise<void>;
+  onSubmit: (data: Partial<Skill>) => Promise<void>;
+}
+
+interface SkillFormData {
+  name: string;
+  category: string;
+  icon?: string;
 }
 
 export function EditSkillsSheet({
@@ -37,40 +29,37 @@ export function EditSkillsSheet({
   onOpenChange,
   onSubmit,
   skill,
-  faculties,
-  majors,
 }: EditSkillsSheetProps) {
   const [formData, setFormData] = useState<SkillFormData>({
     name: "",
-    faculty_id: 0,
-    major_id: 0,
+    category: "",
+    icon: "",
   });
 
-  /* map skill -> form */
   useEffect(() => {
-  if (
-    skill &&
-    faculties.length > 0 &&
-    majors.length > 0
-  ) {
-    setFormData({
-      name: skill.name,
-      faculty_id: skill.category?.faculty_id ?? 0,
-      major_id: skill.category?.major_id ?? 0,
-    });
-  }
-}, [skill, faculties, majors]);
+    if (skill) {
+      setFormData({
+        name: skill.name || "",
+        category: typeof skill.category === "string" ? skill.category : JSON.stringify(skill.category || {}),
+        icon: skill.icon || "",
+      });
+    }
+  }, [skill]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!skill) return;
 
-    await onSubmit({
-      skill_id: skill.skill_id,
-      ...formData,
-    });
-
-    onOpenChange(false);
+    try {
+      await onSubmit({
+        name: formData.name,
+        category: formData.category,
+        icon: formData.icon,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error updating skill:", error);
+    }
   };
 
   return (
@@ -83,88 +72,49 @@ export function EditSkillsSheet({
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Skill name */}
           <div className="space-y-2">
-            <Label>Skill Name *</Label>
+            <Label htmlFor="edit-skill-name">Skill Name <span className="text-destructive">*</span></Label>
             <Input
+              id="edit-skill-name"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
               required
+              className="bg-white"
             />
           </div>
 
-          {/* Faculty */}
           <div className="space-y-2">
-            <Label>Faculty *</Label>
-
-            <Select
-              value={formData.faculty_id ? String(formData.faculty_id) : ""}
-              onValueChange={(v) =>
-                setFormData({
-                  ...formData,
-                  faculty_id: Number(v),
-                  major_id: 0,
-                })
+            <Label htmlFor="edit-category">Category (JSON)</Label>
+            <Textarea
+              id="edit-category"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Faculty" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {faculties.map((f) => (
-                  <SelectItem
-                    key={f.faculty_id}
-                    value={String(f.faculty_id)}
-                  >
-                    {f.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              className="bg-white min-h-[80px]"
+              placeholder='{"key": "value"}'
+            />
           </div>
 
-          {/* Major */}
           <div className="space-y-2">
-            <Label>Major *</Label>
-
-            <Select
-              value={formData.major_id ? String(formData.major_id) : ""}
-              onValueChange={(v) =>
-                setFormData({
-                  ...formData,
-                  major_id: Number(v),
-                })
+            <Label htmlFor="edit-icon">Icon (optional)</Label>
+            <Input
+              id="edit-icon"
+              value={formData.icon || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, icon: e.target.value })
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Major" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {majors
-                  .filter(
-                    (m) => m.faculty_id === formData.faculty_id
-                  )
-                  .map((m) => (
-                    <SelectItem
-                      key={m.major_id}
-                      value={String(m.major_id)}
-                    >
-                      {m.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+              className="bg-white"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
@@ -172,7 +122,7 @@ export function EditSkillsSheet({
 
             <Button
               type="submit"
-              className="flex-1 bg-[#4A5DF9] text-white"
+              className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white"
             >
               Update
             </Button>

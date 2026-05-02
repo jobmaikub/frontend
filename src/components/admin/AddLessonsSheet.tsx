@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { coursesApi } from "@/lib/courses.api";
+import { getCourses } from "@/lib/courses.api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,24 +16,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Lesson } from "@/lib/lessons.api";
 
 interface AddLessonsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: LessonFormData) => void;
+  onSubmit: (data: Partial<Lesson>) => Promise<void>;
 }
 
 interface CourseOption {
-  id: number;
+  course_id: number;
   title: string;
 }
 
 export interface LessonFormData {
   title: string;
-  courseId: number;
-  order: number;
-  duration: number;
-  externalUrl: string;
+  course_id: number;
+  lesson_order: number;
+  duration_mins: number;
+  external_url: string;
 }
 
 export function AddLessonsSheet({
@@ -44,34 +45,45 @@ export function AddLessonsSheet({
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [formData, setFormData] = useState<LessonFormData>({
     title: "",
-    courseId: 0,
-    order: 1,
-    duration: 30,
-    externalUrl: "",
+    course_id: 0,
+    lesson_order: 1,
+    duration_mins: 30,
+    external_url: "",
   });
 
-  // 🔥 ดึง courses จาก backend
   useEffect(() => {
-    coursesApi.getAll().then((res) => {
-      const mapped = res.data.map((c: any) => ({
-        id: c.course_id,
+    getCourses().then((res) => {
+      const mapped = res.map((c: any) => ({
+        course_id: c.course_id,
         title: c.title,
       }));
       setCourses(mapped);
     });
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      title: "",
-      courseId: 0,
-      order: 1,
-      duration: 30,
-      externalUrl: "",
-    });
-    onOpenChange(false);
+    if (formData.course_id <= 0) return;
+
+    try {
+      await onSubmit({
+        title: formData.title,
+        course_id: formData.course_id,
+        lesson_order: formData.lesson_order,
+        duration_mins: formData.duration_mins,
+        external_url: formData.external_url,
+      });
+      setFormData({
+        title: "",
+        course_id: 0,
+        lesson_order: 1,
+        duration_mins: 30,
+        external_url: "",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating lesson:", error);
+    }
   };
 
   return (
@@ -85,82 +97,93 @@ export function AddLessonsSheet({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label>Title *</Label>
+            <Label htmlFor="add-title">Title <span className="text-destructive">*</span></Label>
             <Input
+              id="add-title"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
               required
+              className="bg-white"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Course *</Label>
+            <Label htmlFor="add-course_id">Course <span className="text-destructive">*</span></Label>
             <Select
-              value={String(formData.courseId || "")}
+              value={formData.course_id === 0 ? "" : formData.course_id.toString()}
               onValueChange={(v) =>
-                setFormData({ ...formData, courseId: Number(v) })
+                setFormData({ ...formData, course_id: Number(v) })
               }
-              required
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select Course" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]">
                 {courses.map((course) => (
                   <SelectItem
-                    key={course.id}
-                    value={String(course.id)}
+                    key={course.course_id}
+                    value={String(course.course_id)}
+                    className="truncate"
                   >
                     {course.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {formData.course_id <= 0 && (
+              <p className="text-xs text-muted-foreground">Please select a course.</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label>Order *</Label>
+            <Label htmlFor="add-lesson_order">Lesson Order <span className="text-destructive">*</span></Label>
             <Input
+              id="add-lesson_order"
               type="number"
-              value={formData.order}
+              value={formData.lesson_order}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  order: Number(e.target.value),
+                  lesson_order: Number(e.target.value),
                 })
               }
               required
+              className="bg-white"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Duration (minutes) *</Label>
+            <Label htmlFor="add-duration">Duration (minutes) <span className="text-destructive">*</span></Label>
             <Input
+              id="add-duration"
               type="number"
-              value={formData.duration}
+              value={formData.duration_mins}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  duration: Number(e.target.value),
+                  duration_mins: Number(e.target.value),
                 })
               }
               required
+              className="bg-white"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>External URL *</Label>
+            <Label htmlFor="add-external_url">External URL <span className="text-destructive">*</span></Label>
             <Input
-              value={formData.externalUrl}
+              id="add-external_url"
+              value={formData.external_url}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  externalUrl: e.target.value,
+                  external_url: e.target.value,
                 })
               }
               required
+              className="bg-white"
             />
           </div>
 
@@ -168,12 +191,12 @@ export function AddLessonsSheet({
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] text-white">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white">
               Create
             </Button>
           </div>

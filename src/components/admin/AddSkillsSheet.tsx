@@ -1,59 +1,56 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Faculty } from "@/lib/faculties.api";
-import { Major } from "@/lib/majors.api";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { createSkill, Skill } from "@/lib/skills.api";
 
 interface AddSkillsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: SkillFormData) => void;
-  faculties: Faculty[];
-  majors: Major[];
+  onSubmit: (data: Partial<Skill>) => Promise<void>;
 }
 
 export interface SkillFormData {
   name: string;
-  faculty_id: number;
-  major_id: number;
+  category?: string;
+  icon?: string;
 }
 
 export function AddSkillsSheet({
   open,
   onOpenChange,
   onSubmit,
-  faculties,
-  majors
 }: AddSkillsSheetProps) {
   const [formData, setFormData] = useState<SkillFormData>({
     name: "",
-    faculty_id: 0,
-    major_id: 0,
+    category: "",
+    icon: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-  name: "",
-  faculty_id: 0,
-  major_id: 0
-});
-    onOpenChange(false);
+    try {
+      await onSubmit({
+        name: formData.name,
+        category: formData.category,
+        icon: formData.icon,
+      });
+      setFormData({
+        name: "",
+        category: "",
+        icon: "",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating skill:", error);
+    }
   };
 
   return (
@@ -65,9 +62,9 @@ export function AddSkillsSheet({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="name">Skill Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="skill-name">Skill Name <span className="text-destructive">*</span></Label>
             <Input
-              id="name"
+              id="skill-name"
               placeholder="e.g., Python Programming"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -77,70 +74,42 @@ export function AddSkillsSheet({
           </div>
 
           <div className="space-y-2">
-            <Label>Faculty <span className="text-destructive">*</span></Label>
-            <Select
-              value={String(formData.faculty_id)}
-              onValueChange={(v) =>
+            <Label htmlFor="category">Category (JSON)</Label>
+            <Textarea
+              id="category"
+              placeholder='{"key": "value"}'
+              value={formData.category || ""}
+              onChange={(e) =>
                 setFormData({
                   ...formData,
-                  faculty_id: Number(v),
-                  major_id: 0
+                  category: e.target.value,
                 })
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Faculty" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {faculties.map((f) => (
-                  <SelectItem
-                    key={f.faculty_id}
-                    value={String(f.faculty_id)}
-                  >
-                    {f.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
+              className="bg-white min-h-[80px]"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label>Major <span className="text-destructive">*</span></Label>
-            <Select
-              value={String(formData.major_id)}
-              onValueChange={(v) =>
+            <Label htmlFor="icon">Icon (optional)</Label>
+            <Input
+              id="icon"
+              placeholder="Icon URL or name"
+              value={formData.icon || ""}
+              onChange={(e) =>
                 setFormData({
                   ...formData,
-                  major_id: Number(v),
+                  icon: e.target.value,
                 })
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Major" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {majors
-                  .filter((m) => m.faculty_id === formData.faculty_id)
-                  .map((m) => (
-                    <SelectItem
-                      key={m.major_id}
-                      value={String(m.major_id)}
-                    >
-                      {m.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+              className="bg-white"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-white text-black hover:text-black border-slate-200 shadow-none"
+              className="flex-1 bg-white hover:bg-slate-100 text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
