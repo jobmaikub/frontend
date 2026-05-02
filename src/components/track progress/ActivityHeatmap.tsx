@@ -179,7 +179,10 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
     }
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const key = d.toISOString().split("T")[0];
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd_str = String(d.getDate()).padStart(2, "0");
+      const key = `${yyyy}-${mm}-${dd_str}`;
       const month = d.getMonth();
       const dd = dataMap[key] || { date: key, lessons: 0, courses: 0, count: 0 };
 
@@ -214,14 +217,6 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
   // offset ซ้ายของ day-label column = 24px (w-6) + 4px gap
   const DAY_COL_W = 28;
 
-  if (!data.length) {
-    return (
-      <div className="rounded-xl border bg-card p-6 flex-1">
-        <h3 className="text-lg font-bold">Activity Track</h3>
-        <p className="text-sm text-muted-foreground mt-2">No activity yet</p>
-      </div>
-    );
-  }
 
   return (
     <div className="rounded-xl border bg-card p-6 flex-1 min-w-0">
