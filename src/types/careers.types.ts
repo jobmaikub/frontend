@@ -36,9 +36,12 @@ export interface Career {
   salaryMin: number;
   salaryMax: number;
   growthRate: 'stable' | 'medium' | 'high';
+  growth_rate?: number;
   keyResponsibilities: string[];
   requiredSkills: RequiredSkill[];
   learningPath: LearningLevel[];
+  totalCourses?: number;
+  totalHours?: number;
   reviews: Review[];
 }
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/navbar and footer/Navbar";
-import { Footer } from "@/components/navbar and footer/Footer";
 import { Search, Filter, ChevronDown, BookmarkX, Loader } from "lucide-react";
 import NewsCard from "@/components/news/NewsCard";
 import type { News } from "@/lib/news.api";
@@ -62,7 +61,7 @@ export default function Bookmark() {
 		<div className="min-h-screen flex flex-col bg-white font-['Inter']">
 			<Navbar />
 
-			<section className="w-full flex flex-col items-center pt-32 pb-12 px-4 text-center bg-white">
+			<section className="w-full flex flex-col items-center pt-28 pb-12 px-4 text-center bg-white">
 				<span className="bg-blue-50 text-[14px] font-normal text-[#4A5DF9] px-5 py-1.5 rounded-full mb-6">
 					Saved News
 				</span>
@@ -154,7 +153,6 @@ export default function Bookmark() {
 				</div>
 			</section>
 
-			<Footer />
 		</div>
 	);
 }

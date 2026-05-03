@@ -6,7 +6,6 @@ import { MajorForm } from "@/components/ai match/MajorForm";
 import { SkillsForm } from "@/components/ai match/SkillsForm";
 import { InterestsForm } from "@/components/ai match/InterestsForm";
 import { CareerMatches } from "@/components/ai match/CareerMatches";
-import { Footer } from "@/components/navbar and footer/Footer";
 import { GraduationCap, BookOpen, Lightbulb, Heart } from "lucide-react";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContexts";
@@ -176,7 +175,6 @@ export default function AIMatch() {
         </section>
       </main>
 
-      <Footer />
     </div>
   );
 }

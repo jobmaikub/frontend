@@ -3,14 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import {
   ArrowLeft,
+  ArrowRight,
   TrendingUp,
   Minus,
   BookOpen,
   CheckCircle2,
   ChevronRight,
   FileText,
+  Play,
+  Award,
+  Trophy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { learningPathApi } from '@/lib/LearningPath.api';
 import {
   Tabs,
   TabsContent,
@@ -60,8 +65,38 @@ const CareerDetail = () => {
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [checkingPath, setCheckingPath] = useState(true);
 
   const career = careers.find((c) => String(c.id) === id);
+
+  // Check if learning path has been started
+  useEffect(() => {
+    const checkPathStatus = async () => {
+      if (!user || !career) {
+        setCheckingPath(false);
+        return;
+      }
+      setCheckingPath(true);
+      try {
+        const res = await learningPathApi.getAll(user.id);
+        const matchedPath = res.data.find((path: any) => String(path.id) === String(career.id) || String(path.career_id) === String(career.id));
+        if (matchedPath) {
+          setHasStarted(true);
+          setProgress(Math.round(matchedPath.progress || 0));
+        } else {
+          setHasStarted(false);
+          setProgress(0);
+        }
+      } catch (err) {
+        console.error('Failed to check learning path status', err);
+      } finally {
+        setCheckingPath(false);
+      }
+    };
+    checkPathStatus();
+  }, [user, career]);
 
   // Fetch industry news from database
   useEffect(() => {
@@ -150,7 +185,7 @@ const CareerDetail = () => {
 
   return (
     <OldThemeWrapper>
-      <div className="min-h-screen bg-background pt-20">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 py-8">
           {/* Back */}
@@ -172,9 +207,9 @@ const CareerDetail = () => {
             <div>
               <div className="flex gap-2 mb-2">
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${growth.className}`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${growth.className}`}
                 >
-                  <growth.icon className="h-3 w-3" />
+                  <growth.icon className="h-3.5 w-3.5" strokeWidth={3} />
                   {growth.label}
                 </span>
                 <span className="inline-flex items-center rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -213,11 +248,95 @@ const CareerDetail = () => {
                 <p className="mt-1 text-sm opacity-70">Per month</p>
               </div>
 
-              {/* Start Learning Path */}
-              <Button size="lg" className="w-full gap-2 py-6 text-base">
-                <BookOpen className="h-5 w-5" />
-                Start Learning Path
-              </Button>
+              {/* Learning Path Action Area */}
+              {checkingPath ? (
+                <div className="h-[80px] w-full bg-muted animate-pulse rounded-2xl" />
+              ) : (
+                <div className={!hasStarted ? "" : "bg-card rounded-2xl border border-border shadow-sm overflow-hidden"}>
+                  {hasStarted ? (
+                    progress === 100 ? (
+                      <div className="p-6 space-y-5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
+                            <Award className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground">Path Completed</p>
+                            <p className="text-xs text-green-600 font-medium">Mastery Achieved!</p>
+                          </div>
+                          <div className="ml-auto text-xl font-bold text-green-600">
+                            100%
+                          </div>
+                        </div>
+
+                        <div className="w-full bg-green-100 rounded-full h-2 overflow-hidden">
+                          <div className="bg-green-500 h-full w-full" />
+                        </div>
+
+                        <Button 
+                          size="lg" 
+                          className="w-full gap-2 py-6 text-base font-bold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm border-none"
+                          onClick={() => navigate('/learning-path')}
+                        >
+                          <Trophy className="h-4 w-4" />
+                          View Achievement
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="p-6 space-y-5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-primary">
+                            <TrendingUp className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground">Learning Journey</p>
+                            <p className="text-xs text-muted-foreground">In Progress</p>
+                          </div>
+                          <div className="ml-auto text-xl font-bold text-primary">
+                            {progress}%
+                          </div>
+                        </div>
+
+                        <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                          <div 
+                            className="bg-primary h-full transition-all duration-700 ease-out" 
+                            style={{ width: `${progress}%` }} 
+                          />
+                        </div>
+
+                        <Button 
+                          size="lg" 
+                          className="w-full gap-2 py-6 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md border-none"
+                          onClick={() => navigate('/learning-path')}
+                        >
+                          <Play className="h-4 w-4 fill-current" />
+                          Continue Learning
+                        </Button>
+                      </div>
+                    )
+                  ) : (
+                    <Button 
+                      size="lg" 
+                      className="w-full gap-2 py-8 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg border-none"
+                      onClick={async () => {
+                        if (!user) {
+                          alert("Please login first");
+                          return;
+                        }
+                        try {
+                          await learningPathApi.start(user.id, Number(id));
+                          navigate('/learning-path');
+                        } catch (err: any) {
+                          alert(err.response?.data?.message || "Failed to start learning path");
+                        }
+                      }}
+                    >
+                      <BookOpen className="h-5 w-5" />
+                      Start Learning Path
+                    </Button>
+                  )}
+                </div>
+              )}
 
               {/* Tabs container */}
               <div className="rounded-2xl bg-section border border-border p-1.5">
@@ -305,7 +424,7 @@ const CareerDetail = () => {
 
             {/* Right column – Industry News */}
             <div>
-              <div className="rounded-2xl bg-card border border-border p-5 sticky top-6">
+              <div className="rounded-2xl bg-card border border-border p-5 sticky top-20">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="flex items-center gap-2 font-bold">
                     <FileText className="h-5 w-5 text-primary" />

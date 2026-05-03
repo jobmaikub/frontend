@@ -39,7 +39,7 @@ All colors MUST be HSL.
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 227 71% 55%;
-    
+
     --heatmap-0: 230 25% 93%;
     --heatmap-1: 234 40% 82%;
     --heatmap-2: 234 50% 72%;
@@ -153,13 +153,13 @@ All colors MUST be HSL.
     --warning: 30 90% 55%;
     --warning-light: 30 80% 94%;
     --info: 200 80% 55%;
-    --info-light: 200 80% 94%; 
+    --info-light: 200 80% 94%;
   }
 }
 
 @layer base {
   html {
-    overflow-y: scroll;
+    overflow-y: scroll; /* Force scrollbar always visible → no layout shift */
   }
 
   * {
@@ -170,6 +170,13 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
   }
+}
+
+/* Override Radix UI scroll-lock behavior to prevent layout shift (เด้ง) */
+body[data-scroll-locked] {
+  overflow-y: scroll !important;
+  padding-right: 0 !important;
+  margin-right: 0 !important;
 }
 
 .profile-theme {

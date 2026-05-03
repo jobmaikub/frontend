@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, ChevronDown, TrendingUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -11,19 +11,32 @@ import {
 import CareerCard from '@/components/CareerCard';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
-import { industries } from '@/lib/careers.service';
+import { fetchIndustriesFromDatabase } from '@/lib/news.service';
 import { Navbar } from '@/components/navbar and footer/Navbar';
 import { Footer } from '@/components/navbar and footer/Footer';
 
-const growthRates = ['All Growth Rates', 'High', 'Medium', 'Stable'];
+const growthRates = [
+  { label: 'All Growth Rates', value: 'all' },
+  { label: 'High Growth', value: '3' },
+  { label: 'Medium Growth', value: '2' },
+  { label: 'Stable Growth', value: '1' }
+];
 
 const CareerList = () => {
   const { careers, loading, error } = useCareers();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('All Industries');
-  const [selectedGrowth, setSelectedGrowth] = useState('All Growth Rates');
+  const [selectedGrowth, setSelectedGrowth] = useState('all');
+  const [isIndustryOpen, setIsIndustryOpen] = useState(false);
+  const [isGrowthOpen, setIsGrowthOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [industriesList, setIndustriesList] = useState<string[]>(['All Industries']);
   const ITEMS_PER_PAGE = 9;
+
+  // Fetch industries on mount
+  useEffect(() => {
+    fetchIndustriesFromDatabase().then(setIndustriesList);
+  }, []);
 
   const filteredCareers = useMemo(() => {
     return careers.filter((career) => {
@@ -34,10 +47,9 @@ const CareerList = () => {
         selectedIndustry === 'All Industries' ||
         career.track === selectedIndustry;
       const matchesGrowth =
-        selectedGrowth === 'All Growth Rates' ||
-        (selectedGrowth === 'High' && career.growthRate === 'high') ||
-        (selectedGrowth === 'Medium' && career.growthRate === 'medium') ||
-        (selectedGrowth === 'Stable' && career.growthRate === 'stable');
+        selectedGrowth === 'all' ||
+        String(career.growth_rate) === selectedGrowth ||
+        String(career.growthRate) === selectedGrowth;
       return matchesSearch && matchesIndustry && matchesGrowth;
     });
   }, [careers, searchQuery, selectedIndustry, selectedGrowth]);
@@ -56,7 +68,7 @@ const CareerList = () => {
 
   return (
     <OldThemeWrapper>
-      <div className="min-h-screen bg-background pt-20">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
@@ -84,33 +96,62 @@ const CareerList = () => {
               className="pl-9 border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
             />
           </div>
-          <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-            <SelectTrigger className="w-[180px] focus:ring-0 focus:ring-offset-0">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <SelectValue />
+          {/* Industry Filter */}
+          <div className="relative">
+            <button
+              onClick={() => { setIsIndustryOpen(!isIndustryOpen); setIsGrowthOpen(false); }}
+              className="flex items-center justify-between w-full sm:w-[220px] gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3.5 shadow-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Filter size={18} className={selectedIndustry !== "All Industries" ? "text-[#4A5DF9]" : "text-gray-400"} />
+                <span className={`text-[15px] font-medium truncate ${selectedIndustry !== "All Industries" ? "text-[#4A5DF9]" : ""}`}>
+                  {selectedIndustry}
+                </span>
               </div>
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {industries.map((industry) => (
-                <SelectItem key={industry} value={industry}>
-                  {industry}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedGrowth} onValueChange={setSelectedGrowth}>
-            <SelectTrigger className="w-[180px] focus:ring-0 focus:ring-offset-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {growthRates.map((rate) => (
-                <SelectItem key={rate} value={rate}>
-                  {rate}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${isIndustryOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isIndustryOpen && (
+              <div className="absolute top-full left-0 mt-2 w-full min-w-[200px] bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-2">
+                {industriesList.map((industry) => (
+                  <button
+                    key={industry}
+                    onClick={() => { setSelectedIndustry(industry); setIsIndustryOpen(false); }}
+                    className={`w-full text-left px-5 py-2.5 text-[14px] hover:bg-gray-50 transition-colors ${selectedIndustry === industry ? "text-[#4A5DF9] font-medium bg-[#D5E3FF]/10" : "text-gray-600"}`}
+                  >
+                    {industry}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Growth Filter */}
+          <div className="relative">
+            <button
+              onClick={() => { setIsGrowthOpen(!isGrowthOpen); setIsIndustryOpen(false); }}
+              className="flex items-center justify-between w-full sm:w-[220px] gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3.5 shadow-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <span className={`text-[15px] font-medium truncate ${selectedGrowth !== "all" ? "text-[#4A5DF9]" : ""}`}>
+                  {growthRates.find(r => r.value === selectedGrowth)?.label || "All Growth Rates"}
+                </span>
+              </div>
+              <ChevronDown size={16} className={`text-gray-400 transition-transform ${isGrowthOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isGrowthOpen && (
+              <div className="absolute top-full left-0 mt-2 w-full min-w-[200px] bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-2">
+                {growthRates.map((rate) => (
+                  <button
+                    key={rate.value}
+                    onClick={() => { setSelectedGrowth(rate.value); setIsGrowthOpen(false); }}
+                    className={`w-full text-left px-5 py-2.5 text-[14px] hover:bg-gray-50 transition-colors ${selectedGrowth === rate.value ? "text-[#4A5DF9] font-medium bg-[#D5E3FF]/10" : "text-gray-600"}`}
+                  >
+                    {rate.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Grid */}

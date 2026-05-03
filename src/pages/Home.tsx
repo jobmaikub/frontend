@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Career } from '@/types/careers.types';
 import {
   ArrowRight,
   Play,
@@ -43,36 +45,54 @@ const journeySteps = [
       'Monitor your advancement with detailed analytics, achievement badges, and streak tracking to stay motivated.',
     iconBg: 'bg-accent',
     iconColor: 'text-accent-foreground',
-    path: '/not-found',
+    path: '/track-progress',
   },
 ];
 
 const Home = () => {
   const navigate = useNavigate();
   const { careers } = useCareers();
-  const trendingCareers = careers.slice(0, 3);
+  const [trendingCareers, setTrendingCareers] = useState<Career[]>([]);
+
+  useEffect(() => {
+    import('@/lib/careers.service').then(({ fetchTrendingCareers }) => {
+      fetchTrendingCareers().then(setTrendingCareers);
+    });
+  }, []);
+
+  const displayCareers = trendingCareers.length > 0 ? trendingCareers : careers.slice(0, 3);
 
   return (
     <OldThemeWrapper>
-      <div className="min-h-screen bg-background pt-20">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
       {/* ── Hero ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-16 pb-20">
-        <div className="flex items-center gap-12">
-          <div className="flex-1">
-            <h1 className="text-5xl font-bold leading-tight text-foreground">
+      <section className="max-w-6xl mx-auto px-6 pt-10 pb-16 lg:pt-16 lg:pb-20">
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-12">
+          <div className="flex-1 text-center lg:text-left">
+            <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-foreground">
               Design your{' '}
               <span className="text-primary">Career</span>,
               <br />
               Master your{' '}
               <span className="text-primary">Skills</span>
             </h1>
-            <p className="mt-4 text-muted-foreground max-w-lg">
+            <p className="mt-4 text-muted-foreground max-w-lg mx-auto lg:mx-0">
               Discover your perfect career path with AI-powered
               recommendations, structured learning roadmaps, and
               comprehensive progress tracking.
             </p>
-            <div className="mt-8 flex gap-3">
+
+            {/* Mobile Image: Visible only on mobile/tablet, positioned above buttons */}
+            <div className="mt-8 lg:hidden w-full flex justify-center">
+              <img
+                src={heroImage}
+                alt="Career development"
+                className="rounded-2xl w-full max-w-sm object-cover shadow-2xl"
+              />
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-3">
               <Button size="lg" className="gap-2" onClick={() => navigate('/ai-match')}>
                 Get Started <ArrowRight className="h-4 w-4" />
               </Button>
@@ -86,11 +106,11 @@ const Home = () => {
               </Button>
             </div>
           </div>
-          <div className="flex-1 flex justify-end">
+          <div className="hidden lg:flex flex-1 justify-end w-full">
             <img
               src={heroImage}
               alt="Career development"
-              className="rounded-2xl w-full max-w-md object-cover"
+              className="rounded-2xl w-full max-w-sm lg:max-w-md object-cover shadow-2xl"
             />
           </div>
         </div>
@@ -112,7 +132,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-3 gap-6">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {journeySteps.map((step) => (
               <div
                 key={step.number}
@@ -135,10 +155,7 @@ const Home = () => {
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                   {step.description}
                 </p>
-                {/* Arrow inside card */}
-                <div className="mt-4 h-8 w-8 rounded-full bg-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <ArrowRight className="h-4 w-4 text-primary-foreground" />
-                </div>
+
               </div>
             ))}
           </div>
@@ -166,8 +183,8 @@ const Home = () => {
             View All Careers <ArrowRight className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-8 grid grid-cols-3 gap-6">
-          {trendingCareers.map((career) => (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayCareers.map((career) => (
             <CareerCard key={career.id} career={career} />
           ))}
         </div>

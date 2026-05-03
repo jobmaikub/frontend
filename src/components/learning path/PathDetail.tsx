@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { ArrowLeft, BookOpen, Clock, Trash2, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Trash2, CheckCircle2, XCircle, TrendingUp, Minus } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { CourseDetail } from "./CourseDetail"; 
 
 interface PathDetailProps {
   path: any;
   onBack: () => void;
+  onRefresh?: () => void;
 }
 
 const LevelAccordion = ({ level, isFirst, onCourseSelect }: { level: any, isFirst: boolean, onCourseSelect: (course: any, color: string, title: string) => void }) => {
@@ -71,24 +73,110 @@ const LevelAccordion = ({ level, isFirst, onCourseSelect }: { level: any, isFirs
   );
 };
 
-export function PathDetail({ path, onBack }: PathDetailProps) {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [activeCourse, setActiveCourse] = useState<{data: any, color: string, title: string} | null>(null);
+import { learningPathApi } from "@/lib/LearningPath.api";
+import { useAuth } from "@/contexts/AuthContexts";
 
-  const handleDeleteConfirm = () => {
-    setIsDeleteModalOpen(false);
-    onBack();
+export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
+  const { user } = useAuth();
+  const { careerId, courseId } = useParams();
+  const navigate = useNavigate();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [dynamicLevels, setDynamicLevels] = useState<any[]>([]);
+  const [loadingLevels, setLoadingLevels] = useState(true);
+
+  React.useEffect(() => {
+    if (!path?.id || !user) return;
+    const userId = user.id;
+    setLoadingLevels(true);
+    learningPathApi.getCourses(userId, path.id)
+      .then(res => {
+        const courses = res.data.courses;
+        // Group by level
+        const levelsMap: Record<string, any[]> = {
+          beginner: [],
+          intermediate: [],
+          advanced: []
+        };
+        
+        courses.forEach((c: any) => {
+          const levelKey = c.course_details?.level || 'beginner';
+          if (levelsMap[levelKey]) {
+            levelsMap[levelKey].push({
+              id: c.course_id,
+              title: c.course_details?.title,
+              description: c.course_details?.description,
+              image: c.course_details?.image_url || "https://via.placeholder.com/150",
+              status: c.complete ? "Complete" : "Incomplete",
+              hours: c.course_details?.duration_mins ? Math.round(c.course_details.duration_mins / 60) : 0,
+              skills: c.course_details?.skills_taught || [],
+              outcomes: c.course_details?.learning_outcome || [],
+            });
+          }
+        });
+
+        const newLevels = [];
+        let idCounter = 1;
+        if (levelsMap.beginner.length > 0) {
+          newLevels.push({ id: idCounter++, title: "Level 1: Fundamentals", color: "bg-[#1FAA52]", courseCount: levelsMap.beginner.length, courses: levelsMap.beginner });
+        }
+        if (levelsMap.intermediate.length > 0) {
+          newLevels.push({ id: idCounter++, title: "Level 2: Intermediate", color: "bg-[#F97316]", courseCount: levelsMap.intermediate.length, courses: levelsMap.intermediate });
+        }
+        if (levelsMap.advanced.length > 0) {
+          newLevels.push({ id: idCounter++, title: "Level 3: Advanced", color: "bg-[#EAB308]", courseCount: levelsMap.advanced.length, courses: levelsMap.advanced });
+        }
+        
+        setDynamicLevels(newLevels);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingLevels(false));
+  }, [path]);
+
+  const handleDeleteConfirm = async () => {
+    if (!user || !path?.id) return;
+    try {
+      await learningPathApi.deletePath(user.id, parseInt(path.id));
+      setIsDeleteModalOpen(false);
+      if (onRefresh) onRefresh();
+      onBack();
+    } catch (err) {
+      console.error('Failed to delete path', err);
+      alert('Failed to delete path. Please try again.');
+    }
   };
 
-  if (activeCourse) {
-    return (
-      <CourseDetail 
-        course={activeCourse.data} 
-        levelColor={activeCourse.color}
-        levelTitle={activeCourse.title}
-        onBack={() => setActiveCourse(null)} 
-      />
-    );
+  // Find active course if courseId is present
+  const activeCourseData = React.useMemo(() => {
+    if (!courseId) return null;
+    for (const level of dynamicLevels) {
+      const course = level.courses.find((c: any) => String(c.id) === courseId);
+      if (course) return { data: course, color: level.color, title: level.title };
+    }
+    return null;
+  }, [courseId, dynamicLevels]);
+
+  if (courseId) {
+    if (loadingLevels) {
+      return (
+        <div className="w-full flex items-center justify-center py-40">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-4 border-[#4A5DF9] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 font-medium">Loading course content...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    if (activeCourseData) {
+      return (
+        <CourseDetail 
+          course={activeCourseData.data} 
+          levelColor={activeCourseData.color}
+          levelTitle={activeCourseData.title}
+          onBack={() => navigate(`/learning-path/${careerId}`)} 
+        />
+      );
+    }
   }
 
   return (
@@ -115,8 +203,18 @@ export function PathDetail({ path, onBack }: PathDetailProps) {
             <div className="flex-grow flex flex-col justify-center">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex gap-3">
-                  <span className="flex items-center gap-1 bg-[#E5F7ED] text-[#1FAA52] text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide">
-                    <TrendingUp size={14} strokeWidth={3} /> {path.growth}
+                  <span className={`flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide ${
+                    path.growth === 'High Growth' 
+                      ? 'bg-growth-high-bg text-growth-high-foreground' 
+                      : path.growth === 'Medium Growth' 
+                        ? 'bg-growth-medium-bg text-growth-medium-foreground' 
+                        : 'bg-growth-stable-bg text-growth-stable-foreground'
+                  }`}>
+                    {path.growth === 'Stable Growth' ? (
+                      <Minus size={14} strokeWidth={4} />
+                    ) : (
+                      <TrendingUp size={14} strokeWidth={3} />
+                    )} {path.growth}
                   </span>
                   <span className="flex items-center bg-white border border-gray-200 text-[#4A5DF9] text-[11px] font-bold px-3 py-1.5 rounded-lg">
                     {path.industry}
@@ -158,14 +256,16 @@ export function PathDetail({ path, onBack }: PathDetailProps) {
         <div className="relative pl-4 md:pl-8">
           <div className="absolute left-[2.4rem] md:left-[3.4rem] top-6 bottom-12 w-0.5 bg-gray-200 -z-10" />
 
-          {Array.isArray(path?.levels) && path.levels.map((level: any, index: number) => (
+          {dynamicLevels.length > 0 ? dynamicLevels.map((level: any, index: number) => (
             <LevelAccordion 
               key={level.id} 
               level={level} 
               isFirst={index === 0} 
-              onCourseSelect={(courseData, color, title) => setActiveCourse({data: courseData, color, title})}
+              onCourseSelect={(courseData) => navigate(`/learning-path/${careerId}/course/${courseData.id}`)}
             />
-          ))}
+          )) : (
+            <div className="text-center text-gray-500 mt-10">Loading courses...</div>
+          )}
         </div>
       </div>
 

@@ -26,26 +26,35 @@ const growthConfig = {
 
 const CareerCard = ({ career }: CareerCardProps) => {
   const navigate = useNavigate();
-  const growth = growthConfig[career.growthRate];
+  // Mapping numeric database values to the growth configuration
+  const getGrowthConfig = () => {
+    const rate = Number(career.growth_rate || 0);
+    if (rate === 3 || career.growthRate === 'high') return growthConfig.high;
+    if (rate === 2 || career.growthRate === 'medium') return growthConfig.medium;
+    if (rate === 1 || career.growthRate === 'stable') return growthConfig.stable;
+    return growthConfig.high; // Default fallback
+  };
+
+  const growth = getGrowthConfig();
 
   return (
     <div
       onClick={() => navigate(`/careers/${career.id}`)}
-      className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1"
+      className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5"
     >
       <div className="relative aspect-[3/2] overflow-hidden">
         <img
           src={career.image}
           alt={career.title}
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
-        <span
-          className={`absolute top-3 left-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${growth.className}`}
+        <div
+          className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${growth.className}`}
         >
-          <growth.icon className="h-3 w-3" />
+          <growth.icon className="h-3.5 w-3.5" strokeWidth={3} />
           {growth.label}
-        </span>
+        </div>
       </div>
       <div className="p-4">
         <span className="text-xs font-medium text-primary">{career.track}</span>

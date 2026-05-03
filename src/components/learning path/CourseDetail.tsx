@@ -8,53 +8,74 @@ interface CourseDetailProps {
   onBack: () => void;
 }
 
+import { learningPathApi } from "@/lib/LearningPath.api";
+import { useAuth } from "@/contexts/AuthContexts";
+
 export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseDetailProps) {
-  // Force override any old green colors from the mock data to the requested #1FAA52
+  const { user } = useAuth();
   const safeLevelColor = levelColor.includes('#22C55E') ? 'bg-[#1FAA52]' : levelColor;
 
-  // State to track which individual lessons are checked
+  const [lessons, setLessons] = useState<any[]>([]);
   const [checkedLessons, setCheckedLessons] = useState<Record<string, boolean>>({});
   
-  // Derived state to determine if the whole course is marked finished
-  const allLessonsExist = course.lessons && course.lessons.length > 0;
-  const isCourseFinished = allLessonsExist && 
-    course.lessons.every((lesson: any) => checkedLessons[lesson.id]);
-
-  // Initialize checkboxes based on mock data's initial 'completed' state
+  // Fetch lessons on mount
   useEffect(() => {
-    if (course.lessons) {
-      const initialCheckedState: Record<string, boolean> = {};
-      course.lessons.forEach((lesson: any) => {
-        initialCheckedState[lesson.id] = lesson.completed;
-      });
-      setCheckedLessons(initialCheckedState);
-    }
+    if (!user) return;
+    const userId = user.id;
+    learningPathApi.getLessons(userId, course.id)
+      .then(res => {
+        const fetchedLessons = res.data.lessons.map((l: any) => ({
+          id: l.lesson_id,
+          title: l.lesson_details?.title,
+          duration: `${l.lesson_details?.duration_mins} mins`,
+          completed: l.done,
+        }));
+        setLessons(fetchedLessons);
+
+        const initialCheckedState: Record<string, boolean> = {};
+        fetchedLessons.forEach((lesson: any) => {
+          initialCheckedState[lesson.id] = lesson.completed;
+        });
+        setCheckedLessons(initialCheckedState);
+      })
+      .catch(console.error);
   }, [course]);
 
-  // Toggle a single lesson checkbox
-  const toggleLesson = (lessonId: string) => {
+  const allLessonsExist = lessons && lessons.length > 0;
+  const isCourseFinished = allLessonsExist && 
+    lessons.every((lesson: any) => checkedLessons[lesson.id]);
+
+  const toggleLesson = async (lessonId: string) => {
+    // Optimistic update
+    const previousState = checkedLessons[lessonId];
+    const targetState = !previousState;
     setCheckedLessons(prev => ({
       ...prev,
-      [lessonId]: !prev[lessonId]
+      [lessonId]: targetState
     }));
+
+    try {
+      if (!user) return;
+      const userId = user.id;
+      await learningPathApi.completeLesson(userId, parseInt(lessonId), targetState);
+    } catch (err) {
+      console.error(err);
+      // Revert on error
+      setCheckedLessons(prev => ({
+        ...prev,
+        [lessonId]: previousState
+      }));
+    }
   };
 
-  // Toggle entire course (checks all or unchecks all)
   const toggleCourseStatus = () => {
-    if (!course.lessons) return;
-    
-    const newCheckedState: Record<string, boolean> = {};
-    const targetState = !isCourseFinished; 
-    
-    course.lessons.forEach((lesson: any) => {
-      newCheckedState[lesson.id] = targetState;
-    });
-    setCheckedLessons(newCheckedState);
+    // Optional feature for marking whole course, skipped implementation of marking all in DB for simplicity, 
+    // user just clicks individual lessons
+    alert("Please mark individual lessons as complete.");
   };
 
-  // Calculate dynamic progress based on checked boxes
   const currentCompletedCount = Object.values(checkedLessons).filter(Boolean).length;
-  const totalLessonsCount = course.lessons ? course.lessons.length : 0;
+  const totalLessonsCount = lessons ? lessons.length : 0;
   const dynamicProgress = totalLessonsCount === 0 ? 0 : Math.round((currentCompletedCount / totalLessonsCount) * 100);
 
   return (
@@ -158,7 +179,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
 
               {allLessonsExist ? (
                 <div className="flex flex-col gap-4">
-                  {course.lessons.map((lesson: any) => (
+                  {lessons.map((lesson: any) => (
                     <div 
                       key={lesson.id} 
                       onClick={() => toggleLesson(lesson.id)}

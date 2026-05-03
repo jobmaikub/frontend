@@ -1,58 +1,104 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar and footer/Navbar";
-import { Footer } from "@/components/navbar and footer/Footer";
-import { Search, Filter, TrendingUp, ChevronDown, BookOpen, Clock, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, Filter, TrendingUp, ChevronDown, BookOpen, Clock, ArrowRight, Minus } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { PathDetail } from "@/components/learning path/PathDetail";
 import { learningPathApi } from "@/lib/LearningPath.api";
-import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContexts";
+import { useCareers } from "@/hooks/useCareers";
+import { getCareerStats } from "@/lib/careers.service";
+import { fetchIndustriesFromDatabase } from "@/lib/news.service";
 
 export default function LearningPath() {
+  const { user } = useAuth();
+  const { careers } = useCareers();
+
   // Application States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("All Industries");
   const [selectedGrowth, setSelectedGrowth] = useState("All Growth Rates");
+  const [industries, setIndustries] = useState<string[]>(["All Industries"]);
 
   // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
   const [isGrowthOpen, setIsGrowthOpen] = useState(false);
 
-  // View State (null = Grid View, string = Detailed View of that specific ID)
-  const [activePathId, setActivePathId] = useState<string | null>(null);
+  const { careerId } = useParams();
+  const navigate = useNavigate();
+
+  // Fetch industries on mount
+  useEffect(() => {
+    fetchIndustriesFromDatabase().then(setIndustries);
+  }, []);
 
   const [learningPaths, setLearningPaths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const GROWTH_MAPPING: Record<number, string> = {
+    1: "Stable Growth",
+    2: "Medium Growth",
+    3: "High Growth",
+  };
+
   const filteredPaths = learningPaths.filter((path) => {
     const matchesSearch = path.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesIndustry = selectedIndustry === "All Industries" || path.industry === selectedIndustry;
+    const matchesGrowth = selectedGrowth === "All Growth Rates" || path.growth === selectedGrowth;
+    return matchesSearch && matchesIndustry && matchesGrowth;
   });
-  const activePath = learningPaths.find(p => p.id === activePathId);
+  const activePath = learningPaths.find(p => p.id === careerId);
 
-  useEffect(() => {
-    const userId = "6b9560eb-8970-47ae-a5fc-81f5a7e96b98";
+  const fetchPaths = () => {
+    if (!user || careers.length === 0) return;
 
-    learningPathApi.getAll(userId)
+    setLoading(true);
+    learningPathApi.getAll(user.id)
       .then((res) => {
-        const mapped = res.data.map((item: any) => ({
-          id: item.career_id,
-          title: item.title || `Career ${item.career_id}`,
-          industry: "General",
-          growth: "High Growth",
-          courses: item.total_courses || 0,
-          hours: item.total_hours || 0,
-          progress: Math.round(item.progress || 0),
-          image: "https://via.placeholder.com/300",
+        const mapped = res.data.map((item: any) => {
+          const staticCareer = careers.find(c => String(c.id) === String(item.id));
+          const stats = staticCareer ? getCareerStats(staticCareer) : { totalCourses: item.courses || 0, totalHours: item.hours || 0 };
+          
+          // Use database growth_rate if available, fallback to static mapping or High Growth
+          const dbGrowthRate = Number(item.growth_rate);
+          const growthLabel = GROWTH_MAPPING[dbGrowthRate] || item.growth || "High Growth";
 
-          // 🔥 FIX สำคัญ
-          levels: item.levels || []   // ต้องมี!
-        }));
+          return {
+            id: String(item.id),
+            title: staticCareer ? staticCareer.title : (item.title || `Career ${item.id}`),
+            industry: staticCareer ? staticCareer.track : (item.industry || "General"),
+            growth: growthLabel,
+            growthRate: dbGrowthRate,
+            courses: stats.totalCourses,
+            hours: stats.totalHours,
+            progress: Math.round(item.progress || 0),
+            image: staticCareer ? staticCareer.image : (item.image || "https://via.placeholder.com/300"),
+            levels: item.levels || []
+          };
+        });
 
         setLearningPaths(mapped);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchPaths();
+  }, [user, careers]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen font-['Inter'] flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center bg-[#D5E3FF]/20">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-4 border-[#4A5DF9] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 font-medium">Loading your journey...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen font-['Inter'] flex flex-col">
@@ -61,8 +107,8 @@ export default function LearningPath() {
       <main className="bg-[#D5E3FF]/20 flex-grow flex flex-col">
 
         {/* Render Header only if we are on the main grid view */}
-        {!activePathId && (
-          <div className="w-full bg-white pt-36 pb-12 flex flex-col items-center text-center px-4 shadow-sm z-10 relative">
+        {!careerId && (
+          <div className="w-full bg-white pt-32 pb-12 flex flex-col items-center text-center px-4 shadow-sm z-10 relative">
             <div className="mb-6 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
               <span className="text-[14px] font-medium text-[#4A5DF9]">Learning Path</span>
             </div>
@@ -75,15 +121,16 @@ export default function LearningPath() {
           </div>
         )}
 
-        <section className={`pb-24 ${activePathId ? "pt-24" : "pt-12"}`}>
+        <section className={`pb-24 ${careerId ? "pt-20" : "pt-12"}`}>
           <div className="container mx-auto px-6 max-w-[1200px]">
 
             {/* Conditional Rendering: Main Grid vs Detailed Path */}
-            {activePathId ? (
+            {careerId ? (
               // Instruction 4: Render Detailed View
               <PathDetail
-                path={learningPaths.find(p => p.id === activePathId)}
-                onBack={() => setActivePathId(null)}
+                path={learningPaths.find(p => p.id === careerId)}
+                onBack={() => navigate("/learning-path")}
+                onRefresh={fetchPaths}
               />
             ) : (
               <>
@@ -120,7 +167,15 @@ export default function LearningPath() {
 
                       {isIndustryOpen && (
                         <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg z-20 py-2">
-
+                          {industries.map((industry) => (
+                            <button
+                              key={industry}
+                              onClick={() => { setSelectedIndustry(industry); setIsIndustryOpen(false); }}
+                              className={`w-full text-left px-5 py-2.5 text-[14px] hover:bg-gray-50 transition-colors ${selectedIndustry === industry ? "text-[#4A5DF9] font-medium bg-[#D5E3FF]/10" : "text-gray-600"}`}
+                            >
+                              {industry}
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -141,7 +196,17 @@ export default function LearningPath() {
                       </button>
 
                       {isGrowthOpen && (
-                        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg z-20 py-2"></div>
+                        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg z-20 py-2">
+                          {["All Growth Rates", "High Growth", "Medium Growth", "Stable Growth"].map((growth) => (
+                            <button
+                              key={growth}
+                              onClick={() => { setSelectedGrowth(growth); setIsGrowthOpen(false); }}
+                              className={`w-full text-left px-5 py-2.5 text-[14px] hover:bg-gray-50 transition-colors ${selectedGrowth === growth ? "text-[#4A5DF9] font-medium bg-[#D5E3FF]/10" : "text-gray-600"}`}
+                            >
+                              {growth}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -156,13 +221,16 @@ export default function LearningPath() {
                         <div className="relative h-52 w-full">
                           <img src={path.image} alt={path.title} className="w-full h-full object-cover" />
                           <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${path.growth === 'High Growth'
-                            // 1. Updated to #1FAA52 inside the main grid tags as well
-                            ? 'bg-[#E5F7ED] text-[#1FAA52]'
+                            ? 'bg-growth-high-bg text-growth-high-foreground'
                             : path.growth === 'Medium Growth'
-                              ? 'bg-[#F0F4FF] text-[#4A5DF9]'
-                              : 'bg-gray-100 text-gray-600'
+                              ? 'bg-growth-medium-bg text-growth-medium-foreground'
+                              : 'bg-growth-stable-bg text-growth-stable-foreground'
                             }`}>
-                            <TrendingUp size={14} strokeWidth={3} /> {path.growth}
+                            {path.growth === 'Stable Growth' ? (
+                              <Minus size={14} strokeWidth={4} />
+                            ) : (
+                              <TrendingUp size={14} strokeWidth={3} />
+                            )} {path.growth}
                           </div>
                         </div>
 
@@ -198,7 +266,7 @@ export default function LearningPath() {
 
                             {/* View Path Button triggers state change */}
                             <button
-                              onClick={() => setActivePathId(path.id)}
+                              onClick={() => navigate(`/learning-path/${path.id}`)}
                               className="text-[#4A5DF9] text-[15px] font-semibold flex items-center gap-2 transition-colors group-hover:text-[#3b4cc4]"
                             >
                               View Path <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
@@ -219,8 +287,6 @@ export default function LearningPath() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

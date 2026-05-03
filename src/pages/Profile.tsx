@@ -123,7 +123,7 @@ const Profile = () => {
 
   return (
     <div className="profile-theme">
-      <div className="min-h-screen bg-background pt-20">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
         {/* Header band */}
         <div className="h-40 bg-primary" />

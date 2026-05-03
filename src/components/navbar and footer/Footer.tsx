@@ -7,13 +7,13 @@ export function Footer() {
     { name: "Career", path: "/careers" },
     { name: "AI Match", path: "/ai-match" },
     { name: "Learning Path", path: "/learning-path" },
-    { name: "Track Progress", path: "/not-found" },
+    { name: "Track Progress", path: "/track-progress" },
   ];
 
   return (
     // Removed the top margin (mt-20) that was breaking the blue background flow
-    <footer className="border-t border-gray-100 bg-white pt-16 font-['Inter']">
-      <div className="mx-auto max-w-5xl px-8 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left mb-16">
+    <footer className="border-t border-gray-100 bg-white pt-10 font-['Inter']">
+      <div className="mx-auto max-w-5xl px-8 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left mb-10">
 
         {/* Brand */}
         <div>
@@ -63,21 +63,21 @@ export function Footer() {
             Get in Touch
           </h3>
 
-          <div className="bg-[#F4F7FF] p-5 rounded-2xl flex flex-col gap-2 w-full max-w-[260px] mx-auto md:mx-0">
+          <div className="bg-[#F4F7FF] p-5 rounded-2xl flex flex-col gap-2 w-full max-w-[260px] mx-auto md:mx-0 overflow-hidden">
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
               Email Support
             </span>
-            <div className="flex items-center gap-3 mt-1">
-              <div className="bg-white p-1.5 rounded-md shadow-sm">
+            <div className="flex items-center gap-3 mt-1 overflow-hidden">
+              <div className="bg-white p-1.5 rounded-md shadow-sm shrink-0">
                 <Mail size={16} className="text-[#4A5DF9]" />
               </div>
-              <span className="font-bold text-[13px] text-gray-900">
+              <span className="font-bold text-[13px] text-gray-900 truncate">
                 jobmaikub@gmail.com
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-center md:justify-start gap-4 mt-2">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2">
             <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-gray-800 tracking-wider">
               PRIVACY POLICY
             </a>
@@ -89,9 +89,9 @@ export function Footer() {
       </div>
 
       {/* Bottom Copyright Bar */}
-      <div className="w-full bg-[#D5E3FF]/40 py-5 text-center">
+      <div className="w-full bg-[#D5E3FF]/40 py-3 text-center">
         <span className="text-[12px] font-medium text-gray-600">
-          © 2025 JOBMAIKUB. ALL RIGHTS RESERVED.
+          © 2026 JOBMAIKUB. ALL RIGHTS RESERVED.
         </span>
       </div>
     </footer>

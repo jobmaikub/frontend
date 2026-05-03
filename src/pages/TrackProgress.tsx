@@ -80,7 +80,7 @@ const TrackProgress = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pt-20">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
         <div className="bg-card border-b border-border py-12 text-center">
           <div className="h-6 w-32 bg-muted rounded-full mx-auto mb-4 animate-pulse" />

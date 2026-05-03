@@ -7,7 +7,7 @@ export const api = axios.create({
   },
 });
 
-type LearningPath = {
+export type LearningPath = {
   id: number;
   title: string;
   image: string;
@@ -22,4 +22,18 @@ export const learningPathApi = {
     api.get<LearningPath[]>("/learning-paths", {
       params: { user_id: userId },
     }),
+  start: (userId: string, careerId: number) =>
+    api.post("/learning-paths/start", { user_id: userId, career_id: careerId }),
+  getCourses: (userId: string, careerId: number) =>
+    api.get(`/learning-paths/${careerId}/courses`, {
+      params: { user_id: userId },
+    }),
+  getLessons: (userId: string, courseId: number) =>
+    api.get(`/learning-paths/courses/${courseId}/lessons`, {
+      params: { user_id: userId },
+    }),
+  completeLesson: (userId: string, lessonId: number, done: boolean) =>
+    api.post(`/learning-paths/lessons/${lessonId}/complete`, { user_id: userId, done: done }),
+  deletePath: (userId: string, careerId: number) =>
+    api.delete(`/learning-paths/${careerId}`, { params: { user_id: userId } }),
 };

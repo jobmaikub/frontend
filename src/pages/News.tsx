@@ -247,7 +247,7 @@ export default function News() {
       <Navbar />
 
       {/* --- HEADER SECTION (White Background) --- */}
-      <section className="w-full flex flex-col items-center pt-32 pb-12 px-4 text-center bg-white">
+      <section className="w-full flex flex-col items-center pt-28 pb-12 px-4 text-center bg-white">
         <span className="bg-blue-50 text-[14px] font-normal text-[#4A5DF9] px-5 py-1.5 rounded-full mb-6">
           Industry News
         </span>

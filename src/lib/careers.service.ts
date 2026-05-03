@@ -1,3 +1,4 @@
+import axios from 'axios';
 import careerTech from '@/assets/career-tech.jpg';
 import type { Career, RequiredSkill, LearningLevel } from '@/types/careers.types';
 
@@ -16,11 +17,16 @@ export const industries = [
 
 // Compute aggregate stats for a career's learning path
 export function getCareerStats(career: Career) {
-  const totalCourses = career.learningPath.reduce((sum, level) => sum + level.courses.length, 0);
-  const totalHours = career.learningPath.reduce(
+  // Prefer direct stats if available
+  if (career.totalCourses !== undefined && career.totalHours !== undefined) {
+    return { totalCourses: career.totalCourses, totalHours: career.totalHours };
+  }
+
+  const totalCourses = career.learningPath?.reduce((sum, level) => sum + level.courses.length, 0) || 0;
+  const totalHours = career.learningPath?.reduce(
     (sum, level) => sum + level.courses.reduce((s, c) => s + c.hours, 0),
     0
-  );
+  ) || 0;
   return { totalCourses, totalHours };
 }
 
@@ -54,6 +60,44 @@ function parseRequiredSkills(skills: (string | { name: string; type: string })[]
   });
 }
 
+// Fetch trending careers from backend
+export async function fetchTrendingCareers(): Promise<Career[]> {
+  try {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/home/trending-careers`);
+    const supabaseData = res.data as SupabaseCareerData[];
+    
+    return supabaseData.map((supabaseCareer) => {
+      const requiredSkills: RequiredSkill[] = Array.isArray(supabaseCareer.required_skills)
+        ? (supabaseCareer.required_skills as any[]).map((s: any) => ({
+            name: s.name || s,
+            type: s.type || 'Technical',
+          }))
+        : [];
+
+      return {
+        id: supabaseCareer.career_id,
+        title: supabaseCareer.title,
+        image: supabaseCareer.image_url || 'https://via.placeholder.com/300',
+        track: supabaseCareer.industry || 'Technology',
+        description: supabaseCareer.description,
+        salaryMin: supabaseCareer.min_salary || 0,
+        salaryMax: supabaseCareer.max_salary || 0,
+        growthRate: mapGrowthRate(supabaseCareer.growth_rate),
+        growth_rate: supabaseCareer.growth_rate,
+        keyResponsibilities: supabaseCareer.responsibilities || [],
+        requiredSkills,
+        learningPath: [] as LearningLevel[],
+        totalCourses: supabaseCareer.course_count || 0,
+        totalHours: supabaseCareer.duration_hrs || 0,
+        reviews: [],
+      } as Career;
+    });
+  } catch (err) {
+    console.error('[careers.service] Error fetching trending careers:', err);
+    return [];
+  }
+}
+
 interface SupabaseCareerData {
   career_id: number;
   title: string;
@@ -65,6 +109,8 @@ interface SupabaseCareerData {
   growth_rate: number;
   image_url: string;
   industry: string;
+  course_count: number;
+  duration_hrs: number;
 }
 
 // Fetch Supabase career data
@@ -103,9 +149,12 @@ export async function initializeCareers(): Promise<Career[]> {
       salaryMin: supabaseCareer.min_salary || 0,
       salaryMax: supabaseCareer.max_salary || 0,
       growthRate,
+      growth_rate: supabaseCareer.growth_rate,
       keyResponsibilities: supabaseCareer.responsibilities || [],
       requiredSkills,
       learningPath: [] as LearningLevel[],
+      totalCourses: supabaseCareer.course_count || 0,
+      totalHours: supabaseCareer.duration_hrs || 0,
       reviews: [],
     } as Career;
   });
