@@ -6,18 +6,19 @@ interface CourseDetailProps {
   levelColor: string;
   levelTitle: string;
   onBack: () => void;
+  onLessonToggled?: () => void;
 }
 
 import { learningPathApi } from "@/lib/LearningPath.api";
 import { useAuth } from "@/contexts/AuthContexts";
 
-export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseDetailProps) {
+export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonToggled }: CourseDetailProps) {
   const { user } = useAuth();
   const safeLevelColor = levelColor.includes('#22C55E') ? 'bg-[#1FAA52]' : levelColor;
 
   const [lessons, setLessons] = useState<any[]>([]);
   const [checkedLessons, setCheckedLessons] = useState<Record<string, boolean>>({});
-  
+
   // Fetch lessons on mount
   useEffect(() => {
     if (!user) return;
@@ -29,6 +30,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
           title: l.lesson_details?.title,
           duration: `${l.lesson_details?.duration_mins} mins`,
           completed: l.done,
+          url: l.lesson_details?.external_url || '#',
         }));
         setLessons(fetchedLessons);
 
@@ -42,7 +44,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
   }, [course]);
 
   const allLessonsExist = lessons && lessons.length > 0;
-  const isCourseFinished = allLessonsExist && 
+  const isCourseFinished = allLessonsExist &&
     lessons.every((lesson: any) => checkedLessons[lesson.id]);
 
   const toggleLesson = async (lessonId: string) => {
@@ -58,6 +60,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
       if (!user) return;
       const userId = user.id;
       await learningPathApi.completeLesson(userId, parseInt(lessonId), targetState);
+      if (onLessonToggled) onLessonToggled();
     } catch (err) {
       console.error(err);
       // Revert on error
@@ -80,12 +83,12 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
 
   return (
     <div className="w-full font-['Inter'] animate-in fade-in duration-300">
-      
+
       {/* Top Banner - Full bleed trick breaking out of the container bounds */}
       <div className="relative w-[100vw] left-1/2 right-1/2 -mx-[50vw] h-[320px] bg-[#4A5DF9] -mt-4">
-        <img 
-          src={course.image} 
-          alt={course.title} 
+        <img
+          src={course.image}
+          alt={course.title}
           className="w-full h-full object-cover mix-blend-multiply opacity-40"
         />
         {/* Removed the absolute positioned Back Button from here! */}
@@ -94,9 +97,9 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
       {/* Main Content Area */}
       {/* Increased negative margin (-mt-48) to pull the whole block up over the banner */}
       <div className="w-full max-w-[1200px] mx-auto relative z-10 px-6 -mt-48 pb-20">
-        
+
         {/* Back Button - Now positioned directly above the cards so it stays close! */}
-        <button 
+        <button
           onClick={onBack}
           className="flex items-center gap-2 text-[15px] font-medium text-white hover:text-gray-200 transition-colors mb-6"
         >
@@ -106,7 +109,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column (Course Info & Lessons) */}
           <div className="flex-1 flex flex-col gap-8">
-            
+
             {/* Main Course Info Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <div className="flex items-center gap-3 mb-4">
@@ -127,7 +130,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
               <h1 className="text-[32px] font-bold text-gray-900 mb-4 leading-tight">
                 {course.title}
               </h1>
-              
+
               <p className="text-[16px] text-gray-600 mb-8 leading-relaxed pr-4">
                 {course.description}
               </p>
@@ -152,19 +155,18 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
 
               {/* Toggle Finished Status Button */}
               {isCourseFinished ? (
-                <button 
+                <button
                   onClick={toggleCourseStatus}
                   className="w-full py-4 rounded-xl flex justify-center items-center gap-2 text-[16px] font-semibold text-white bg-[#D97706] hover:bg-[#B45309] transition-colors"
                 >
                   <X size={20} /> Mark as Unfinished
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={toggleCourseStatus}
                   disabled={!allLessonsExist}
-                  className={`w-full py-4 rounded-xl flex justify-center items-center gap-2 text-[16px] font-semibold text-white transition-colors ${
-                    allLessonsExist ? 'bg-[#1FAA52] hover:bg-[#188e43]' : 'bg-gray-300 cursor-not-allowed'
-                  }`}
+                  className={`w-full py-4 rounded-xl flex justify-center items-center gap-2 text-[16px] font-semibold text-white transition-colors ${allLessonsExist ? 'bg-[#1FAA52] hover:bg-[#188e43]' : 'bg-gray-300 cursor-not-allowed'
+                    }`}
                 >
                   <Check size={20} /> Mark as Finished
                 </button>
@@ -180,14 +182,13 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
               {allLessonsExist ? (
                 <div className="flex flex-col gap-4">
                   {lessons.map((lesson: any) => (
-                    <div 
-                      key={lesson.id} 
+                    <div
+                      key={lesson.id}
                       onClick={() => toggleLesson(lesson.id)}
-                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 border rounded-xl transition-all gap-4 cursor-pointer group ${
-                        checkedLessons[lesson.id] 
-                          ? "border-[#1FAA52]/30 bg-[#E5F7ED]/30" 
-                          : "border-gray-100 hover:border-[#4A5DF9] hover:bg-[#F0F4FF]"
-                      }`}
+                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 border rounded-xl transition-all gap-4 cursor-pointer group ${checkedLessons[lesson.id]
+                        ? "border-[#1FAA52]/30 bg-[#E5F7ED]/30"
+                        : "border-gray-100 hover:border-[#4A5DF9] hover:bg-[#F0F4FF]"
+                        }`}
                     >
                       <div className="flex items-start gap-4">
                         <div className="mt-1 shrink-0">
@@ -206,10 +207,16 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
                           </div>
                         </div>
                       </div>
-                      
-                      <button className="flex items-center gap-2 text-[14px] font-medium text-gray-400 hover:text-[#4A5DF9] transition-colors sm:ml-4">
+
+                      <a
+                        href={lesson.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-[14px] font-medium text-gray-400 hover:text-[#4A5DF9] transition-colors sm:ml-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <ExternalLink size={18} />
-                      </button>
+                      </a>
                     </div>
                   ))}
                 </div>
@@ -225,7 +232,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack }: CourseD
 
           {/* Right Column (Skills & Outcomes Sidebar) */}
           <div className="w-full lg:w-[360px] shrink-0 flex flex-col gap-8">
-            
+
             {/* Skills You'll Learn */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <h3 className="text-[18px] font-bold text-gray-900 mb-6">Skills You'll Learn</h3>

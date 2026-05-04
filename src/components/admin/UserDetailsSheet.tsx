@@ -61,7 +61,7 @@ export function UserDetailsSheet({ open, onOpenChange, user, onBanToggle }: User
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[600px] overflow-y-auto bg-white border-l shadow-xl">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">User Details</SheetTitle>

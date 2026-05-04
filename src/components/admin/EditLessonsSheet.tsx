@@ -88,7 +88,7 @@ export function EditLessonsSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">
@@ -112,7 +112,7 @@ export function EditLessonsSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-course_id">Course <span className="text-destructive">*</span></Label>
-            <Select
+            <Select modal={false}
               value={formData.course_id === 0 ? "" : formData.course_id.toString()}
               onValueChange={(v) =>
                 setFormData({ ...formData, course_id: Number(v) })

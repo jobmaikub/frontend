@@ -159,7 +159,9 @@ All colors MUST be HSL.
 
 @layer base {
   html {
-    overflow-y: scroll; /* Force scrollbar always visible → no layout shift */
+    overflow-y: scroll !important;
+    scrollbar-gutter: stable !important;
+    /* Reserve space for scrollbar to prevent layout shift */
   }
 
   * {
@@ -172,12 +174,28 @@ All colors MUST be HSL.
   }
 }
 
-/* Override Radix UI scroll-lock behavior to prevent layout shift (เด้ง) */
-body[data-scroll-locked] {
+/* 
+  Final Stability Strategy
+  1. Force scrollbar to ALWAYS be visible at the html level.
+  2. This is the most reliable way to prevent horizontal jumps.
+*/
+html {
   overflow-y: scroll !important;
+}
+
+body {
+  /* Prevent Radix from adding padding to the body */
   padding-right: 0 !important;
   margin-right: 0 !important;
 }
+
+/* Neutralize Radix internal scrollbar size calculation */
+:root {
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+
+
 
 .profile-theme {
   --background: 230 25% 95%;
@@ -206,4 +224,22 @@ body[data-scroll-locked] {
   --primary: 210 40% 98%;
   --primary-foreground: 222.2 47.4% 11.2%;
   --border: 217.2 32.6% 17.5%;
+}
+
+/* Review Highlight - Professional Pseudo-element Version */
+.highlight-comment {
+  position: relative;
+  background-color: hsl(var(--primary) / 0.08) !important;
+  transform: scale(1.005);
+}
+
+.highlight-comment::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: hsl(var(--primary));
+  border-radius: 4px 0 0 4px;
 }

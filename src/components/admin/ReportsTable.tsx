@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -242,7 +242,7 @@ export function ReportsTable() {
               className="w-[200px] pl-9 bg-[#FFFFFF]"
             />
           </div>
-          <Select value={statusSort} onValueChange={(value: "all" | "pending-first" | "resolved-first") => setStatusSort(value)}>
+          <Select modal={false} value={statusSort} onValueChange={(value: "all" | "pending-first" | "resolved-first") => setStatusSort(value)}>
             <SelectTrigger className="w-[170px] bg-[#FFFFFF]">
               <SelectValue placeholder="Sort status" />
             </SelectTrigger>
@@ -350,7 +350,7 @@ export function ReportsTable() {
         )}
       </div>
 
-      <Sheet open={isResolveSheetOpen} onOpenChange={handleCloseResolveSheet}>
+      <Sheet modal={false} open={isResolveSheetOpen} onOpenChange={handleCloseResolveSheet}>
         <SheetContent className="w-[420px] sm:w-[560px] overflow-y-auto bg-white border-l shadow-xl">
           <SheetHeader className="mb-6">
             <SheetTitle className="text-xl font-semibold">Resolve Report + Ban User</SheetTitle>
@@ -381,6 +381,27 @@ export function ReportsTable() {
                     {selectedReport.reason || "-"}
                   </div>
                 </div>
+                {selectedReport.review_id && (
+                  <div className="pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full flex items-center justify-center gap-2 border-[#4A5DF9] text-[#4A5DF9] hover:bg-[#4A5DF9]/10"
+                      onClick={() => {
+                        const careerId = selectedReport.review?.career_id;
+                        if (careerId) {
+                          window.open(`/careers/${careerId}#review-${selectedReport.review_id}`, '_blank');
+                        } else {
+                          // Fallback
+                          window.open(`/reviews/${selectedReport.review_id}`, '_blank');
+                        }
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View Reported Review
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

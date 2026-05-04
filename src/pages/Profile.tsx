@@ -69,8 +69,10 @@ const Profile = () => {
           rating: r.rating,
           author: r.author,
           text: r.comment,
+          date: r.date,
+          parentReviewId: r.parentReviewId,
           career: careerMap.get(r.careerId) || `Career #${r.careerId}`,
-          careerPath: `/careers/${r.careerId}`
+          careerPath: `/careers/${r.careerId}#review-${r.id}`
         }));
 
       setReviews(userReviews);

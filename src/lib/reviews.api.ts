@@ -76,3 +76,15 @@ export async function addReply(
   const res = await reviewsApi.post(`/${parentReviewId}/replies`, data);
   return res.data;
 }
+/* ===== REPORT REVIEW ===== */
+export async function reportReview(
+  id: number,
+  data: {
+    userId: string;
+    reportType: string;
+    reason?: string;
+  }
+) {
+  const res = await reviewsApi.post(`/${id}/report`, data);
+  return res.data;
+}

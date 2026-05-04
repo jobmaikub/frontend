@@ -83,7 +83,7 @@ export function EditNewsSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">Edit News</SheetTitle>
@@ -122,7 +122,7 @@ export function EditNewsSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-industry">Industry</Label>
-            <Select
+            <Select modal={false}
               value={formData.industry_id ? formData.industry_id.toString() : ""}
               onValueChange={(v) =>
                 setFormData({

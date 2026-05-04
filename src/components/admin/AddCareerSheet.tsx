@@ -114,7 +114,7 @@ export function AddCareerSheet({
     !formData.growth_rate;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent aria-describedby={undefined} className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader>
           <SheetTitle>Add Career</SheetTitle>
@@ -147,7 +147,7 @@ export function AddCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="industry_id">Industry <span className="text-destructive">*</span></Label>
-            <Select
+            <Select modal={false}
               value={formData.industry_id ? formData.industry_id.toString() : ""}
               onValueChange={(value) =>
                 setFormData({ ...formData, industry_id: Number(value) })
@@ -168,7 +168,7 @@ export function AddCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="major_id">Major <span className="text-destructive">*</span></Label>
-            <Select
+            <Select modal={false}
               value={formData.major_id ? formData.major_id.toString() : ""}
               onValueChange={(value) =>
                 setFormData({
@@ -217,7 +217,7 @@ export function AddCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="growth_rate">Growth Rate <span className="text-destructive">*</span></Label>
-            <Select
+            <Select modal={false}
               value={formData.growth_rate}
               onValueChange={(value) =>
                 setFormData({ ...formData, growth_rate: value as "1" | "2" | "3" })

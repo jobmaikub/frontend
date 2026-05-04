@@ -49,7 +49,7 @@ export function EditFacultySheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">

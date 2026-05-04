@@ -35,6 +35,8 @@ export interface AdminUserReportRow {
   resolved_by?: string | null;
   resolved_at?: string | null;
   resolution_note?: string | null;
+  review_id?: string | number | null;
+  review?: { career_id: number } | null;
 }
 
 export interface ResolveAndBanResult {

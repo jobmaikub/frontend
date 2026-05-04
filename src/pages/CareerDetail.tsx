@@ -22,7 +22,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import IndustryNewsDialog from '@/components/IndustryNewsDialog';
+import IndustryNewsSidebar from '@/components/IndustryNewsDialog';
 import ReviewSection from '@/components/ReviewSection';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
@@ -68,6 +68,14 @@ const CareerDetail = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [checkingPath, setCheckingPath] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Handle hash for reviews
+  useEffect(() => {
+    if (window.location.hash.startsWith('#review-')) {
+      setActiveTab('reviews');
+    }
+  }, []);
 
   const career = careers.find((c) => String(c.id) === id);
 
@@ -276,7 +284,7 @@ const CareerDetail = () => {
                         <Button 
                           size="lg" 
                           className="w-full gap-2 py-6 text-base font-bold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm border-none"
-                          onClick={() => navigate('/learning-path')}
+                          onClick={() => navigate(`/learning-path/${id}`)}
                         >
                           <Trophy className="h-4 w-4" />
                           View Achievement
@@ -307,7 +315,7 @@ const CareerDetail = () => {
                         <Button 
                           size="lg" 
                           className="w-full gap-2 py-6 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md border-none"
-                          onClick={() => navigate('/learning-path')}
+                          onClick={() => navigate(`/learning-path/${id}`)}
                         >
                           <Play className="h-4 w-4 fill-current" />
                           Continue Learning
@@ -325,7 +333,7 @@ const CareerDetail = () => {
                         }
                         try {
                           await learningPathApi.start(user.id, Number(id));
-                          navigate('/learning-path');
+                          navigate(`/learning-path/${id}`);
                         } catch (err: any) {
                           alert(err.response?.data?.message || "Failed to start learning path");
                         }
@@ -340,7 +348,7 @@ const CareerDetail = () => {
 
               {/* Tabs container */}
               <div className="rounded-2xl bg-section border border-border p-1.5">
-                <Tabs defaultValue="overview">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="w-full bg-transparent h-auto p-0 gap-0">
                     <TabsTrigger
                       value="overview"
@@ -468,7 +476,7 @@ const CareerDetail = () => {
           </div>
         </div>
 
-        <IndustryNewsDialog
+        <IndustryNewsSidebar
           open={newsDialogOpen}
           onOpenChange={setNewsDialogOpen}
           news={news}

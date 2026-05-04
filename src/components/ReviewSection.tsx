@@ -1,6 +1,7 @@
-      {/* เก่า */}
-import { useState, useEffect } from 'react'
+{/* เก่า */ }
+import { useState, useEffect, useRef } from 'react'
 import { Star, Heart, MoreVertical, ChevronDown } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea'
 import type { Review } from '@/types/careers.types'
 import { toast } from 'sonner'
 import * as reviewsApi from '@/lib/reviews.api'
+import { cn } from "@/lib/utils";
 
 import {
   AlertDialog,
@@ -60,9 +62,8 @@ const StarRating = ({
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
-          className={`${px} ${
-            i <= rating ? 'fill-star text-star' : 'text-star-muted'
-          } ${interactive ? 'cursor-pointer hover:text-star' : ''}`}
+          className={`${px} ${i <= rating ? 'fill-star text-star' : 'text-star-muted'
+            } ${interactive ? 'cursor-pointer hover:text-star' : ''}`}
           onClick={() => interactive && onRate?.(i)}
         />
       ))}
@@ -81,6 +82,7 @@ const ReviewItem = ({
   onReply,
   onDelete,
   onUpdate,
+  initialExpanded,
 }: {
   review: Review
   isReply?: boolean
@@ -90,8 +92,10 @@ const ReviewItem = ({
   onReply: (parentId: string, text: string) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string) => void
+  initialExpanded?: boolean
 }) => {
-  const [showReplies, setShowReplies] = useState(false)
+  const navigate = useNavigate()
+  const [showReplies, setShowReplies] = useState(initialExpanded || false)
   const [likes, setLikes] = useState(review.likes)
   const [replying, setReplying] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -115,7 +119,7 @@ const ReviewItem = ({
       onLike(String(review.id), newIsLiking)
       // Update local like count
       setLikes((prev) => (newIsLiking ? prev + 1 : prev - 1))
-      
+
       // Call API
       await reviewsApi.addLike(Number(review.id), currentUserId)
     } catch (error) {
@@ -142,16 +146,39 @@ const ReviewItem = ({
 
   return (
     <>
-      <div className={isReply ? 'ml-12 mt-3' : 'border-b border-border pb-4'}>
+      <div id={`review-${review.id}`} className={cn(
+        "transition-all duration-500 scroll-mt-24 px-4 py-2 rounded-lg",
+        isReply ? 'ml-12 mt-2' : 'border-b border-border pb-4'
+      )}>
         <div className="flex items-start gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0"
+            style={{ cursor: review.userId && String(review.userId) !== String(currentUserId) ? 'pointer' : 'default' }}
+            onClick={() => {
+              if (review.userId && String(review.userId) !== String(currentUserId)) {
+                navigate(`/profile/${review.userId}`);
+              }
+            }}
+            title={String(review.userId) !== String(currentUserId) ? `View ${review.author}'s profile` : undefined}
+          >
             {review.author.charAt(0)}
           </div>
 
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-semibold text-sm">
+                <span
+                  className={cn(
+                    "font-semibold text-sm",
+                    review.userId && String(review.userId) !== String(currentUserId)
+                      ? 'cursor-pointer hover:text-primary hover:underline transition-colors'
+                      : ''
+                  )}
+                  onClick={() => {
+                    if (review.userId && String(review.userId) !== String(currentUserId)) {
+                      navigate(`/profile/${review.userId}`);
+                    }
+                  }}
+                >
                   {review.author}
                 </span>
 
@@ -171,7 +198,7 @@ const ReviewItem = ({
                 )}
               </div>
 
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button className="p-1 hover:bg-muted rounded">
                     <MoreVertical className="h-4 w-4 text-muted-foreground" />
@@ -224,9 +251,8 @@ const ReviewItem = ({
             <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
               <button
                 onClick={handleLike}
-                className={`flex items-center gap-1 ${
-                  isLiked ? 'text-red-500' : 'hover:text-primary'
-                }`}
+                className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'hover:text-primary'
+                  }`}
               >
                 <Heart
                   className="h-3.5 w-3.5"
@@ -265,9 +291,8 @@ const ReviewItem = ({
               >
                 {showReplies ? 'Hide' : review.replies.length} replies
                 <ChevronDown
-                  className={`h-3 w-3 transition-transform ${
-                    showReplies ? 'rotate-180' : ''
-                  }`}
+                  className={`h-3 w-3 transition-transform ${showReplies ? 'rotate-180' : ''
+                    }`}
                 />
               </button>
             )}
@@ -292,35 +317,58 @@ const ReviewItem = ({
         </div>
       </div>
 
-      {/* DELETE CONFIRM */}
-      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
+      {/* Custom Backdrop Overlay for Delete */}
+      {openDelete && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setOpenDelete(false)}
+        />
+      )}
+
+      <Dialog modal={false} open={openDelete} onOpenChange={setOpenDelete}>
+        <DialogContent
+          className="z-50"
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>
               Delete this comment?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
+            </DialogTitle>
+            <DialogDescription>
               This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenDelete(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
               onClick={() => {
                 onDelete(review.id)
                 toast.success('Comment deleted')
+                setOpenDelete(false)
               }}
             >
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* REPORT */}
-      <Dialog open={openReport} onOpenChange={setOpenReport}>
-        <DialogContent className="max-w-md">
+      {/* Custom Backdrop Overlay for Report */}
+      {openReport && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setOpenReport(false)}
+        />
+      )}
+
+      <Dialog modal={false} open={openReport} onOpenChange={setOpenReport}>
+        <DialogContent 
+          className="max-w-md z-50"
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Report Comment</DialogTitle>
             <DialogDescription className="sr-only">
@@ -339,22 +387,28 @@ const ReviewItem = ({
               <button
                 key={reason}
                 onClick={() => setReportReason(reason)}
-                className={`w-full text-left px-3 py-2 rounded border ${
-                  reportReason === reason
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:bg-muted'
-                }`}
+                className={`w-full text-left px-3 py-2 rounded border ${reportReason === reason
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:bg-muted'
+                  }`}
               >
                 {reason}
               </button>
             ))}
 
-            {reportReason === 'Other' && (
-              <Textarea
-                placeholder="Please describe the issue..."
-                value={reportOther}
-                onChange={(e) => setReportOther(e.target.value)}
-              />
+            {reportReason && (
+              <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+                <Textarea
+                  placeholder={
+                    reportReason === 'Other' 
+                      ? "Please describe the issue..." 
+                      : `Tell us more about this ${reportReason.toLowerCase()}...`
+                  }
+                  value={reportOther}
+                  onChange={(e) => setReportOther(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
             )}
           </div>
 
@@ -367,11 +421,24 @@ const ReviewItem = ({
                 !reportReason ||
                 (reportReason === 'Other' && !reportOther.trim())
               }
-              onClick={() => {
-                toast.success('Report submitted')
-                setOpenReport(false)
-                setReportReason('')
-                setReportOther('')
+              onClick={async () => {
+                try {
+                  await reviewsApi.reportReview(Number(review.id), {
+                    userId: currentUserId,
+                    reportType: reportReason, // Selected reason (e.g., "Spam")
+                    reason: reportOther,     // Additional details
+                  })
+                  toast.success('Report submitted successfully')
+                  setOpenReport(false)
+                  setReportReason('')
+                  setReportOther('')
+                } catch (error: any) {
+                  console.error('Failed to submit report:', error)
+                  if (error.response?.data) {
+                    console.error('Backend Error Details:', error.response.data)
+                  }
+                  toast.error(error.response?.data?.message || 'Failed to submit report. Please try again.')
+                }
               }}
             >
               Submit Report
@@ -394,12 +461,25 @@ interface ReviewSectionProps {
 
 const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userName: propUserName }: ReviewSectionProps) => {
   const [reviewList, setReviewList] = useState<Review[]>(initialReviews)
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest')
+  const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'popular'>('recent')
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [userRating, setUserRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
   const [loading, setLoading] = useState(false)
   const [userName, setUserName] = useState(propUserName || 'Anonymous')
-  
+
   // Track liked reviews
   const [likedReviewIds, setLikedReviewIds] = useState<Set<string>>(new Set())
 
@@ -425,7 +505,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
         setLoading(true)
         const data = await reviewsApi.getReviewsByCareer(careerId, userId)
         setReviewList(data)
-        
+
         // Initialize liked state from database
         const likedIds = new Set<string>()
         data.forEach((r: any) => {
@@ -442,9 +522,28 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
         setLoading(false)
       }
     }
-    
+
     fetchReviews()
   }, [careerId])
+
+  // Handle auto-scroll to review if hash exists
+  useEffect(() => {
+    if (!loading && reviewList.length > 0 && window.location.hash) {
+      const hash = window.location.hash;
+      if (hash.startsWith('#review-')) {
+        // Short delay to ensure DOM is updated
+        setTimeout(() => {
+          const element = document.getElementById(hash.slice(1));
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add a brief highlight effect
+            element.classList.add('highlight-comment');
+            setTimeout(() => element.classList.remove('highlight-comment'), 3000);
+          }
+        }, 300);
+      }
+    }
+  }, [loading, reviewList]);
 
   const isSubmitDisabled =
     userRating === 0 || reviewText.trim() === ''
@@ -452,7 +551,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
   const avgRating =
     reviewList.length > 0
       ? reviewList.reduce((sum, r) => sum + r.rating, 0) /
-        reviewList.length
+      reviewList.length
       : 0
 
   const ratingCounts = [5, 4, 3, 2, 1].map(
@@ -461,8 +560,8 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
   const maxCount = Math.max(...ratingCounts, 1)
 
   const sortedReviews = [...reviewList].sort((a, b) => {
-    if (sortBy === 'newest') {
-      return Number(b.id) - Number(a.id)
+    if (sortBy === 'recent') {
+      return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
     }
     if (sortBy === 'oldest') {
       return Number(a.id) - Number(b.id)
@@ -473,7 +572,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
   const handleDelete = async (id: string) => {
     try {
       await reviewsApi.deleteReview(Number(id))
-      
+
       const deleteRecursive = (list: Review[]): Review[] =>
         list
           .filter((item) => String(item.id) !== String(id))
@@ -495,7 +594,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
   const handleUpdate = async (id: string, text: string) => {
     try {
       await reviewsApi.updateReview(Number(id), { comment: text })
-      
+
       const updateRecursive = (list: Review[]): Review[] =>
         list.map((item) => {
           if (String(item.id) === String(id)) {
@@ -634,16 +733,35 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
       <div>
         <div className="flex justify-between mb-4">
           <h4 className="font-semibold">All Reviews</h4>
-          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="popular">Popular</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative" ref={sortRef}>
+            <button
+              onClick={() => setIsSortOpen(!isSortOpen)}
+              className="flex items-center justify-between w-[130px] h-10 px-3 py-2 text-sm bg-white border border-input rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <span className="capitalize">{sortBy}</span>
+              <ChevronDown className={cn("h-4 w-4 text-gray-400 transition-transform", isSortOpen && "rotate-180")} />
+            </button>
+
+            {isSortOpen && (
+              <div className="absolute right-0 top-full mt-1 w-full bg-white border border-gray-100 rounded-md shadow-lg z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                {(['recent', 'oldest', 'popular'] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      setSortBy(option);
+                      setIsSortOpen(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors capitalize",
+                      sortBy === option ? "text-primary font-semibold bg-primary/5" : "text-gray-600"
+                    )}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -656,18 +774,24 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
               No reviews yet. Be the first to review!
             </p>
           ) : (
-            sortedReviews.map((review) => (
-              <ReviewItem
-                key={review.id}
-                review={review}
-                currentUserId={userId}
-                likedReviewIds={likedReviewIds}
-                onLike={handleToggleLike}
-                onReply={handleAddReply}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-              />
-            ))
+            sortedReviews.map((review) => {
+              const isTargetOrHasTarget = window.location.hash === `#review-${review.id}` ||
+                review.replies?.some(r => `#review-${r.id}` === window.location.hash);
+
+              return (
+                <ReviewItem
+                  key={review.id}
+                  review={review}
+                  currentUserId={userId}
+                  likedReviewIds={likedReviewIds}
+                  onLike={handleToggleLike}
+                  onReply={handleAddReply}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdate}
+                  initialExpanded={isTargetOrHasTarget}
+                />
+              );
+            })
           )}
         </div>
       </div>

@@ -32,6 +32,7 @@ import Home from "./pages/Home";
 import CareerList from "./pages/CareerList";
 import CareerDetail from "./pages/CareerDetail";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} /> 
             <Route path="/bookmark" element={<ProtectedRoute><Bookmark /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
             <Route path="/not-found" element={<NotFound />} />
 
             {/* Admin Routes - Protected by AdminProtectedRoute */}

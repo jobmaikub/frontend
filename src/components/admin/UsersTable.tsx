@@ -221,7 +221,7 @@ export function UsersTable() {
               className="w-[250px] pl-9 bg-[#FFFFFF]"
             />
           </div>
-          <Select
+          <Select modal={false}
             value={roleSort}
             onValueChange={(value: "admin-first" | "user-first") => {
               setRoleSort(value);
@@ -237,7 +237,7 @@ export function UsersTable() {
             </SelectContent>
           </Select>
 
-          <Select
+          <Select modal={false}
             value={statusSort}
             onValueChange={(value: "active-first" | "banned-first") => {
               setStatusSort(value);

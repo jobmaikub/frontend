@@ -44,7 +44,7 @@ export function AddUsersSheet({ open, onOpenChange, onSubmit }: AddUsersSheetPro
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">Add New User</SheetTitle>
@@ -84,7 +84,7 @@ export function AddUsersSheet({ open, onOpenChange, onSubmit }: AddUsersSheetPro
             <Label>
               Role <span className="text-destructive">*</span>
             </Label>
-            <Select 
+            <Select modal={false} 
               value={formData.role} 
               onValueChange={(v: "Admin" | "User") => setFormData({ ...formData, role: v })}
               required

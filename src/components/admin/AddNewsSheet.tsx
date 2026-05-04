@@ -86,7 +86,7 @@
 //   };
 
 //   return (
-//     <Sheet open={open} onOpenChange={onOpenChange}>
+//     <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
 //       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-[#FFFFFF]">
 //         <SheetHeader className="mb-6">
 //           <SheetTitle className="text-xl font-semibold">Add New News</SheetTitle>
@@ -135,7 +135,7 @@
 //               <option value="Education">Education</option>
 //               <option value="Health">Health</option>
 //             </select>
-//             <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
+//             <Select modal={false} value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
 //               <SelectTrigger className="bg-[#FFFFFF]">
 //                 <SelectValue placeholder="Select Industry" />
 //               </SelectTrigger>
@@ -318,7 +318,7 @@ export function AddNewsSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-[#FFFFFF]">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">Add New News</SheetTitle>
@@ -337,7 +337,7 @@ export function AddNewsSheet({
 
           <div className="space-y-2">
             <Label htmlFor="industry_id">Industry</Label>
-            <Select
+            <Select modal={false}
               value={formData.industry_id ? formData.industry_id.toString() : ""}
               onValueChange={(v) =>
                 setFormData({ ...formData, industry_id: v ? Number(v) : undefined })

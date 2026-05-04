@@ -46,7 +46,7 @@ export function Navbar() {
   const isAdmin = String(profile?.role || "").toLowerCase() === "admin";
 
   return (
-    <header className="fixed left-0 top-0 z-50 flex h-16 w-screen items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-4 sm:px-8 lg:px-12 font-['Inter']">
+    <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-4 sm:px-8 lg:px-12 font-['Inter']">
       {/* Brand Section */}
       <div className="flex items-center gap-2">
         <Link to="/home" className="flex items-center gap-2">
@@ -89,8 +89,8 @@ export function Navbar() {
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-medium transition-all duration-200 ${isActive
-                        ? "bg-[#4A5DF9] text-white shadow-md shadow-[#4A5DF9]/20"
-                        : "text-gray-600 hover:bg-[#D5E3FF]/30 hover:text-[#4A5DF9]"
+                      ? "bg-[#4A5DF9] text-white shadow-md shadow-[#4A5DF9]/20"
+                      : "text-gray-600 hover:bg-[#D5E3FF]/30 hover:text-[#4A5DF9]"
                       }`}
                   >
                     <Icon className={`h-5 w-5 transition-colors ${isActive ? "text-white" : "text-gray-400 group-hover:text-[#4A5DF9]"}`} />

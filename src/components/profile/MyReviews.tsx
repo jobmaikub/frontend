@@ -18,6 +18,8 @@ export interface Review {
   text: string;
   career: string;
   careerPath: string;
+  date?: string;
+  parentReviewId?: number | null;
 }
 
 interface MyReviewsProps {
@@ -67,58 +69,89 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-bold text-foreground">My Reviews</h3>
-        <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border">
+          <h3 className="text-lg font-bold text-foreground">My Reviews</h3>
+        </div>
+        
+        <div className="divide-y divide-border">
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="group relative rounded-lg bg-accent/50 p-4 transition-colors hover:bg-accent"
+              className="group p-6 transition-colors hover:bg-accent/30 cursor-pointer"
+              onClick={() => navigate(review.careerPath)}
             >
-              <div className="flex items-start justify-between">
-                <div
-                  className="flex-1 cursor-pointer"
-                  onClick={() => navigate(review.careerPath)}
-                >
-                  <StarRating rating={review.rating} />
-                  <p className="mt-1 text-sm font-semibold text-foreground">{review.author}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{review.text}</p>
-                  <p className="mt-1 text-xs text-primary">: {review.career}</p>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {!review.parentReviewId ? (
+                      <StarRating rating={review.rating} />
+                    ) : (
+                      <span className="text-xs font-bold text-primary/70 bg-primary/5 px-2 py-0.5 rounded">Reply</span>
+                    )}
+                    {review.date && (
+                      <span className="text-xs text-muted-foreground">{review.date}</span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-1 transition-opacity">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleStartEdit(review); }}
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteId(review.id); }}
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleStartEdit(review); }}
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteId(review.id); }}
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+
+                <div>
+                  <p className="text-sm leading-relaxed text-foreground/90 font-medium italic">
+                    "{review.text}"
+                  </p>
+                  
+                  <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary">
+                    <span className="text-muted-foreground">Reviewed for:</span>
+                    {review.career}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
+          
           {reviews.length === 0 && (
-            <p className="text-center text-sm text-muted-foreground">No reviews yet</p>
+            <div className="p-12 text-center">
+              <p className="text-sm text-muted-foreground">No reviews yet</p>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editingReview} onOpenChange={() => setEditingReview(null)}>
-        <DialogContent>
+      {/* Custom Backdrop Overlay for Edit */}
+      {!!editingReview && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setEditingReview(null)}
+        />
+      )}
+
+      <Dialog modal={false} open={!!editingReview} onOpenChange={() => setEditingReview(null)}>
+        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Edit Review</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-               <label className="mb-2 block text-sm font-medium text-foreground">Rating</label>
-              <StarRating rating={editRating} onChange={setEditRating} />
-            </div>
+            {!editingReview?.parentReviewId && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground">Rating</label>
+                <StarRating rating={editRating} onChange={setEditRating} />
+              </div>
+            )}
             <Textarea
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
@@ -132,9 +165,16 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm Dialog */}
-      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent>
+      {/* Custom Backdrop Overlay for Delete */}
+      {!!deleteId && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setDeleteId(null)}
+        />
+      )}
+
+      <Dialog modal={false} open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
           </DialogHeader>

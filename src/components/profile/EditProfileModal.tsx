@@ -63,7 +63,7 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (o) { setEditName(name); setSelected(currentAvatar); } onOpenChange(o); }}>
+    <Dialog modal={false} open={open} onOpenChange={(o) => { if (o) { setEditName(name); setSelected(currentAvatar); } onOpenChange(o); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>

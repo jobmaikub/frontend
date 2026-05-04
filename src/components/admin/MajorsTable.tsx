@@ -3,15 +3,13 @@ import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -272,18 +270,28 @@ export function MajorsTable() {
         )}
       </div>
 
-      <AlertDialog open={majorToDelete !== null} onOpenChange={(open) => !open && setMajorToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* Custom Backdrop Overlay */}
+      {majorToDelete !== null && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setMajorToDelete(null)}
+        />
+      )}
+
+      <Dialog modal={false} open={majorToDelete !== null} onOpenChange={(open) => !open && setMajorToDelete(null)}>
+        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
               This action cannot be undone. Do you want to delete this major?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMajorToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
               onClick={() => {
                 if (majorToDelete !== null) {
                   void handleDelete(majorToDelete);
@@ -291,10 +299,10 @@ export function MajorsTable() {
               }}
             >
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

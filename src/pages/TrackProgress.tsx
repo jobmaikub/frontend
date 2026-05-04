@@ -100,7 +100,7 @@ const TrackProgress = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background pt-16">
       <Navbar />
       {/* Hero */}
       <div className="bg-card border-b border-border py-12 text-center">

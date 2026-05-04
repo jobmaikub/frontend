@@ -3,15 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Bookmark, Clock } from "lucide-react";
 import { News } from "@/lib/news.api";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   addNewsBookmark,
   removeNewsBookmark,
@@ -82,26 +81,38 @@ export default function NewsCard({
 
   return (
     <>
-      <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col h-full font-['Inter']">
+      <div 
+        onClick={() => article.source_url && window.open(article.source_url, '_blank')}
+        className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full font-['Inter']"
+      >
         {/* Image */}
-        <div className="h-48 w-full overflow-hidden">
+        <div className="relative aspect-[3/2] overflow-hidden bg-muted/20">
           <img
-            src={article.image_url}
+            src={article.image_url || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop"}
             alt={article.title}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop";
+            }}
           />
+          <div className="absolute top-4 left-4">
+            <span className="bg-white/90 backdrop-blur-sm text-[#4A5DF9] px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm">
+              {article.industries?.name || "News"}
+            </span>
+          </div>
         </div>
 
         {/* Content */}
         <div className="p-6 flex flex-col flex-grow">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-blue-500 text-sm font-medium">
-              {article.industries?.name || "Unknown"}
-            </span>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-lg font-bold text-gray-900 line-clamp-2 transition-colors">
+              {article.title}
+            </h3>
             <button
               type="button"
-              onClick={handleBookmarkClick}
-              className={`${isBookmarked ? "text-[#4A5DF9]" : "text-gray-400"} hover:text-[#4A5DF9] transition-colors`}
+              onClick={(e) => { e.stopPropagation(); handleBookmarkClick(); }}
+              className={`${isBookmarked ? "text-[#4A5DF9]" : "text-gray-400"} hover:text-[#4A5DF9] transition-colors mt-1 flex-shrink-0`}
               aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
               disabled={isMutating}
             >
@@ -109,29 +120,18 @@ export default function NewsCard({
             </button>
           </div>
 
-          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-            {article.title}
-          </h3>
-
-          <p className="text-gray-600 text-sm mb-6 flex-grow line-clamp-3">
-            {article.description}
-          </p>
+          <div className="flex-grow mb-6 overflow-hidden">
+            <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
+              {article.description}
+            </p>
+          </div>
 
           {/* Footer */}
           <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100 mt-auto">
             <div className="flex items-center gap-1">
-              {article.source_url ? (
-                <a
-                  href={article.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[#4A5DF9] hover:text-blue-700 transition-colors truncate max-w-xs"
-                >
-                  {article.source_name}
-                </a>
-              ) : (
-                <span className="font-medium">{article.source_name}</span>
-              )}
+              <span className="font-medium text-[#4A5DF9] group-hover:text-blue-700 transition-colors">
+                {article.source_name}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
@@ -141,22 +141,34 @@ export default function NewsCard({
         </div>
       </div>
 
-      <AlertDialog open={isRemoveConfirmOpen} onOpenChange={setIsRemoveConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove this bookmark?</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* Custom Backdrop Overlay */}
+      {isRemoveConfirmOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsRemoveConfirmOpen(false)}
+        />
+      )}
+
+      <Dialog modal={false} open={isRemoveConfirmOpen} onOpenChange={setIsRemoveConfirmOpen}>
+        <DialogContent 
+          className="z-50"
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Remove this bookmark?</DialogTitle>
+            <DialogDescription>
               This article will be removed from your bookmark list.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemoveBookmark}>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRemoveConfirmOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmRemoveBookmark}>
               Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

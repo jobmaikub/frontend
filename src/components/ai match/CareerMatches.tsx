@@ -142,7 +142,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
 
       {/* Modal / Dialog for Career Details */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
           <div className="bg-white rounded-[32px] p-8 w-full max-w-2xl shadow-xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsModalOpen(false)}
