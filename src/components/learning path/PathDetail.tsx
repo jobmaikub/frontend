@@ -166,6 +166,16 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
     return null;
   }, [courseId, dynamicLevels]);
 
+  const completedCoursesCount = React.useMemo(() => {
+    let count = 0;
+    dynamicLevels.forEach(level => {
+      level.courses.forEach((course: any) => {
+        if (course.status === "Complete") count++;
+      });
+    });
+    return count;
+  }, [dynamicLevels]);
+
   if (courseId) {
     if (loadingLevels) {
       return (
@@ -264,7 +274,7 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
                 <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
                   <div className="bg-[#4A5DF9] h-full rounded-full transition-all duration-1000" style={{ width: `${path.progress}%` }} />
                 </div>
-                <span className="text-[12px] text-gray-500 font-medium">1 of {path.courses} Courses Complete</span>
+                <span className="text-[12px] text-gray-500 font-medium">{completedCoursesCount} of {path.courses} Courses Complete</span>
               </div>
             </div>
           </div>

@@ -18,3 +18,16 @@ export const getActivity = async () => {
   const res = await api.get(`/activity`);
   return res.data;
 };
+
+export interface EnrichedSkill {
+  name: string;
+  level: "beginner" | "intermediate" | "advanced";
+  courseCount: number;
+  careers: string[];
+  lastUpdated: string | null;
+}
+
+export const getEnrichedSkills = async (): Promise<EnrichedSkill[]> => {
+  const res = await api.get(`/skills`);
+  return res.data;
+};

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,14 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
   const [editName, setEditName] = useState(name);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Sync state when modal opens
+  useEffect(() => {
+    if (open) {
+      setSelected(currentAvatar);
+      setEditName(name);
+    }
+  }, [open, currentAvatar, name]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -63,17 +71,17 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
   };
 
   return (
-    <Dialog modal={false} open={open} onOpenChange={(o) => { if (o) { setEditName(name); setSelected(currentAvatar); } onOpenChange(o); }}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md profile-theme">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4">
-          <Avatar className="h-20 w-20 border-4 border-accent">
-            <AvatarImage src={selected} alt={editName} />
-            <AvatarFallback className="bg-accent text-xl font-bold text-accent-foreground">
-              {editName.charAt(0).toUpperCase()}
+          <Avatar className="h-20 w-20 border-4 border-accent shadow-sm">
+            <AvatarImage src={selected} alt={editName} referrerPolicy="no-referrer" />
+            <AvatarFallback className="bg-muted text-xl font-bold text-muted-foreground">
+              {editName ? editName.charAt(0).toUpperCase() : "?"}
             </AvatarFallback>
           </Avatar>
 

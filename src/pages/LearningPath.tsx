@@ -4,21 +4,11 @@ import { Search, Filter, TrendingUp, ChevronDown, BookOpen, Clock, ArrowRight, M
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { PathDetail } from "@/components/learning path/PathDetail";
 import { learningPathApi } from "@/lib/LearningPath.api";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from "@/components/ui/sheet";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import { useAuth } from "@/contexts/AuthContexts";
 import { useCareers } from "@/hooks/useCareers";
 import { getCareerStats } from "@/lib/careers.service";
 import { fetchIndustriesFromDatabase } from "@/lib/news.service";
-
-const INDUSTRIES_PER_PAGE = 8;
 
 export default function LearningPath() {
   const { user } = useAuth();
@@ -30,10 +20,9 @@ export default function LearningPath() {
   const [selectedGrowth, setSelectedGrowth] = useState("All Growth Rates");
   const [industries, setIndustries] = useState<string[]>(["All Industries"]);
 
-  // Dropdown/Sidebar UI States
+  // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
   const [isGrowthOpen, setIsGrowthOpen] = useState(false);
-  const [industryPage, setIndustryPage] = useState(1);
 
   const { careerId } = useParams();
   const navigate = useNavigate();
@@ -164,10 +153,10 @@ export default function LearningPath() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 shrink-0">
-                    {/* 2. Industry Sidebar Trigger */}
+                    {/* 2. Industry Dropdown */}
                     <div className="relative">
                       <button
-                        onClick={() => setIsIndustryOpen(true)}
+                        onClick={() => { setIsIndustryOpen(!isIndustryOpen); setIsGrowthOpen(false); }}
                         className="flex items-center justify-between w-full sm:w-[220px] gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3.5 shadow-sm text-gray-600 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-center gap-2">
@@ -179,100 +168,22 @@ export default function LearningPath() {
                         <ChevronDown size={16} className={`text-gray-400 transition-transform ${isIndustryOpen ? "rotate-180" : ""}`} />
                       </button>
 
-                      {/* Industry Selection Sidebar (Sheet) */}
-                      <Sheet open={isIndustryOpen} onOpenChange={setIsIndustryOpen} modal={false}>
-                        <SheetContent 
-                          side="right" 
-                          className="w-full sm:max-w-md p-0 flex flex-col h-full bg-[#F8FAFC] border-l border-border shadow-2xl z-[60]"
-                        >
-                          {/* Header */}
-                          <div className="p-5 border-b border-border bg-white sticky top-0 z-10">
-                            <div className="flex items-center justify-between mb-2">
-                              <SheetHeader>
-                                <SheetTitle className="flex items-center gap-2 text-xl font-bold text-[#1E293B]">
-                                  <div className="p-2 rounded-lg bg-primary/10">
-                                    <Filter size={20} className="text-primary" />
-                                  </div>
-                                  Select Industry
-                                </SheetTitle>
-                              </SheetHeader>
-                              <SheetClose className="p-2 rounded-full hover:bg-slate-100 transition-colors outline-none">
-                                <X className="w-5 h-5 text-slate-400" />
-                              </SheetClose>
-                            </div>
-                            <p className="text-sm text-slate-500 font-medium">Choose an industry to filter your paths</p>
-                          </div>
-
-                          {/* Industry List */}
-                          <div className="flex-1 overflow-y-auto px-5 py-2 scrollbar-hide">
-                            <div className="grid grid-cols-1 gap-2 mt-2">
-                              {industries
-                                .slice((industryPage - 1) * INDUSTRIES_PER_PAGE, industryPage * INDUSTRIES_PER_PAGE)
-                                .map((industry) => (
-                                <button
-                                  key={industry}
-                                  onClick={() => {
-                                    setSelectedIndustry(industry);
-                                    setIsIndustryOpen(false);
-                                  }}
-                                  className={cn(
-                                    "w-full text-left px-5 py-3.5 rounded-2xl border transition-all flex items-center justify-between group",
-                                    selectedIndustry === industry 
-                                      ? "bg-[#D5E3FF]/10 border-[#4A5DF9] text-[#4A5DF9] shadow-sm" 
-                                      : "bg-white border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50"
-                                  )}
-                                >
-                                  <span className="text-[15px] font-semibold">{industry}</span>
-                                  <div className={cn(
-                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                                    selectedIndustry === industry 
-                                      ? "border-[#4A5DF9] bg-[#4A5DF9]" 
-                                      : "border-slate-200 group-hover:border-slate-300"
-                                  )}>
-                                    {selectedIndustry === industry && <div className="w-2 h-2 rounded-full bg-white" />}
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Pagination */}
-                          {industries.length > INDUSTRIES_PER_PAGE && (
-                            <div className="p-4 border-t border-border bg-white flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => setIndustryPage(prev => Math.max(1, prev - 1))}
-                                disabled={industryPage === 1}
-                                className="p-2 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                              >
-                                <ChevronLeft className="w-4 h-4" />
-                              </button>
-                              <div className="flex items-center gap-1">
-                                {[...Array(Math.ceil(industries.length / INDUSTRIES_PER_PAGE))].map((_, i) => (
-                                  <button
-                                    key={i}
-                                    onClick={() => setIndustryPage(i + 1)}
-                                    className={cn(
-                                      "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                                      industryPage === i + 1
-                                        ? "bg-primary text-white shadow-md shadow-primary/20"
-                                        : "text-slate-500 hover:bg-slate-50"
-                                    )}
-                                  >
-                                    {i + 1}
-                                  </button>
-                                ))}
-                              </div>
-                              <button
-                                onClick={() => setIndustryPage(prev => Math.min(Math.ceil(industries.length / INDUSTRIES_PER_PAGE), prev + 1))}
-                                disabled={industryPage === Math.ceil(industries.length / INDUSTRIES_PER_PAGE)}
-                                className="p-2 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                              >
-                                <ChevronRight className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </SheetContent>
-                      </Sheet>
+                      {isIndustryOpen && (
+                        <div className="absolute top-full left-0 mt-2 w-full min-w-[200px] bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-2">
+                          {industries.map((industry) => (
+                            <button
+                              key={industry}
+                              onClick={() => {
+                                setSelectedIndustry(industry);
+                                setIsIndustryOpen(false);
+                              }}
+                              className={`w-full text-left px-5 py-2.5 text-[14px] hover:bg-gray-50 transition-colors ${selectedIndustry === industry ? "text-[#4A5DF9] font-medium bg-[#D5E3FF]/10" : "text-gray-600"}`}
+                            >
+                              {industry}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* 3. Growth Dropdown */}

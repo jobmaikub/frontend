@@ -34,6 +34,10 @@ export const learningPathApi = {
     }),
   completeLesson: (userId: string, lessonId: number, done: boolean) =>
     api.post(`/learning-paths/lessons/${lessonId}/complete`, { user_id: userId, done: done }),
+  completeCourse: (userId: string, courseId: number, done: boolean) =>
+    api.post(`/learning-paths/courses/${courseId}/complete`, { user_id: userId, done: done }),
+  bulkUpdateLessons: (userId: string, updates: { lesson_id: number, done: boolean }[]) =>
+    api.post(`/learning-paths/lessons/bulk-update`, { user_id: userId, updates: updates }),
   deletePath: (userId: string, careerId: number) =>
     api.delete(`/learning-paths/${careerId}`, { params: { user_id: userId } }),
 };

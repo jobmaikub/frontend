@@ -10,6 +10,7 @@ import { Navbar } from "@/components/navbar and footer/Navbar";
 import StatsCard from "@/components/profile/StatsCard";
 import SkillsMastered from "@/components/profile/SkillsMastered";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EnrichedSkill } from "@/lib/track_progress.api";
 
 
 interface PublicProfileData {
@@ -209,7 +210,15 @@ const PublicProfile = () => {
               </div>
 
               {/* Skills */}
-              <SkillsMastered skills={profileData.skills_mastered || []} />
+              <SkillsMastered
+                skills={(profileData.skills_mastered || []).map((name): EnrichedSkill => ({
+                  name,
+                  level: "beginner",
+                  courseCount: 1,
+                  careers: [],
+                  lastUpdated: null,
+                }))}
+              />
 
               {/* Reviews */}
               <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">

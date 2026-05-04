@@ -18,6 +18,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
 
   const [lessons, setLessons] = useState<any[]>([]);
   const [checkedLessons, setCheckedLessons] = useState<Record<string, boolean>>({});
+  const [previousCheckedState, setPreviousCheckedState] = useState<Record<string, boolean> | null>(null);
 
   // Fetch lessons on mount
   useEffect(() => {
@@ -71,10 +72,65 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
     }
   };
 
-  const toggleCourseStatus = () => {
-    // Optional feature for marking whole course, skipped implementation of marking all in DB for simplicity, 
-    // user just clicks individual lessons
-    alert("Please mark individual lessons as complete.");
+  const toggleCourseStatus = async () => {
+    if (!user || !allLessonsExist) return;
+    const userId = user.id;
+    const targetState = !isCourseFinished;
+
+    if (targetState) {
+      // MARKING AS FINISHED
+      // Save current state before marking as finished so we can revert
+      setPreviousCheckedState({ ...checkedLessons });
+
+      // Optimistic update for all lessons in UI
+      const newCheckedState: Record<string, boolean> = {};
+      lessons.forEach(l => {
+        newCheckedState[l.id] = true;
+      });
+      setCheckedLessons(newCheckedState);
+
+      try {
+        await learningPathApi.completeCourse(userId, course.id, true);
+        if (onLessonToggled) onLessonToggled();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update course status. Please try again.");
+      }
+    } else {
+      // MARKING AS UNFINISHED (Undo/Revert)
+      if (previousCheckedState) {
+        // We have a previous state to revert to!
+        setCheckedLessons(previousCheckedState);
+        const updates = Object.entries(previousCheckedState).map(([id, done]) => ({
+          lesson_id: parseInt(id),
+          done
+        }));
+
+        try {
+          await learningPathApi.bulkUpdateLessons(userId, updates);
+          setPreviousCheckedState(null); // Clear after revert
+          if (onLessonToggled) onLessonToggled();
+        } catch (err) {
+          console.error(err);
+          alert("Failed to revert course status.");
+        }
+      } else {
+        // No previous state (e.g. page refreshed), just reset everything to false
+        const newCheckedState: Record<string, boolean> = {};
+        lessons.forEach(l => {
+          newCheckedState[l.id] = false;
+        });
+        setCheckedLessons(newCheckedState);
+
+        try {
+          await learningPathApi.completeCourse(userId, course.id, false);
+          if (onLessonToggled) onLessonToggled();
+        } catch (err) {
+          console.error(err);
+          alert("Failed to reset course status.");
+        }
+      }
+    }
   };
 
   const currentCompletedCount = Object.values(checkedLessons).filter(Boolean).length;

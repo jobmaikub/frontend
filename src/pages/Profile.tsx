@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContexts";
 import { getAllReviews, updateReview, deleteReview } from "@/lib/reviews.api";
 import { fetchCareers, Career } from "@/lib/careers.api";
 import { updateProfile } from "@/lib/users.api";
+import { getEnrichedSkills, EnrichedSkill } from "@/lib/track_progress.api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/navbar and footer/Navbar";
 
@@ -17,14 +18,29 @@ const Profile = () => {
   const [userName, setUserName] = useState("");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const [enrichedSkills, setEnrichedSkills] = useState<EnrichedSkill[]>([]);
+  const [loadingSkills, setLoadingSkills] = useState(true);
 
   useEffect(() => {
     if (profile) {
       setUserName(profile.full_name || profile.username || "Guest");
       setAvatarUrl(profile.avatar_url || "");
       loadUserReviews();
+      loadSkills();
     }
   }, [profile]);
+
+  const loadSkills = async () => {
+    try {
+      setLoadingSkills(true);
+      const skills = await getEnrichedSkills();
+      setEnrichedSkills(skills);
+    } catch (err) {
+      console.error("Failed to load skills:", err);
+    } finally {
+      setLoadingSkills(false);
+    }
+  };
 
   const handleNameChange = async (newName: string) => {
     if (!user) return;
@@ -170,7 +186,8 @@ const Profile = () => {
 
               {/* Skills */}
               <SkillsMastered
-                skills={profile?.skills || []}
+                skills={enrichedSkills}
+                isLoading={loadingSkills}
               />
 
               {/* Reviews */}
