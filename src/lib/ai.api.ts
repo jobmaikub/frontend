@@ -21,6 +21,18 @@ export interface CareerMatch {
   skillsToDevelop?: string[];
 }
 
+export interface UserSelection {
+  faculty_id: number | null;
+  major_id: number | null;
+  skill_ids: number[];
+  interest_ids: number[];
+}
+
+export interface MatchHistoryResponse {
+  matches: CareerMatch[];
+  userSelection: UserSelection;
+}
+
 export interface MatchRequest {
   faculty_id: number;
   major_id: number;
@@ -30,9 +42,11 @@ export interface MatchRequest {
 }
 
 // API Functions - Match Results
-export const getMatchHistory = async (userId: string): Promise<CareerMatch[]> => {
+export const getMatchHistory = async (userId: string): Promise<MatchHistoryResponse | null> => {
   const res = await api.get(`/history/${userId}`);
-  return res.data;
+  // backend ส่งกลับเป็น { matches, userSelection } หรือ [] (ถ้าไม่มี history)
+  if (!res.data || (Array.isArray(res.data) && res.data.length === 0)) return null;
+  return res.data as MatchHistoryResponse;
 };
 
 export const submitMatch = async (data: MatchRequest): Promise<CareerMatch[]> => {

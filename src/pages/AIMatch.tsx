@@ -28,8 +28,11 @@ export default function AIMatch() {
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryChecked, setIsHistoryChecked] = useState(false);
 
-  // Check for previous matches on mount
+  // Check for previous matches on mount — runs once per user session
   useEffect(() => {
+    // ถ้า check ไปแล้วให้หยุด (ป้องกัน loop)
+    if (isHistoryChecked) return;
+
     const currentUserId = user?.id;
     if (!currentUserId) {
       setIsHistoryChecked(true);
@@ -39,10 +42,18 @@ export default function AIMatch() {
 
     const checkHistory = async () => {
       try {
-        const data = await getMatchHistory(currentUserId);
-        if (data && Array.isArray(data) && data.length > 0) {
-          setMatchResults(sortMatchesByScoreDesc(data));
+        const response = await getMatchHistory(currentUserId);
+        if (response && response.matches && response.matches.length > 0) {
+          setMatchResults(sortMatchesByScoreDesc(response.matches));
           setCurrentStep(4);
+          // Restore ค่าที่ user เลือกไว้
+          const sel = response.userSelection;
+          if (sel) {
+            if (sel.faculty_id) setFacultyId(sel.faculty_id);
+            if (sel.major_id) setMajorId(sel.major_id);
+            if (sel.skill_ids?.length) setSkills(sel.skill_ids);
+            if (sel.interest_ids?.length) setInterests(sel.interest_ids);
+          }
         }
       } catch (error) {
         console.error("Error checking history:", error);
@@ -62,6 +73,8 @@ export default function AIMatch() {
     setSkills([]);
     setInterests([]);
     setMatchResults([]);
+    // reset เพื่อให้ history check ไม่ intercept การ submit ครั้งใหม่
+    setIsHistoryChecked(true);
   };
 
   const handleFacultyNext = (id: number) => {
