@@ -103,7 +103,7 @@ const PublicProfile = () => {
       <div className="min-h-screen bg-background pt-16">
         <Navbar />
         <div className="h-40 bg-primary/20" />
-        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-12">
+        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-24">
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
             <Skeleton className="h-[200px] w-full rounded-2xl" />
             <div className="space-y-6">
@@ -148,15 +148,7 @@ const PublicProfile = () => {
         {/* Header band */}
         <div className="h-40 bg-primary" />
 
-        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-12">
-          {/* Back button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="mb-4 flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </button>
+        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-24">
 
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
             {/* Left column - Profile Card */}
@@ -178,7 +170,7 @@ const PublicProfile = () => {
                   </div>
                 )}
 
-                <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Joined {joinedDate}</span>
                 </div>

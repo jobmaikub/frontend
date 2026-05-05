@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,9 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Edit Review</DialogTitle>
+            <DialogDescription className="sr-only">
+              Change your rating or update your review comment.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!editingReview?.parentReviewId && (
@@ -177,6 +181,9 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription className="sr-only">
+              Are you sure you want to delete this review? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">Are you sure you want to delete this review?</p>
           <DialogFooter>

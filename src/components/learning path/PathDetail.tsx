@@ -245,12 +245,6 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setIsNewsSidebarOpen(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-[13px] font-semibold text-[#4A5DF9] hover:bg-[#D5E3FF]/20 transition-colors"
-                  >
-                    <FileText size={16} /> Industry News
-                  </button>
-                  <button
                     onClick={() => setIsDeleteModalOpen(true)}
                     className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-500 transition-colors"
                   >

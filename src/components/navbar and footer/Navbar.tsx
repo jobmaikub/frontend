@@ -28,6 +28,7 @@ export function Navbar() {
   const { user, profile, signOut } = useAuth();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const getStyle = (id: string) => ({
     backgroundColor: hoveredItem === id ? "rgba(213, 227, 255, 0.2)" : "transparent",
@@ -48,20 +49,11 @@ export function Navbar() {
   return (
     <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-4 sm:px-8 lg:px-12 font-['Inter']">
       {/* Brand Section */}
-      <div className="flex items-center gap-2">
-        <Link to="/home" className="flex items-center gap-2">
-          <img
-            src="/jobmaikub-logo.png"
-            alt="Jobmaikub logo"
-            className="h-10 w-auto object-contain"
-          />
-          <span className="text-xl font-bold text-[#4A5DF9] tracking-tight uppercase">JOBMAIKUB</span>
-        </Link>
-
-        {/* Mobile Menu */}
+      <div className="flex items-center gap-3">
+        {/* Mobile Menu - Now Before Logo */}
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen} modal={false}>
           <SheetTrigger asChild>
-            <button className="lg:hidden ml-4 p-2 text-muted-foreground hover:text-[#4A5DF9] transition-colors">
+            <button className="lg:hidden p-2 text-muted-foreground hover:text-[#4A5DF9] transition-colors">
               <Menu className="h-6 w-6" />
             </button>
           </SheetTrigger>
@@ -101,6 +93,15 @@ export function Navbar() {
             </div>
           </SheetContent>
         </Sheet>
+
+        <Link to="/home" className="flex items-center gap-2">
+          <img
+            src="/jobmaikub-logo.png"
+            alt="Jobmaikub logo"
+            className="h-10 w-auto object-contain"
+          />
+          <span className="text-xl font-bold text-[#4A5DF9] tracking-tight uppercase">JOBMAIKUB</span>
+        </Link>
       </div>
 
       {/* Navigation Menu */}
@@ -137,7 +138,7 @@ export function Navbar() {
           <Bookmark className="h-5 w-5" />
         </Link>
 
-        <DropdownMenu modal={false}>
+        <DropdownMenu modal={false} onOpenChange={setIsDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-1 ml-2 cursor-pointer group outline-none">
               <div className="h-9 w-9 rounded-full border border-[#D5E3FF] overflow-hidden bg-[#D5E3FF] flex items-center justify-center">
@@ -154,7 +155,9 @@ export function Navbar() {
                   </span>
                 )}
               </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-[#4A5DF9] transition-colors" />
+              <ChevronDown 
+                className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+              />
             </div>
           </DropdownMenuTrigger>
 
