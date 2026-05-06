@@ -225,9 +225,9 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
             </div>
 
             <div className="flex-grow flex flex-col justify-center">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex gap-3">
-                  <span className={`flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide ${path.growth === 'High Growth'
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                <div className="flex flex-wrap gap-2">
+                  <span className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide ${path.growth === 'High Growth'
                     ? 'bg-growth-high-bg text-growth-high-foreground'
                     : path.growth === 'Medium Growth'
                       ? 'bg-growth-medium-bg text-growth-medium-foreground'
@@ -243,15 +243,23 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
                     {path.industry}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => setIsNewsSidebarOpen(true)}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-[13px] font-semibold text-[#4A5DF9] hover:bg-[#D5E3FF]/20 transition-colors"
+                  >
+                    <FileText size={16} /> Industry News
+                  </button>
                   <button
                     onClick={() => setIsDeleteModalOpen(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-500 transition-colors"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors shadow-sm"
                   >
-                    <Trash2 size={16} /> Delete This Path
+                    <Trash2 size={16} /> Delete
                   </button>
+
                 </div>
               </div>
+
 
               <h1 className="text-[32px] font-bold text-gray-900 mb-2 leading-tight">{path.title}</h1>
 

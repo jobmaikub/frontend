@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContexts";
 import { useCareers } from "@/hooks/useCareers";
 import { getCareerStats } from "@/lib/careers.service";
 import { fetchIndustriesFromDatabase } from "@/lib/news.service";
+import { Footer } from "@/components/navbar and footer/Footer";
+
 
 export default function LearningPath() {
   const { user } = useAuth();
@@ -107,25 +109,27 @@ export default function LearningPath() {
     <div className="min-h-screen font-['Inter'] flex flex-col">
       <Navbar />
 
-      <main className="bg-[#D5E3FF]/20 flex-grow flex flex-col">
+      <main className="bg-[#F4F7FF] flex-grow flex flex-col">
 
         {/* Render Header only if we are on the main grid view */}
         {!careerId && (
-          <div className="w-full bg-white pt-32 pb-12 flex flex-col items-center text-center px-4 shadow-sm z-10 relative">
-            <div className="mb-6 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
+          <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-8 shadow-sm z-10 relative">
+
+            <div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
               <span className="text-[14px] font-medium text-[#4A5DF9]">Learning Path</span>
             </div>
-            <h1 className="mb-4 text-[44px] font-bold leading-tight text-[#000000]">
+            <h1 className="mb-3 text-[32px] font-bold leading-tight text-[#000000]">
               Choose Your Learning Path
             </h1>
-            <p className="text-[18px] text-gray-500">
+            <p className="text-[16px] text-gray-500">
               Select a career to see its complete learning roadmap
             </p>
           </div>
         )}
 
+
         <section className={`pb-24 ${careerId ? "pt-20" : "pt-12"}`}>
-          <div className="container mx-auto px-6 max-w-[1200px]">
+          <div className="container mx-auto px-8 max-w-6xl">
 
             {/* Conditional Rendering: Main Grid vs Detailed Path */}
             {careerId ? (
@@ -301,6 +305,8 @@ export default function LearningPath() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
+
   );
 }
