@@ -10,6 +10,8 @@ import { GraduationCap, BookOpen, Lightbulb, Heart } from "lucide-react";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContexts";
 import { getMatchHistory, submitMatch, CareerMatch } from "@/lib/ai.api";
+import { Footer } from "@/components/navbar and footer/Footer";
+
 
 const sortMatchesByScoreDesc = (matches: CareerMatch[]): CareerMatch[] => {
   return [...matches].sort(
@@ -28,11 +30,8 @@ export default function AIMatch() {
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryChecked, setIsHistoryChecked] = useState(false);
 
-  // Check for previous matches on mount — runs once per user session
+  // Check for previous matches on mount
   useEffect(() => {
-    // ถ้า check ไปแล้วให้หยุด (ป้องกัน loop)
-    if (isHistoryChecked) return;
-
     const currentUserId = user?.id;
     if (!currentUserId) {
       setIsHistoryChecked(true);
@@ -42,18 +41,10 @@ export default function AIMatch() {
 
     const checkHistory = async () => {
       try {
-        const response = await getMatchHistory(currentUserId);
-        if (response && response.matches && response.matches.length > 0) {
-          setMatchResults(sortMatchesByScoreDesc(response.matches));
+        const data = await getMatchHistory(currentUserId);
+        if (data && Array.isArray(data) && data.length > 0) {
+          setMatchResults(sortMatchesByScoreDesc(data));
           setCurrentStep(4);
-          // Restore ค่าที่ user เลือกไว้
-          const sel = response.userSelection;
-          if (sel) {
-            if (sel.faculty_id) setFacultyId(sel.faculty_id);
-            if (sel.major_id) setMajorId(sel.major_id);
-            if (sel.skill_ids?.length) setSkills(sel.skill_ids);
-            if (sel.interest_ids?.length) setInterests(sel.interest_ids);
-          }
         }
       } catch (error) {
         console.error("Error checking history:", error);
@@ -73,8 +64,6 @@ export default function AIMatch() {
     setSkills([]);
     setInterests([]);
     setMatchResults([]);
-    // reset เพื่อให้ history check ไม่ intercept การ submit ครั้งใหม่
-    setIsHistoryChecked(true);
   };
 
   const handleFacultyNext = (id: number) => {
@@ -128,12 +117,12 @@ export default function AIMatch() {
     <div className="min-h-screen font-['Inter'] flex flex-col">
       <Navbar />
 
-      <main className="bg-[#D5E3FF]/20 flex-grow flex flex-col">
+      <main className="bg-[#F4F7FF] flex-grow flex flex-col">
 
         <QuestionnaireHeader />
 
-        <section className={`pb-20 flex justify-center ${isComplete ? "pt-12" : "pt-16"}`}>
-          <div className="container mx-auto px-4 flex justify-center">
+        <section className={`pb-20 flex justify-center pt-12`}>
+          <div className="container mx-auto px-8 flex justify-center">
 
             {/* THE FIX: Dynamically switch from max-w-4xl to max-w-[1300px] when complete */}
             <div className={`w-full font-['Inter'] transition-all duration-300 ${isComplete ? "max-w-[1300px]" : "max-w-4xl"}`}>
@@ -187,7 +176,8 @@ export default function AIMatch() {
           </div>
         </section>
       </main>
-
+      <Footer />
     </div>
+
   );
 }

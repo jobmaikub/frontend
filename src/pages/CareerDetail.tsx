@@ -195,7 +195,7 @@ const CareerDetail = () => {
     <OldThemeWrapper>
       <div className="min-h-screen bg-background pt-16">
         <Navbar />
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto px-8 py-8">
           {/* Back */}
           <button
             onClick={() => navigate(-1)}
@@ -206,35 +206,37 @@ const CareerDetail = () => {
           </button>
 
           {/* Header */}
-          <div className="flex gap-6 items-start">
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
             <img
               src={career.image}
               alt={career.title}
-              className="w-56 h-40 rounded-xl object-cover flex-shrink-0"
+              className="w-full md:w-56 h-56 md:h-40 rounded-2xl md:rounded-xl object-cover flex-shrink-0 shadow-md"
             />
-            <div>
-              <div className="flex gap-2 mb-2">
+            <div className="flex-grow">
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                 <span
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${growth.className}`}
                 >
                   <growth.icon className="h-3.5 w-3.5" strokeWidth={3} />
                   {growth.label}
                 </span>
-                <span className="inline-flex items-center rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
+                <span className="inline-flex items-center rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-muted-foreground">
                   {career.track}
                 </span>
               </div>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
                 {career.title}
               </h1>
-              <p className="mt-3 text-muted-foreground leading-relaxed max-w-2xl">
+              <p className="mt-3 text-muted-foreground leading-relaxed max-w-2xl mx-auto md:mx-0">
                 {career.description}
               </p>
             </div>
           </div>
 
+
           {/* Content grid */}
-          <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
+          <div className="mt-10 flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
+
             {/* Left column */}
             <div className="space-y-4">
               {/* Salary card */}
@@ -430,9 +432,10 @@ const CareerDetail = () => {
               </div>
             </div>
 
-            {/* Right column – Industry News */}
-            <div>
-              <div className="rounded-2xl bg-card border border-border p-5 sticky top-20">
+            {/* Right column – Industry News (Sidebar on desktop, Bottom on mobile) */}
+            <div className="order-last lg:order-none">
+              <div className="rounded-2xl bg-card border border-border p-6 lg:sticky lg:top-24">
+
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="flex items-center gap-2 font-bold">
                     <FileText className="h-5 w-5 text-primary" />

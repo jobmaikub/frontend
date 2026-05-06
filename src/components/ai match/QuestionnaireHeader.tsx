@@ -11,9 +11,9 @@ export function QuestionnaireHeader({ showText = true }: QuestionnaireHeaderProp
       {/* White Background Section ONLY for the text elements */}
       {/* Increased top padding (pt-36) to add more space between the navbar and the badge */}
       {showText && (
-        <div className="w-full bg-white pt-32 pb-12 flex flex-col items-center text-center px-4">
+        <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-4 shadow-sm">
           {/* AI Career Match Badge */}
-          <div className="mb-6 flex items-center gap-2 rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
+          <div className="mb-4 flex items-center gap-2 rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
             <Sparkles size={14} className="text-[#4A5DF9]" />
             <span className="text-[14px] font-normal text-[#4A5DF9]">
               AI Career Match
@@ -21,16 +21,16 @@ export function QuestionnaireHeader({ showText = true }: QuestionnaireHeaderProp
           </div>
 
           {/* Find Your Perfect Career */}
-          <h1 className="mb-6 text-[40px] font-semibold leading-tight text-[#000000]">
+          <h1 className="mb-3 text-[32px] font-bold leading-tight text-[#000000]">
             Find Your Perfect Career
           </h1>
 
           {/* Subtext */}
-          <p className="text-[18px] font-normal text-[#505050]">
-            Answer a few questions and let our AI recommend <br />
-            careers tailored to your profile.
+          <p className="text-[16px] font-normal text-[#505050]">
+            Answer a few questions and let our AI recommend careers tailored to your profile.
           </p>
         </div>
+
       )}
     </div>
   );
