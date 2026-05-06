@@ -11,7 +11,7 @@ import { updateProfile } from "@/lib/users.api";
 import { getEnrichedSkills, EnrichedSkill } from "@/lib/track_progress.api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/navbar and footer/Navbar";
-import { Footer } from "@/components/navbar and footer/Footer";
+
 
 
 const Profile = () => {
@@ -148,7 +148,7 @@ const Profile = () => {
         {/* Header band */}
         <div className="h-40 bg-primary" />
 
-        <div className="mx-auto -mt-20 max-w-5xl px-8 pb-12">
+        <div className="mx-auto -mt-20 max-w-5xl px-8 pb-24">
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
             {/* Left column */}
             <div>
@@ -208,7 +208,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
-      <Footer />
+
     </div>
 
   );

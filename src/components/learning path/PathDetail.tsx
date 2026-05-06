@@ -302,10 +302,12 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal Overlay */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl p-6 sm:p-8 w-full sm:max-w-md shadow-xl"
+            style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+          >
             <h3 className="text-[20px] font-bold text-gray-900 mb-3">Delete Learning Path</h3>
             <p className="text-[15px] text-gray-600 mb-8 leading-relaxed">
               Are you sure you want to delete this career from your learning path? This action cannot be undone.

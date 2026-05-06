@@ -10,7 +10,7 @@ import {
   getActivity,
   getCompletedCourses, // ✅ เพิ่ม
 } from "@/lib/track_progress.api";
-import { Footer } from "@/components/navbar and footer/Footer";
+
 
 
 type ActivityItem = {
@@ -126,8 +126,6 @@ const TrackProgress = () => {
             icon={CheckCircle}
             value={stats.coursesComplete}
             label="Courses Completed"
-            clickable
-            onClick={() => setShowCourses(true)}
             colorScheme="purple"
           />
           <StatCard
@@ -157,6 +155,8 @@ const TrackProgress = () => {
           <OverallProgress
             progress={stats.overallProgress}
             completedCourses={stats.coursesComplete}
+            clickable
+            onClick={() => setShowCourses(true)}
           />
         </div>
       </div>
@@ -166,7 +166,7 @@ const TrackProgress = () => {
         onOpenChange={setShowCourses}
         courses={courses}
       />
-      <Footer />
+
     </div>
 
   );

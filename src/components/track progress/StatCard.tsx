@@ -23,9 +23,9 @@ const StatCard = ({
   const getColors = () => {
     if (highlighted) {
       switch (colorScheme) {
-        case "orange": return "bg-[#FF9500] text-white border-[#FF9500] shadow-lg shadow-orange-200";
-        case "purple": return "bg-[#4A5DF9] text-white border-[#4A5DF9] shadow-lg shadow-blue-200";
-        case "green": return "bg-[#34C759] text-white border-[#34C759] shadow-lg shadow-green-200";
+        case "orange": return "bg-[#FF9500] text-white border-[#FF9500]";
+        case "purple": return "bg-[#4A5DF9] text-white border-[#4A5DF9]";
+        case "green": return "bg-[#34C759] text-white border-[#34C759]";
         default: return "bg-primary text-white border-primary";
       }
     }

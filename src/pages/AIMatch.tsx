@@ -10,7 +10,7 @@ import { GraduationCap, BookOpen, Lightbulb, Heart } from "lucide-react";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContexts";
 import { getMatchHistory, submitMatch, CareerMatch } from "@/lib/ai.api";
-import { Footer } from "@/components/navbar and footer/Footer";
+
 
 
 const sortMatchesByScoreDesc = (matches: CareerMatch[]): CareerMatch[] => {
@@ -137,7 +137,7 @@ export default function AIMatch() {
                       <React.Fragment key={index}>
                         <div className="flex flex-col items-center gap-3">
                           <div
-                            className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${isActive || isPast
+                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${isActive || isPast
                                 ? "bg-[#4A5DF9] text-white"
                                 : "bg-[#D5E3FF] text-[#799EFF]"
                               }`}
@@ -176,7 +176,7 @@ export default function AIMatch() {
           </div>
         </section>
       </main>
-      <Footer />
+
     </div>
 
   );

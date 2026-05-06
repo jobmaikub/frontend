@@ -16,8 +16,7 @@ const AlertDialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      "pointer-events-auto", // Ensure it still blocks clicks
+      "fixed inset-0 z-50 bg-black/70 pointer-events-auto",
       className,
     )}
     {...props}
@@ -35,7 +34,10 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed z-50 grid w-full gap-4 border bg-background p-6 shadow-lg",
+        "bottom-0 left-0 right-0 rounded-t-2xl max-h-[90dvh] overflow-y-auto",
+        "pb-[calc(5rem_+_env(safe-area-inset-bottom))] sm:pb-6",
+        "sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:w-full sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-xl sm:max-h-[85dvh]",
         className,
       )}
       {...props}
@@ -55,7 +57,7 @@ const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDiv
 AlertDialogHeader.displayName = "AlertDialogHeader";
 
 const AlertDialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
+  <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2 sm:gap-0", className)} {...props} />
 );
 AlertDialogFooter.displayName = "AlertDialogFooter";
 

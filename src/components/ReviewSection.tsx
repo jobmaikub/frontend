@@ -317,10 +317,9 @@ const ReviewItem = ({
         </div>
       </div>
 
-      {/* Custom Backdrop Overlay for Delete */}
       {openDelete && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setOpenDelete(false)}
         />
       )}
@@ -355,16 +354,15 @@ const ReviewItem = ({
         </DialogContent>
       </Dialog>
 
-      {/* Custom Backdrop Overlay for Report */}
       {openReport && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setOpenReport(false)}
         />
       )}
 
       <Dialog modal={false} open={openReport} onOpenChange={setOpenReport}>
-        <DialogContent 
+        <DialogContent
           className="max-w-md z-50"
           onInteractOutside={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
@@ -400,8 +398,8 @@ const ReviewItem = ({
               <div className="pt-2 animate-in fade-in slide-in-from-top-2">
                 <Textarea
                   placeholder={
-                    reportReason === 'Other' 
-                      ? "Please describe the issue..." 
+                    reportReason === 'Other'
+                      ? "Please describe the issue..."
                       : `Tell us more about this ${reportReason.toLowerCase()}...`
                   }
                   value={reportOther}

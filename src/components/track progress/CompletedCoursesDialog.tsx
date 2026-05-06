@@ -81,7 +81,7 @@ const CompletedCoursesDialog = ({
                 <div className="p-2 rounded-lg bg-primary/10">
                   <BookOpen className="w-5 h-5 text-primary" />
                 </div>
-                My Learning
+                My Courses
               </SheetTitle>
             </SheetHeader>
             

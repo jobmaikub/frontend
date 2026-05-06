@@ -8,6 +8,7 @@ import {
   Minus,
   BookOpen,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   FileText,
   Play,
@@ -22,7 +23,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import IndustryNewsSidebar from '@/components/IndustryNewsDialog';
 import ReviewSection from '@/components/ReviewSection';
 import { OldThemeWrapper } from '@/components/OldThemeWrapper';
 import { useCareers } from '@/hooks/useCareers';
@@ -62,7 +62,8 @@ const CareerDetail = () => {
   const navigate = useNavigate();
   const { careers, loading, error } = useCareers();
   const { user, profile } = useAuth();
-  const [newsDialogOpen, setNewsDialogOpen] = useState(false);
+  const [newsExpanded, setNewsExpanded] = useState(false);
+  const [newsPage, setNewsPage] = useState(1);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
@@ -116,17 +117,17 @@ const CareerDetail = () => {
         // Fetch news for this specific industry from database
         const dbNews = await fetchIndustryNewsFromDatabase(career.track);
         console.log('[CareerDetail] News fetched from DB for industry:', career.track, dbNews.length);
-        
+
         if (career) {
           console.log('[News Debug] Career Track:', career.track);
           // Since backend already filters, we don't need much frontend filtering
           // but we'll keep the logic as a safety measure
           const careerTrack = career.track?.toLowerCase() || '';
-          
+
           let filteredNews = dbNews.filter(n => {
             if (!n.industry) return false;
             if (n.industry === 'All Industries') return true;
-            
+
             const newsIndustry = n.industry.toLowerCase();
             return newsIndustry.includes(careerTrack) || careerTrack.includes(newsIndustry);
           });
@@ -141,7 +142,7 @@ const CareerDetail = () => {
             setNews(filteredNews);
           }
         }
- else {
+        else {
           setNews(dbNews);
         }
       } catch (err) {
@@ -179,15 +180,19 @@ const CareerDetail = () => {
   }
 
   const growth = growthConfig[career.growthRate];
-  
+
   // Filter news for sidebar: show news matching the career industry or fallback to latest
-  const filteredSidebarNews = news.filter(n => 
-    (n.industry && career.track && n.industry.toLowerCase() === career.track.toLowerCase()) || 
+  const filteredSidebarNews = news.filter(n =>
+    (n.industry && career.track && n.industry.toLowerCase() === career.track.toLowerCase()) ||
     n.industry === 'All Industries'
   );
-  const sidebarNews = filteredSidebarNews.length > 0 
-    ? filteredSidebarNews.slice(0, 3) 
-    : news.slice(0, 3);
+
+  const allCareerNews = filteredSidebarNews.length > 0 ? filteredSidebarNews : news;
+  const NEWS_PER_PAGE = 5;
+  const totalNewsPages = Math.ceil(allCareerNews.length / NEWS_PER_PAGE);
+  const displayNews = (!newsExpanded)
+    ? allCareerNews.slice(0, 3)
+    : allCareerNews.slice((newsPage - 1) * NEWS_PER_PAGE, newsPage * NEWS_PER_PAGE);
 
   const { totalCourses, totalHours } = getCareerStats(career);
 
@@ -212,8 +217,8 @@ const CareerDetail = () => {
               alt={career.title}
               className="w-full md:w-56 h-56 md:h-40 rounded-2xl md:rounded-xl object-cover flex-shrink-0 shadow-md"
             />
-            <div className="flex-grow">
-              <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+            <div className="flex-grow flex flex-col">
+              <div className="order-3 md:order-first flex flex-wrap justify-center md:justify-start gap-2 mt-6 md:mt-0 md:mb-4">
                 <span
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${growth.className}`}
                 >
@@ -224,10 +229,10 @@ const CareerDetail = () => {
                   {career.track}
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              <h1 className="order-1 text-3xl md:text-4xl font-bold text-foreground">
                 {career.title}
               </h1>
-              <p className="mt-3 text-muted-foreground leading-relaxed max-w-2xl mx-auto md:mx-0">
+              <p className="order-2 mt-3 text-muted-foreground leading-relaxed max-w-2xl mx-auto md:mx-0">
                 {career.description}
               </p>
             </div>
@@ -283,8 +288,8 @@ const CareerDetail = () => {
                           <div className="bg-green-500 h-full w-full" />
                         </div>
 
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="w-full gap-2 py-6 text-base font-bold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm border-none"
                           onClick={() => navigate(`/learning-path/${id}`)}
                         >
@@ -308,14 +313,14 @@ const CareerDetail = () => {
                         </div>
 
                         <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                          <div 
-                            className="bg-primary h-full transition-all duration-700 ease-out" 
-                            style={{ width: `${progress}%` }} 
+                          <div
+                            className="bg-primary h-full transition-all duration-700 ease-out"
+                            style={{ width: `${progress}%` }}
                           />
                         </div>
 
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="w-full gap-2 py-6 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md border-none"
                           onClick={() => navigate(`/learning-path/${id}`)}
                         >
@@ -325,8 +330,8 @@ const CareerDetail = () => {
                       </div>
                     )
                   ) : (
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="w-full gap-2 py-8 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg border-none"
                       onClick={async () => {
                         if (!user) {
@@ -441,49 +446,98 @@ const CareerDetail = () => {
                     <FileText className="h-5 w-5 text-primary" />
                     Industry News
                   </h3>
-                  <button
-                    onClick={() => setNewsDialogOpen(true)}
-                    className="flex items-center gap-0.5 text-sm font-medium text-primary hover:underline"
-                  >
-                    See all <ChevronRight className="h-4 w-4" />
-                  </button>
                 </div>
                 <div className="space-y-4">
-                  {sidebarNews.map((news, index) => (
+                  {displayNews.map((newsItem, index) => (
                     <a
-                      key={news.id || index}
-                      href={news.url}
+                      key={newsItem.id || index}
+                      href={newsItem.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex gap-3 cursor-pointer group"
                     >
                       <img
-                        src={news.image}
-                        alt={news.title}
+                        src={newsItem.image || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop"}
+                        alt={newsItem.title}
                         className="h-14 w-16 rounded-lg object-cover flex-shrink-0"
                         loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop";
+                        }}
                       />
                       <div>
                         <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                          {news.title}
+                          {newsItem.title}
                         </h4>
                         <span className="text-xs text-muted-foreground">
-                          {news.source}
+                          {newsItem.source}
                         </span>
                       </div>
                     </a>
                   ))}
                 </div>
+
+                {/* View More / Show Less Controls */}
+                <div className="flex items-center justify-center pt-6 font-sans">
+                  {!newsExpanded && allCareerNews.length > 3 && (
+                    <button
+                      onClick={() => setNewsExpanded(true)}
+                      className="rounded-lg bg-primary px-6 py-2 text-[11px] font-bold text-primary-foreground transition-all hover:opacity-90 active:scale-95 uppercase tracking-widest shadow-sm"
+                    >
+                      View More
+                    </button>
+                  )}
+
+                  {newsExpanded && (
+                    <div className="flex w-full items-center justify-between gap-4">
+                      <button
+                        onClick={() => { setNewsExpanded(false); setNewsPage(1); }}
+                        className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
+                      >
+                        Show Less
+                      </button>
+
+                      {totalNewsPages > 1 && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            disabled={newsPage === 1}
+                            onClick={() => setNewsPage(p => p - 1)}
+                            className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30 transition-colors"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: totalNewsPages }, (_, i) => i + 1).map((pageNum) => (
+                              <button
+                                key={pageNum}
+                                onClick={() => setNewsPage(pageNum)}
+                                className={`flex h-7 min-w-[28px] items-center justify-center rounded-lg px-2 text-[11px] font-bold transition-all ${newsPage === pageNum
+                                  ? 'bg-primary text-primary-foreground shadow-sm'
+                                  : 'text-muted-foreground hover:bg-secondary'
+                                  }`}
+                              >
+                                {pageNum}
+                              </button>
+                            ))}
+                          </div>
+
+                          <button
+                            disabled={newsPage === totalNewsPages}
+                            onClick={() => setNewsPage(p => p + 1)}
+                            className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30 transition-colors"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <IndustryNewsSidebar
-          open={newsDialogOpen}
-          onOpenChange={setNewsDialogOpen}
-          news={news}
-        />
       </div>
       <Footer />
     </OldThemeWrapper>

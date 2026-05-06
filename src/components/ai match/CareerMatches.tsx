@@ -28,7 +28,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
 
   return (
     <div className="w-full font-['Inter'] flex flex-col items-center relative">
-      
+
       {/* Success Header */}
       <div className="mb-10 flex flex-col items-center text-center mt-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E5F7ED] text-[#22C55E] mb-6 shadow-sm border border-[#C6F0D8]">
@@ -43,7 +43,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
       <div className="w-full max-w-[1100px] flex flex-col gap-8 px-4">
         {matches && Array.isArray(matches) && matches.map((match, index) => (
           <div key={index} className="flex flex-col md:flex-row w-full rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm gap-8">
-            
+
             {/* 1. Left Image - Added `self-center` to perfectly center it vertically against the text on the right! */}
             <div className="w-full md:w-[340px] shrink-0 self-center">
               <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -58,7 +58,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
             {/* Right Content */}
             <div className="flex-1 flex flex-col justify-between py-1">
               <div>
-                
+
                 {/* Header Row */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -117,7 +117,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
               {/* View Career Details Container */}
               <div>
                 {/* 9. View Career Details text - Font Size 14 */}
-                <button 
+                <button
                   onClick={() => handleViewDetails(match.career_id || match.id)}
                   className="flex items-center justify-center gap-2 rounded-xl bg-[#4A5DF9] px-6 py-3 text-[14px] font-medium text-white transition-opacity hover:opacity-90 w-max"
                 >
@@ -132,7 +132,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
       </div>
 
       {/* Start Over Button */}
-      <button 
+      <button
         onClick={onStartOver}
         className="mt-12 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-[14px] font-medium text-gray-700 transition-colors hover:bg-gray-50 shadow-sm"
       >
@@ -140,17 +140,19 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
         Start Over
       </button>
 
-      {/* Modal / Dialog for Career Details */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
-          <div className="bg-white rounded-[32px] p-8 w-full max-w-2xl shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <button 
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-[32px] p-6 sm:p-8 w-full sm:max-w-2xl shadow-xl relative max-h-[90dvh] overflow-y-auto"
+            style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+          >
+            <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-full hover:bg-gray-100 transition-colors"
             >
               <X size={20} className="text-gray-500" />
             </button>
-            
+
             {isLoadingDetails ? (
               <div className="py-20 text-center text-gray-500 flex flex-col items-center gap-4">
                 <div className="w-8 h-8 rounded-full border-4 border-t-[#4A5DF9] border-gray-200 animate-spin"></div>
@@ -160,7 +162,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedCareer.title}</h2>
                 <span className="text-[16px] font-medium text-[#4A5DF9] block mb-6">{selectedCareer.industry}</span>
-                
+
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Description</h3>
                 <p className="text-gray-600 mb-6">{selectedCareer.description || "No description available."}</p>
 
@@ -168,7 +170,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Required Skills</h3>
                     <ul className="list-disc pl-5 text-gray-600">
-                      {selectedCareer.skills_required && Array.isArray(selectedCareer.skills_required) 
+                      {selectedCareer.skills_required && Array.isArray(selectedCareer.skills_required)
                         ? selectedCareer.skills_required.map((s: string, i: number) => <li key={i}>{s}</li>)
                         : <li>Information coming soon...</li>}
                     </ul>
@@ -184,9 +186,9 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
                 Failed to load career details.
               </div>
             )}
-            
+
             <div className="mt-8 flex justify-end">
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="rounded-xl border border-gray-200 px-6 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50"
               >

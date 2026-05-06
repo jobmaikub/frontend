@@ -73,10 +73,9 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
 
   return (
     <>
-      {/* Custom Backdrop Overlay */}
       {open && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => onOpenChange(false)}
         />
       )}
@@ -158,3 +157,4 @@ const EditProfileModal = ({ open, onOpenChange, currentAvatar, onAvatarChange, n
 };
 
 export default EditProfileModal;
+

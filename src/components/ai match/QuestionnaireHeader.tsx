@@ -13,9 +13,8 @@ export function QuestionnaireHeader({ showText = true }: QuestionnaireHeaderProp
       {showText && (
         <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-4 shadow-sm">
           {/* AI Career Match Badge */}
-          <div className="mb-4 flex items-center gap-2 rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
-            <Sparkles size={14} className="text-[#4A5DF9]" />
-            <span className="text-[14px] font-normal text-[#4A5DF9]">
+          <div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
+            <span className="text-[14px] font-medium text-[#4A5DF9]">
               AI Career Match
             </span>
           </div>

@@ -341,7 +341,7 @@ export function NewsTable() {
       {/* Custom Backdrop Overlay */}
       {newsToDelete !== null && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setNewsToDelete(null)}
         />
       )}
@@ -375,3 +375,4 @@ export function NewsTable() {
     </div>
   );
 }
+

@@ -254,7 +254,7 @@ export function FacultyTable() {
       {/* Custom Backdrop Overlay */}
       {facultyToDelete !== null && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setFacultyToDelete(null)}
         />
       )}
@@ -288,3 +288,4 @@ export function FacultyTable() {
     </div>
   );
 }
+

@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContexts";
 import { useCareers } from "@/hooks/useCareers";
 import { getCareerStats } from "@/lib/careers.service";
 import { fetchIndustriesFromDatabase } from "@/lib/news.service";
-import { Footer } from "@/components/navbar and footer/Footer";
+
 
 
 export default function LearningPath() {
@@ -229,10 +229,10 @@ export default function LearningPath() {
                       <div 
                         key={path.id} 
                         onClick={() => navigate(`/learning-path/${path.id}`)}
-                        className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full"
+                        className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full transform-gpu"
                       >
 
-                        <div className="relative aspect-[3/2] overflow-hidden">
+                        <div className="relative aspect-[3/2] overflow-hidden transform-gpu">
                           <img 
                             src={path.image} 
                             alt={path.title} 
@@ -305,7 +305,7 @@ export default function LearningPath() {
           </div>
         </section>
       </main>
-      <Footer />
+
     </div>
 
   );

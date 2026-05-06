@@ -90,16 +90,16 @@ const Home = () => {
               </div>
 
               <div className="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-3">
-                <Button size="lg" className="gap-2" onClick={() => navigate('/ai-match')}>
-                  Get Started <ArrowRight className="h-4 w-4" />
+                <Button size="lg" className="group gap-2 w-full sm:w-auto transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-95" onClick={() => navigate('/ai-match')}>
+                  Get Started <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="gap-2"
+                  className="group gap-2 w-full sm:w-auto transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-95 bg-white"
                   onClick={() => navigate('/careers')}
                 >
-                  <Play className="h-4 w-4" /> Explore Careers
+                  <Play className="h-4 w-4 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-x-1" /> Explore Careers
                 </Button>
               </div>
             </div>
@@ -133,16 +133,16 @@ const Home = () => {
               {journeySteps.map((step) => (
                 <div
                   key={step.number}
-                  className="group relative rounded-2xl bg-card p-6 border border-border hover:shadow-lg transition-all cursor-pointer"
+                  className="group relative rounded-2xl bg-card p-6 border border-border transition-all duration-300 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-xl hover:border-primary/20 cursor-pointer"
                   onClick={() => navigate(step.path)}
                 >
                   <div className="flex items-start justify-between">
                     <div
-                      className={`h-12 w-12 rounded-xl ${step.iconBg} flex items-center justify-center`}
+                      className={`h-12 w-12 rounded-xl ${step.iconBg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12`}
                     >
                       <step.icon className={`h-6 w-6 ${step.iconColor}`} />
                     </div>
-                    <span className="text-6xl font-bold text-muted-foreground/15 select-none leading-none">
+                    <span className="text-6xl font-bold text-muted-foreground/15 select-none leading-none transition-all duration-300 group-hover:scale-110 group-hover:text-primary/10">
                       {step.number}
                     </span>
                   </div>
@@ -203,27 +203,23 @@ const Home = () => {
               Take our AI-powered career assessment and get recommendations in
               minutes.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-3">
-              <Button size="lg" className="gap-2" onClick={() => navigate('/ai-match')}>
-                Get Career Match <ArrowRight className="h-4 w-4" />
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3 w-full">
+              <Button size="lg" className="group gap-2 w-full sm:w-auto transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/20 active:scale-95" onClick={() => navigate('/ai-match')}>
+                Get Career Match <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 className="
-    gap-2
-    border-white
-    bg-white
-    text-primary
-    hover:bg-muted/80
-    hover:border-muted-foreground/40
-    transition-all
-    duration-200
-    ease-in-out
-  "
+                  group
+                  gap-2 w-full sm:w-auto
+                  border-white bg-white text-primary
+                  hover:bg-white/90 hover:border-white/90
+                  transition-all duration-300 hover:scale-[1.03] hover:shadow-xl active:scale-95
+                "
                 onClick={() => navigate('/careers')}
               >
-                <Play className="h-4 w-4" /> Browse Careers
+                <Play className="h-4 w-4 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-x-1" /> Browse Careers
               </Button>
 
             </div>
