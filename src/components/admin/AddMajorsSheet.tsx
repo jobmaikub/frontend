@@ -140,15 +140,14 @@ export function AddMajorsSheet({
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white hover:bg-gray-100 text-black hover:text-black border-slate-200 shadow-none"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white"
-              disabled={!isValid}
+              className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white border-none shadow-sm"
             >
               Create
             </Button>

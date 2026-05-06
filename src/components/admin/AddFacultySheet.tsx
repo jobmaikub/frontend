@@ -68,12 +68,12 @@ export function AddFacultySheet({ open, onOpenChange, onSubmit }: AddFacultyShee
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-white text-black hover:text-black border-slate-200 shadow-none"
+              className="flex-1 bg-white hover:bg-slate-100 text-black hover:text-black border-slate-200 shadow-none"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white border-none">
               Create
             </Button>
           </div>

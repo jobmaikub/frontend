@@ -160,13 +160,13 @@ export function ReportsTable() {
               : row.report_user_id === fallbackOffenderId && row.status === "pending"
           )
             ? {
-                ...row,
-                status: "resolved",
-                updated_at: result.report.updated_at ?? nowIso,
-                resolved_at: result.report.resolved_at ?? nowIso,
-                resolved_by: result.report.resolved_by ?? authUser.id,
-                resolution_note: result.report.resolution_note,
-              }
+              ...row,
+              status: "resolved",
+              updated_at: result.report.updated_at ?? nowIso,
+              resolved_at: result.report.resolved_at ?? nowIso,
+              resolved_by: result.report.resolved_by ?? authUser.id,
+              resolution_note: result.report.resolution_note,
+            }
             : row
         )
       );
@@ -242,12 +242,11 @@ export function ReportsTable() {
               className="w-[200px] pl-9 bg-[#FFFFFF]"
             />
           </div>
-          <Select modal={false} value={statusSort} onValueChange={(value: "all" | "pending-first" | "resolved-first") => setStatusSort(value)}>
+          <Select modal={false} value={statusSort === "all" ? undefined : statusSort} onValueChange={(value: "all" | "pending-first" | "resolved-first") => setStatusSort(value)}>
             <SelectTrigger className="w-[170px] bg-[#FFFFFF]">
-              <SelectValue placeholder="Sort status" />
+              <SelectValue placeholder="Select Status" />
             </SelectTrigger>
             <SelectContent className="bg-[#FFFFFF]">
-              <SelectItem value="all">Select Status</SelectItem>
               <SelectItem value="pending-first">Pending First</SelectItem>
               <SelectItem value="resolved-first">Resolved First</SelectItem>
             </SelectContent>
@@ -270,11 +269,17 @@ export function ReportsTable() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                  Loading reports...
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`loading-${idx}`} className="bg-[#FFFFFF] border-b h-14">
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div></TableCell>
+                  <TableCell><div className="h-6 bg-gray-200 rounded-full animate-pulse w-16"></div></TableCell>
+                  <TableCell><div className="h-3 bg-gray-200 rounded animate-pulse w-28"></div></TableCell>
+                  <TableCell className="text-center"><div className="h-8 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></TableCell>
+                </TableRow>
+              ))
             ) : paginatedReports.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
@@ -482,7 +487,7 @@ export function ReportsTable() {
               <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
-                  className="flex-1 bg-[#FFFFFF] hover:bg-[#FFFFFF] text-black hover:text-black"
+                  className="flex-1 bg-white hover:bg-slate-100 text-black hover:text-black"
                   onClick={() => handleCloseResolveSheet(false)}
                   disabled={actionLoadingId === selectedReport.report_id}
                 >
