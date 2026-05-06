@@ -53,15 +53,17 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
   return (
     <>
       {/* Form Card */}
-      <div className="w-full rounded-2xl border border-gray-100 bg-white p-10 shadow-sm">
+      <div className="w-full rounded-2xl border border-gray-100 bg-white p-6 sm:p-10 shadow-sm">
+
         <div className="mb-8 flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#D5E3FF] text-[#4A5DF9]">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#D5E3FF] text-[#4A5DF9]">
             <Heart size={32} />
           </div>
           <div>
-            <h2 className="text-[22px] font-semibold text-gray-900">Select Your Interests</h2>
-            <p className="text-[18px] text-gray-500 mt-1">What industries excite you the most? (Max 3)</p>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Select Your Interests</h2>
+            <p className="text-sm text-gray-500 mt-1">What industries excite you the most? (Max 3)</p>
           </div>
+
         </div>
 
         {/* Search Input */}
@@ -77,7 +79,8 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
         </div>
 
         {/* Interests Grid with Custom Scrollbar */}
-        <div className="grid grid-cols-2 gap-4 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-h-[300px] sm:max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
+
           {isFetching ? (
             <div className="col-span-2 text-center text-gray-500 py-4">Loading interests...</div>
           ) : filteredInterests.length > 0 ? (
@@ -87,7 +90,7 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
                 onClick={() => toggleInterest(interest.interest_id)}
                 // Disabled styling if limit reached and item not selected
                 disabled={selectedInterestIds.length >= 3 && !selectedInterestIds.includes(interest.interest_id)}
-                className={`flex w-full items-center justify-start rounded-xl border px-6 py-4 text-[18px] font-medium transition-all ${
+                className={`flex w-full items-center justify-start text-left rounded-xl border px-4 py-3 sm:px-6 sm:py-4 text-[15px] sm:text-[18px] font-medium transition-all break-words leading-tight ${
                   selectedInterestIds.includes(interest.interest_id)
                     ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
                     : selectedInterestIds.length >= 3 
@@ -95,8 +98,9 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
                       : "border-gray-200 text-gray-700 bg-white hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
                 }`}
               >
-                {interest.interest_name || interest.name}
+                <span className="w-full text-left">{interest.interest_name || interest.name}</span>
               </button>
+
             ))
           ) : (
             <div className="col-span-2 text-center text-gray-500 py-4">

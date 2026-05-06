@@ -7,9 +7,11 @@ import CompletedCoursesDialog from "@/components/track progress/CompletedCourses
 import { Navbar } from "@/components/navbar and footer/Navbar";
 import {
   getUserStats,
-  getCompletedCourses,
-  getActivity, // ✅ เพิ่ม
+  getActivity,
+  getCompletedCourses, // ✅ เพิ่ม
 } from "@/lib/track_progress.api";
+
+
 
 type ActivityItem = {
   date: string;
@@ -100,43 +102,49 @@ const TrackProgress = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-16">
+    <div className="min-h-screen bg-[#F4F7FF]">
+
       <Navbar />
       {/* Hero */}
-      <div className="bg-card border-b border-border py-12 text-center">
-        <span className="inline-block px-4 py-1.5 rounded-full border border-primary/30 text-primary text-sm font-medium mb-4">
-          Track Progress
-        </span>
-        <h1 className="text-4xl font-bold text-card-foreground mb-2">
+      <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-8 shadow-sm z-10 relative">
+        <div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
+          <span className="text-[14px] font-medium text-[#4A5DF9]">Track Progress</span>
+        </div>
+        <h1 className="mb-3 text-[32px] font-bold leading-tight text-[#000000]">
           Your Learning Journey
         </h1>
-        <p className="text-muted-foreground">Keep up the great work!</p>
+        <p className="text-[16px] text-gray-500">
+          Keep up the great work!
+        </p>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pt-10 pb-24 space-y-8">
+
+      <div className="max-w-6xl mx-auto px-8 pt-12 pb-24 space-y-8">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={CheckCircle}
             value={stats.coursesComplete}
-            label="Courses Complete"
-            clickable
-            onClick={() => setShowCourses(true)}
+            label="Courses Completed"
+            colorScheme="purple"
           />
           <StatCard
             icon={BookOpen}
             value={stats.totalLessons}
             label="Lessons Done"
+            colorScheme="blue"
           />
           <StatCard
             icon={Clock}
             value={stats.totalHours}
-            label="Total Hours"
+            label="Learning Hours"
+            colorScheme="green"
           />
           <StatCard
             icon={Flame}
             value={`${stats.streak} days`}
-            label="Current Streak"
+            label="Day Streak"
+            colorScheme="orange"
             highlighted
           />
         </div>
@@ -147,6 +155,8 @@ const TrackProgress = () => {
           <OverallProgress
             progress={stats.overallProgress}
             completedCourses={stats.coursesComplete}
+            clickable
+            onClick={() => setShowCourses(true)}
           />
         </div>
       </div>
@@ -156,7 +166,9 @@ const TrackProgress = () => {
         onOpenChange={setShowCourses}
         courses={courses}
       />
+
     </div>
+
   );
 };
 

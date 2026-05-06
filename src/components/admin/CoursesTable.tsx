@@ -329,7 +329,7 @@ export function CoursesTable() {
                 <TableCell>
                   <Badge
                     variant="outline"
-                    className={`hover:bg-inherit hover:text-inherit capitalize font-normal ${getLevelBadgeClassName(
+                    className={`capitalize font-normal ${getLevelBadgeClassName(
                       String(course.level)
                     )}`}
                   >
@@ -341,7 +341,7 @@ export function CoursesTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
                     onClick={() => handleEditClick(course)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -351,7 +351,7 @@ export function CoursesTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-destructive hover:bg-transparent hover:text-destructive"
                     onClick={() => setCourseToDelete(course.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -401,13 +401,13 @@ export function CoursesTable() {
       {/* Custom Backdrop Overlay */}
       {courseToDelete !== null && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setCourseToDelete(null)}
         />
       )}
 
       <Dialog modal={false} open={courseToDelete !== null} onOpenChange={(open) => !open && setCourseToDelete(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -415,11 +415,12 @@ export function CoursesTable() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCourseToDelete(null)}>
+            <Button variant="outline" className="bg-white hover:bg-slate-100 text-black hover:text-black" onClick={() => setCourseToDelete(null)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="hover:bg-[#b91c1c]"
               onClick={() => {
                 if (courseToDelete !== null) {
                   void handleDelete(courseToDelete);
@@ -434,3 +435,4 @@ export function CoursesTable() {
     </div>
   );
 }
+

@@ -90,65 +90,74 @@ export default function Bookmark() {
 		<div className="min-h-screen flex flex-col bg-white font-['Inter']">
 			<Navbar />
 
-			<section className="w-full flex flex-col items-center pt-28 pb-12 px-4 text-center bg-white">
-				<span className="bg-blue-50 text-[14px] font-normal text-[#4A5DF9] px-5 py-1.5 rounded-full mb-6">
-					Saved News
-				</span>
-				<h1 className="text-[40px] font-semibold text-[#000000] mb-4 tracking-tight">
+			{/* Header Section */}
+			<div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-8 shadow-sm z-10 relative">
+				<div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
+					<span className="text-[14px] font-medium text-[#4A5DF9]">Saved News</span>
+				</div>
+				<h1 className="mb-3 text-[32px] font-bold leading-tight text-[#000000]">
 					Your Bookmarks
 				</h1>
-				<p className="text-[18px] font-normal text-[#505050] max-w-2xl">
+				<p className="text-[16px] text-gray-500 max-w-2xl">
 					Revisit the articles you saved. Latest bookmarked items appear first.
 				</p>
-			</section>
+			</div>
 
-			<section className="flex-grow flex flex-col items-center bg-[#D5E3FF]/20 pt-12 pb-24 w-full">
-				<div className="w-full max-w-[1000px] px-4 mb-10 flex flex-col md:flex-row gap-4">
-					<div className="relative flex-grow flex items-center bg-white rounded-lg border border-gray-200 shadow-sm focus-within:border-[#4A5DF9] transition-colors duration-200">
-						<Search className="absolute left-4 w-5 h-5 text-gray-400" />
+			{/* --- CONTENT SECTION (Light Blue Background) --- */}
+			<section className="flex-grow flex flex-col items-center bg-[#F4F7FF] pt-12 pb-24 w-full">
+				{/* Search and Filters Bar */}
+				<div className="flex flex-col lg:flex-row gap-4 mb-10 w-full max-w-6xl px-8">
+					{/* 1. Search Input */}
+					<div className="flex-grow flex items-center bg-white rounded-xl border border-gray-200 px-5 py-3.5 shadow-sm transition-all focus-within:border-[#4A5DF9] focus-within:ring-1 focus-within:ring-[#4A5DF9]">
+						<Search className="text-gray-400 mr-3" size={20} />
 						<input
 							type="text"
 							placeholder="Search bookmarked news..."
-							className="w-full pl-11 pr-4 py-3 bg-transparent outline-none text-gray-700 placeholder-gray-400 rounded-lg text-sm"
+							className="w-full bg-transparent outline-none text-[15px] text-gray-700 placeholder:text-gray-400"
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 						/>
 					</div>
 
-					<div className="relative md:w-[280px]">
-						<button
-							type="button"
-							className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 shadow-sm rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-							onClick={() => setIsIndustryOpen(!isIndustryOpen)}
-						>
-							<div className="flex items-center gap-2">
-								<Filter className="w-4 h-4 text-gray-400" />
-								<span className="text-sm font-medium">{selectedIndustry}</span>
-							</div>
-							<ChevronDown className="w-4 h-4 text-gray-400" />
-						</button>
+					<div className="flex flex-col sm:flex-row gap-4 shrink-0">
+						{/* 2. Industry Dropdown */}
+						<div className="relative">
+							<button
+								className="flex items-center justify-between w-full sm:w-[220px] gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3.5 shadow-sm text-gray-700 hover:bg-gray-50 transition-colors"
+								onClick={() => setIsIndustryOpen(!isIndustryOpen)}
+							>
+								<div className="flex items-center gap-2 truncate">
+									<Filter size={18} className={selectedIndustry !== "All Industries" ? "text-[#4A5DF9]" : "text-gray-400"} />
+									<span className={`text-[15px] font-medium truncate ${selectedIndustry !== "All Industries" ? "text-[#4A5DF9]" : ""}`}>
+										{selectedIndustry}
+									</span>
+								</div>
+								<ChevronDown size={16} className={`text-gray-400 transition-transform ${isIndustryOpen ? "rotate-180" : ""}`} />
+							</button>
 
-						{isIndustryOpen && (
-							<div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden z-20">
-								{industries.map((industry) => (
-									<button
-										type="button"
-										key={industry}
-										className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-										onClick={() => {
-											setSelectedIndustry(industry);
-											setIsIndustryOpen(false);
-										}}
-									>
-										{industry}
-									</button>
-								))}
-							</div>
-						)}
+							{/* Dropdown Menu */}
+							{isIndustryOpen && (
+								<div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden z-20 py-2">
+									{industries.map((industry) => (
+										<button
+											key={industry}
+											className={`w-full text-left px-5 py-2.5 text-[14px] hover:bg-gray-50 transition-colors ${selectedIndustry === industry ? "text-[#4A5DF9] font-medium bg-[#D5E3FF]/10" : "text-gray-700"}`}
+											onClick={() => {
+												setSelectedIndustry(industry);
+												setIsIndustryOpen(false);
+											}}
+										>
+											{industry}
+										</button>
+									))}
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 
-				<div className="w-full max-w-[1000px] px-4">
+				{/* News Grid */}
+				<div className="max-w-6xl mx-auto px-8 w-full">
 					{loading ? (
 						<div className="text-center py-20">
 							<div className="flex justify-center items-center mb-4">
@@ -187,19 +196,55 @@ export default function Bookmark() {
 										<span className="hidden sm:inline">Previous</span>
 									</button>
 
+									{/* Smart Page Numbers */}
 									<div className="flex gap-1">
-										{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-											<button
-												key={page}
-												onClick={() => setCurrentPage(page)}
-												className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page
-													? 'bg-[#4A5DF9] text-white'
-													: 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-													}`}
-											>
-												{page}
-											</button>
-										))}
+										{(() => {
+											const pages = [];
+											const maxVisible = 5;
+											const halfWindow = Math.floor(maxVisible / 2);
+
+											let startPage = Math.max(1, currentPage - halfWindow);
+											let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+											if (endPage - startPage + 1 < maxVisible) {
+												startPage = Math.max(1, endPage - maxVisible + 1);
+											}
+
+											if (startPage > 1) {
+												pages.push(1);
+												if (startPage > 2) {
+													pages.push('...');
+												}
+											}
+
+											for (let i = startPage; i <= endPage; i++) {
+												pages.push(i);
+											}
+
+											if (endPage < totalPages) {
+												if (endPage < totalPages - 1) {
+													pages.push('...');
+												}
+												pages.push(totalPages);
+											}
+
+											return pages.map((page, idx) =>
+												page === '...' ? (
+													<span key={`ellipsis-${idx}`} className="px-2 text-gray-400">...</span>
+												) : (
+													<button
+														key={page}
+														onClick={() => setCurrentPage(page as number)}
+														className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page
+															? 'bg-[#4A5DF9] text-white'
+															: 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+															}`}
+													>
+														{page}
+													</button>
+												)
+											);
+										})()}
 									</div>
 
 									<button

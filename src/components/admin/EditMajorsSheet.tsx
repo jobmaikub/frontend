@@ -133,7 +133,7 @@ export function EditMajorsSheet({
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white hover:bg-slate-100 text-black hover:text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
@@ -142,7 +142,7 @@ export function EditMajorsSheet({
             <Button
               type="submit"
               disabled={isDisabled}
-              className="flex-1 bg-[#4A5DF9] text-white disabled:opacity-50"
+              className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white disabled:opacity-50"
             >
               Update
             </Button>

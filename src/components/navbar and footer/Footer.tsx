@@ -28,6 +28,8 @@ export function Footer() {
           <p className="text-sm text-gray-500 leading-relaxed max-w-[280px] mx-auto md:mx-0">
             Design your ideal future with AI-driven insights and complete learning roadmaps — all in one place.
           </p>
+
+
         </div>
 
         {/* Links */}
@@ -63,6 +65,7 @@ export function Footer() {
               </span>
             </div>
           </div>
+
         </div>
       </div>
 

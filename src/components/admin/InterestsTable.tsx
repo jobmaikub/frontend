@@ -137,13 +137,13 @@ export function InterestsTable() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search interests..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-[250px] pl-9 bg-white"
+              className="w-[200px] pl-9 bg-white"
             />
           </div>
           <Button
@@ -208,7 +208,7 @@ export function InterestsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
                     onClick={() => handleEditClick(item)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -218,7 +218,7 @@ export function InterestsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-destructive hover:bg-transparent hover:text-destructive"
                     onClick={() => setInterestToDelete(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -268,13 +268,13 @@ export function InterestsTable() {
       {/* Custom Backdrop Overlay */}
       {interestToDelete !== null && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setInterestToDelete(null)}
         />
       )}
 
       <Dialog modal={false} open={interestToDelete !== null} onOpenChange={(open) => !open && setInterestToDelete(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -282,11 +282,12 @@ export function InterestsTable() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setInterestToDelete(null)}>
+            <Button variant="outline" className="bg-white hover:bg-slate-100 text-black hover:text-black" onClick={() => setInterestToDelete(null)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="hover:bg-[#b91c1c]"
               onClick={() => {
                 if (interestToDelete !== null) {
                   void handleDelete(interestToDelete);
@@ -301,3 +302,4 @@ export function InterestsTable() {
     </div>
   );
 }
+

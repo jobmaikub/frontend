@@ -63,12 +63,12 @@ export function EditInterestsSheet({ open, onOpenChange, onSubmit, interest }: E
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-slate-100 text-black"
+              className="flex-1 bg-white hover:bg-slate-100 text-black hover:text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white">
               Update
             </Button>
           </div>

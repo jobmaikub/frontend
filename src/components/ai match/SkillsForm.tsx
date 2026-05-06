@@ -52,14 +52,14 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
   return (
     <>
       {/* Form Card */}
-      <div className="w-full rounded-2xl border border-gray-100 bg-white p-10 shadow-sm">
+      <div className="w-full rounded-2xl border border-gray-100 bg-white p-6 sm:p-10 shadow-sm">
         <div className="mb-8 flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#D5E3FF] text-[#4A5DF9]">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#D5E3FF] text-[#4A5DF9]">
             <Lightbulb size={32} />
           </div>
           <div>
-            <h2 className="text-[22px] font-semibold text-gray-900">Select Your Skills</h2>
-            <p className="text-[18px] text-gray-500 mt-1">Search and select all skills you possess or want to develop. (Max 12)</p>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Select Your Skills</h2>
+            <p className="text-sm text-gray-500 mt-1">Search and select all skills you possess or want to develop. (Max 12)</p>
           </div>
         </div>
 

@@ -83,10 +83,10 @@ export default function NewsCard({
     <>
       <div 
         onClick={() => article.source_url && window.open(article.source_url, '_blank')}
-        className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full font-['Inter']"
+        className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full font-['Inter'] transform-gpu"
       >
         {/* Image */}
-        <div className="relative aspect-[3/2] overflow-hidden bg-muted/20">
+        <div className="relative aspect-[3/2] overflow-hidden bg-muted/20 transform-gpu">
           <img
             src={article.image_url || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop"}
             alt={article.title}
@@ -141,10 +141,9 @@ export default function NewsCard({
         </div>
       </div>
 
-      {/* Custom Backdrop Overlay */}
       {isRemoveConfirmOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setIsRemoveConfirmOpen(false)}
         />
       )}

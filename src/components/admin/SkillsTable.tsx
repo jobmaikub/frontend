@@ -205,7 +205,7 @@ export function SkillsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
                     onClick={() => handleEditClick(skill)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -216,7 +216,7 @@ export function SkillsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-destructive hover:bg-transparent hover:text-destructive"
                     onClick={() => setSkillToDelete(skill.skill_id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -266,13 +266,13 @@ export function SkillsTable() {
       {/* Custom Backdrop Overlay */}
       {skillToDelete !== null && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setSkillToDelete(null)}
         />
       )}
 
       <Dialog modal={false} open={skillToDelete !== null} onOpenChange={(open) => !open && setSkillToDelete(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -280,11 +280,12 @@ export function SkillsTable() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSkillToDelete(null)}>
+            <Button variant="outline" className="bg-white hover:bg-slate-100 text-black hover:text-black" onClick={() => setSkillToDelete(null)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="hover:bg-[#b91c1c]"
               onClick={() => {
                 if (skillToDelete !== null) {
                   void handleDelete(skillToDelete);
@@ -299,3 +300,4 @@ export function SkillsTable() {
     </div>
   );
 }
+

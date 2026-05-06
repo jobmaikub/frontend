@@ -12,6 +12,8 @@ import { getEnrichedSkills, EnrichedSkill } from "@/lib/track_progress.api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/navbar and footer/Navbar";
 
+
+
 const Profile = () => {
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -146,7 +148,7 @@ const Profile = () => {
         {/* Header band */}
         <div className="h-40 bg-primary" />
 
-        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-24">
+        <div className="mx-auto -mt-20 max-w-5xl px-8 pb-24">
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
             {/* Left column */}
             <div>
@@ -161,9 +163,9 @@ const Profile = () => {
             </div>
 
             {/* Right column */}
-            <div className="space-y-6 min-w-0">
+            <div className="space-y-6">
               {/* Stats row */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <StatsCard
                   icon={BookOpen}
                   value={profile?.courses_completed || 0}
@@ -206,7 +208,9 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
     </div>
+
   );
 };
 

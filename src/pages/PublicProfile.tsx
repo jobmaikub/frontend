@@ -103,11 +103,11 @@ const PublicProfile = () => {
       <div className="min-h-screen bg-background pt-16">
         <Navbar />
         <div className="h-40 bg-primary/20" />
-        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-24">
+        <div className="mx-auto -mt-20 max-w-5xl px-8 pb-24">
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
             <Skeleton className="h-[200px] w-full rounded-2xl" />
             <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Skeleton className="h-24 w-full" />
                 <Skeleton className="h-24 w-full" />
                 <Skeleton className="h-24 w-full" />
@@ -148,7 +148,7 @@ const PublicProfile = () => {
         {/* Header band */}
         <div className="h-40 bg-primary" />
 
-        <div className="mx-auto -mt-20 max-w-5xl px-4 pb-24">
+        <div className="mx-auto -mt-20 max-w-5xl px-8 pb-24">
 
           <div className="grid gap-6 md:grid-cols-[280px_1fr]">
             {/* Left column - Profile Card */}
@@ -180,7 +180,7 @@ const PublicProfile = () => {
             {/* Right column */}
             <div className="space-y-6">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <StatsCard
                   icon={BookOpen}
                   value={profileData.courses_completed || 0}

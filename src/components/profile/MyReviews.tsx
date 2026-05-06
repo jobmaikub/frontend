@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -74,7 +73,7 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         <div className="p-6 border-b border-border">
           <h3 className="text-lg font-bold text-foreground">My Reviews</h3>
         </div>
-        
+
         <div className="divide-y divide-border">
           {reviews.map((review) => (
             <div
@@ -104,7 +103,7 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteId(review.id); }}
-                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      className="rounded-md p-1.5 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -115,7 +114,7 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
                   <p className="text-sm leading-relaxed text-foreground/90 font-medium italic">
                     "{review.text}"
                   </p>
-                  
+
                   <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary">
                     <span className="text-muted-foreground">Reviewed for:</span>
                     {review.career}
@@ -124,7 +123,7 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
               </div>
             </div>
           ))}
-          
+
           {reviews.length === 0 && (
             <div className="p-12 text-center">
               <p className="text-sm text-muted-foreground">No reviews yet</p>
@@ -133,10 +132,9 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         </div>
       </div>
 
-      {/* Custom Backdrop Overlay for Edit */}
       {!!editingReview && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setEditingReview(null)}
         />
       )}
@@ -145,9 +143,6 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Edit Review</DialogTitle>
-            <DialogDescription className="sr-only">
-              Change your rating or update your review comment.
-            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!editingReview?.parentReviewId && (
@@ -169,10 +164,9 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Custom Backdrop Overlay for Delete */}
       {!!deleteId && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setDeleteId(null)}
         />
       )}
@@ -181,9 +175,6 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
         <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
-            <DialogDescription className="sr-only">
-              Are you sure you want to delete this review? This action cannot be undone.
-            </DialogDescription>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">Are you sure you want to delete this review?</p>
           <DialogFooter>
@@ -197,3 +188,4 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
 };
 
 export default MyReviews;
+

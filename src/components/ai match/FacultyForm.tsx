@@ -37,15 +37,17 @@ export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
   return (
     <>
       {/* Form Card */}
-      <div className="w-full rounded-2xl border border-gray-100 bg-white p-10 shadow-sm">
+      <div className="w-full rounded-2xl border border-gray-100 bg-white p-6 sm:p-10 shadow-sm">
+
         <div className="mb-8 flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#D5E3FF] text-[#4A5DF9]">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#D5E3FF] text-[#4A5DF9]">
             <GraduationCap size={32} />
           </div>
           <div>
-            <h2 className="text-[22px] font-semibold text-gray-900">Select Your Faculty</h2>
-            <p className="text-[18px] text-gray-500 mt-1">Which faculty are you in or interested in?</p>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Select Your Faculty</h2>
+            <p className="text-sm text-gray-500 mt-1">Which faculty are you in or interested in?</p>
           </div>
+
         </div>
 
         {/* Search Input */}
@@ -61,7 +63,8 @@ export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
         </div>
 
         {/* Faculty Grid with Custom Scrollbar */}
-        <div className="grid grid-cols-2 gap-4 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-h-[300px] sm:max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
+
           {isLoading ? (
             <div className="col-span-2 text-center text-gray-500 py-4">Loading faculties...</div>
           ) : filteredFaculties.length > 0 ? (
@@ -69,14 +72,15 @@ export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
               <button 
                 key={f.faculty_id}
                 onClick={() => setSelectedFacultyId(f.faculty_id)}
-                className={`flex w-full items-center justify-start rounded-xl border px-6 py-4 text-[18px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] ${
+                className={`flex w-full items-center justify-start text-left rounded-xl border px-4 py-3 sm:px-6 sm:py-4 text-[15px] sm:text-[18px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] break-words leading-tight ${
                   selectedFacultyId === f.faculty_id 
                     ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]" // Active state styling
                     : "border-gray-200 text-gray-700 bg-white"      // Default state styling
                 }`}
               >
-                {f.eng_name || f.th_name}
+                <span className="w-full text-left">{f.eng_name || f.th_name}</span>
               </button>
+
             ))
           ) : (
             <div className="col-span-2 text-center text-gray-500 py-4">
