@@ -205,7 +205,7 @@ export function EditNewsSheet({
           <Button
             type="button"
             variant="outline"
-            className="flex-1"
+            className="flex-1 bg-white hover:bg-slate-100 text-black hover:text-black"
             onClick={() => onOpenChange(false)}
           >
             Cancel
@@ -213,7 +213,7 @@ export function EditNewsSheet({
           <Button
             type="button"
             disabled={!isValid}
-            className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white"
+            className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white"
             onClick={handleSubmit}
           >
             Update

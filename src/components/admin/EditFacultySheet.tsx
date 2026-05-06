@@ -87,14 +87,14 @@ export function EditFacultySheet({
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white hover:bg-slate-100 text-black hover:text-black"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-[#4A5DF9] text-white"
+              className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white"
             >
               Update
             </Button>

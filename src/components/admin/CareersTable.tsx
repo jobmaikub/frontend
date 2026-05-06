@@ -347,7 +347,7 @@ export function CareersTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
                     onClick={() => handleEditClick(career)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -357,7 +357,7 @@ export function CareersTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-destructive hover:bg-transparent hover:text-destructive"
                     onClick={() => setCareerToDelete(career.career_id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -413,7 +413,7 @@ export function CareersTable() {
       )}
 
       <Dialog modal={false} open={careerToDelete !== null} onOpenChange={(open) => !open && setCareerToDelete(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -421,11 +421,12 @@ export function CareersTable() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCareerToDelete(null)}>
+            <Button variant="outline" className="bg-white hover:bg-slate-100 text-black hover:text-black" onClick={() => setCareerToDelete(null)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="hover:bg-[#b91c1c]"
               onClick={() => {
                 if (careerToDelete !== null) {
                   void handleDelete(careerToDelete);

@@ -210,7 +210,7 @@ export function LessonsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
                     onClick={() => handleEditClick(lesson)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -220,7 +220,7 @@ export function LessonsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-destructive hover:bg-transparent hover:text-destructive"
                     onClick={() => setLessonToDelete(lesson.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -276,7 +276,7 @@ export function LessonsTable() {
       )}
 
       <Dialog modal={false} open={lessonToDelete !== null} onOpenChange={(open) => !open && setLessonToDelete(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -284,11 +284,12 @@ export function LessonsTable() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLessonToDelete(null)}>
+            <Button variant="outline" className="bg-white hover:bg-slate-100 text-black hover:text-black" onClick={() => setLessonToDelete(null)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="hover:bg-[#b91c1c]"
               onClick={() => {
                 if (lessonToDelete !== null) {
                   void handleDelete(lessonToDelete);

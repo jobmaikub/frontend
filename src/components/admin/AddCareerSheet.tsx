@@ -325,12 +325,12 @@ export function AddCareerSheet({
             <Button
               type="button"
               variant="outline"
-              className="flex-1 bg-white hover:bg-white text-black hover:text-black border shadow-none"
+              className="flex-1 bg-white hover:bg-gray-100 text-black hover:text-black border-slate-200 shadow-none"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitDisabled} className="flex-1 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white border-none shadow-sm">
               Create
             </Button>
           </div>

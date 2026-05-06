@@ -168,9 +168,6 @@ export function NewsTable() {
     setCurrentPage(1);
   };
 
-  if (loading) {
-    return <div className="text-muted-foreground">Loading news...</div>;
-  }
 
   return (
     <div className="space-y-6">
@@ -283,7 +280,7 @@ export function NewsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
                     onClick={() => handleEditClick(item)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -294,7 +291,7 @@ export function NewsTable() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-destructive hover:bg-[#4A5DF9] hover:text-white"
+                    className="text-destructive hover:bg-transparent hover:text-destructive"
                     onClick={() => setNewsToDelete(item.news_id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -350,7 +347,7 @@ export function NewsTable() {
       )}
 
       <Dialog modal={false} open={newsToDelete !== null} onOpenChange={(open) => !open && setNewsToDelete(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -358,11 +355,12 @@ export function NewsTable() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNewsToDelete(null)}>
+            <Button variant="outline" className="bg-white hover:bg-slate-100 text-black hover:text-black" onClick={() => setNewsToDelete(null)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="hover:bg-[#b91c1c]"
               onClick={() => {
                 if (newsToDelete !== null) {
                   void handleDelete(newsToDelete);
