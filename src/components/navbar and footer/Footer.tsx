@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Facebook, Instagram, Linkedin, Mail } from "lucide-react";
+import { GraduationCap, Mail } from "lucide-react";
 
 export function Footer() {
   const footerLinks = [
@@ -28,19 +28,6 @@ export function Footer() {
           <p className="text-sm text-gray-500 leading-relaxed max-w-[280px] mx-auto md:mx-0">
             Design your ideal future with AI-driven insights and complete learning roadmaps — all in one place.
           </p>
-
-          {/* Social Icons */}
-          <div className="flex items-center justify-center md:justify-start gap-3 mt-6">
-            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F7FF] text-gray-600 hover:text-[#4A5DF9] transition-colors">
-              <Facebook size={16} />
-            </button>
-            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F7FF] text-gray-600 hover:text-[#4A5DF9] transition-colors">
-              <Instagram size={16} />
-            </button>
-            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F7FF] text-gray-600 hover:text-[#4A5DF9] transition-colors">
-              <Linkedin size={16} />
-            </button>
-          </div>
         </div>
 
         {/* Links */}
@@ -75,15 +62,6 @@ export function Footer() {
                 jobmaikub@gmail.com
               </span>
             </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2">
-            <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-gray-800 tracking-wider">
-              PRIVACY POLICY
-            </a>
-            <a href="#" className="text-[10px] font-bold text-gray-500 hover:text-gray-800 tracking-wider">
-              TERMS OF SERVICE
-            </a>
           </div>
         </div>
       </div>
