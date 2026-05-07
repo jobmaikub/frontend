@@ -24,6 +24,10 @@ export default function News() {
   // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
 
+  useEffect(() => {
+    document.title = "ข่าวสารวงการอาชีพ | Jobmaikub";
+  }, []);
+
   // Fetch News Data from Backend
   useEffect(() => {
     const fetchData = async () => {

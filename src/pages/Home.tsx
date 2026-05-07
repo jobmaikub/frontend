@@ -55,6 +55,7 @@ const Home = () => {
   const [trendingCareers, setTrendingCareers] = useState<Career[]>([]);
 
   useEffect(() => {
+    document.title = "Jobmaikub | ค้นหาอาชีพที่ใช่ด้วย AI";
     import('@/lib/careers.service').then(({ fetchTrendingCareers }) => {
       fetchTrendingCareers().then(setTrendingCareers);
     });

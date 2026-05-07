@@ -35,6 +35,7 @@ const CareerList = () => {
 
   // Fetch industries on mount
   useEffect(() => {
+    document.title = "ค้นหาอาชีพ | Jobmaikub";
     fetchIndustriesFromDatabase().then(setIndustriesList);
   }, []);
 

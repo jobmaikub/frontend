@@ -80,6 +80,12 @@ const CareerDetail = () => {
 
   const career = careers.find((c) => String(c.id) === id);
 
+  useEffect(() => {
+    if (career) {
+      document.title = `${career.title} | Jobmaikub`;
+    }
+  }, [career]);
+
   // Check if learning path has been started
   useEffect(() => {
     const checkPathStatus = async () => {
