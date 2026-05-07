@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Star, Heart, MoreVertical, ChevronDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -469,6 +470,7 @@ interface ReviewSectionProps {
 
 const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userName: propUserName }: ReviewSectionProps) => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [reviewList, setReviewList] = useState<Review[]>(initialReviews)
   const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'popular'>('recent')
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -593,6 +595,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
           }))
 
       setReviewList((prev) => deleteRecursive(prev))
+      queryClient.invalidateQueries({ queryKey: ['user-reviews'] })
       toast.success('Review deleted')
     } catch (error) {
       console.error('Failed to delete review:', error)
@@ -669,6 +672,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
       })
 
       setReviewList((prev) => [newReview, ...prev])
+      queryClient.invalidateQueries({ queryKey: ['user-reviews'] })
       toast.success('Review submitted successfully!')
       setUserRating(0)
       setReviewText('')

@@ -59,13 +59,13 @@ const Profile = () => {
       if (!user) return [];
       try {
         const res = await reviewsApi.get("/", { params: { user_id: user.id } });
-        
+
         // Handle nested data structures correctly
         const rawData = res.data;
-        const userReviews = Array.isArray(rawData) 
-          ? rawData 
+        const userReviews = Array.isArray(rawData)
+          ? rawData
           : (rawData?.data && Array.isArray(rawData.data) ? rawData.data : []);
-        
+
         return userReviews.map((r: any) => {
           // Robust mapping for both snake_case and camelCase
           const reviewId = r.review_id || r.id;
@@ -92,6 +92,10 @@ const Profile = () => {
       }
     },
     enabled: !!user,
+    staleTime: 0,
+    gcTime: 0, // Force clear cache
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always'
   });
 
   useEffect(() => {
@@ -100,6 +104,28 @@ const Profile = () => {
       setAvatarUrl(profile.avatar_url || "");
     }
   }, [profile]);
+  // Force refetch on pageshow (BFCache) and visibility change
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        queryClient.invalidateQueries({ queryKey: ['user-reviews'] });
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        queryClient.invalidateQueries({ queryKey: ['user-reviews'] });
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [queryClient]);
 
   if (authLoading || (user && loadingReviews && reviews.length === 0)) {
     return <ProfileSkeleton />;
