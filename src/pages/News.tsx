@@ -8,9 +8,12 @@ import { getNews, searchNews } from "@/lib/news.api";
 import type { News } from "@/lib/news.api";
 import { getBookmarkedNews } from "@/lib/newsBookmarks.api";
 
+import { useAuth } from "@/contexts/AuthContexts";
+
 const ITEMS_PER_PAGE = 12;
 
 export default function News() {
+  const { user } = useAuth();
   // Application States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("All Industries");
@@ -34,18 +37,20 @@ export default function News() {
       try {
         setLoading(true);
         setError(null);
-        const [newsData, bookmarkedNews] = await Promise.all([
-          getNews(),
-          getBookmarkedNews().catch((err) => {
-            console.error('Failed to load bookmarked news:', err);
-            return [] as News[];
-          }),
-        ]);
-
-        console.log('Backend news response sample:', newsData[0]); // Debug
-
+        
+        // Fetch news first
+        const newsData = await getNews();
         setNewsArticles(newsData);
-        setBookmarkedIds(new Set(bookmarkedNews.map((article) => article.news_id)));
+
+        // Fetch bookmarks only if user is logged in
+        if (user) {
+          try {
+            const bookmarkedNews = await getBookmarkedNews();
+            setBookmarkedIds(new Set(bookmarkedNews.map((article) => article.news_id)));
+          } catch (err) {
+            console.error('Failed to load bookmarked news:', err);
+          }
+        }
 
         // Extract unique industries from news data
         const industriesSet = new Set<string>();

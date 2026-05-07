@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { Bookmark, Clock } from "lucide-react";
 import { News } from "@/lib/news.api";
+import { useAuth } from "@/contexts/AuthContexts";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,8 @@ interface NewsCardProps {
   onBookmarkChange?: (updatedBookmarks: News[]) => void;
 }
 
+const DEFAULT_NEWS_IMAGE = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop";
+
 export default function NewsCard({
   article,
   initiallyBookmarked = false,
@@ -30,12 +34,18 @@ export default function NewsCard({
   const [isBookmarked, setIsBookmarked] = useState(initiallyBookmarked);
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsBookmarked(initiallyBookmarked);
   }, [article.news_id, initiallyBookmarked]);
 
   const handleBookmarkClick = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     if (isMutating) {
       return;
     }
@@ -88,12 +98,12 @@ export default function NewsCard({
         {/* Image */}
         <div className="relative aspect-[3/2] overflow-hidden bg-muted/20 transform-gpu">
           <img
-            src={article.image_url || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop"}
+            src={article.image_url && article.image_url !== "null" ? article.image_url : DEFAULT_NEWS_IMAGE}
             alt={article.title}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop";
+              (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
             }}
           />
           <div className="absolute top-4 left-4">
