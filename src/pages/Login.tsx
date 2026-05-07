@@ -43,7 +43,7 @@ export default function Login() {
       } = await supabase.auth.getSession();
 
       if (session?.user) {
-        navigate('/', { replace: true });
+        navigate('/home', { replace: true });
       }
     };
 
@@ -53,7 +53,7 @@ export default function Login() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        navigate('/', { replace: true });
+        navigate('/home', { replace: true });
       }
     });
 
@@ -91,7 +91,7 @@ export default function Login() {
         console.log('✅ Session created, navigating...');
         setToast({ message: "Logged in successfully!", type: 'success' });
         await new Promise(resolve => setTimeout(resolve, 500));
-        navigate('/', { replace: true });
+        navigate('/home', { replace: true });
       } else {
         console.warn('⚠️ No session despite no error');
         setToast({ message: 'Failed to create session', type: 'error' });

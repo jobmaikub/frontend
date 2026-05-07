@@ -44,5 +44,5 @@ export default function AdminProtectedRoute({
     return children
   }
 
-  return <Navigate to="/" replace />
+  return <Navigate to="/home" replace />
 }
