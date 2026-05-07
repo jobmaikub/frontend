@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar and footer/Navbar";
-import { Search, Filter, TrendingUp, ChevronDown, BookOpen, Clock, ArrowRight, Minus } from "lucide-react";
+import { Search, Filter, TrendingUp, ChevronDown, BookOpen, Clock, ArrowRight, Minus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { PathDetail } from "@/components/learning path/PathDetail";
 import { learningPathApi } from "@/lib/LearningPath.api";
@@ -22,9 +22,16 @@ export default function LearningPath() {
   const [selectedGrowth, setSelectedGrowth] = useState("All Growth Rates");
   const [industries, setIndustries] = useState<string[]>(["All Industries"]);
 
+  // Reset page when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedIndustry, selectedGrowth]);
+
   // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
   const [isGrowthOpen, setIsGrowthOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   const { careerId } = useParams();
   const navigate = useNavigate();
@@ -222,83 +229,165 @@ export default function LearningPath() {
                   </div>
                 </div>
 
-                {/* Cards Grid */}
+                 {/* Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredPaths.length > 0 ? (
-                    filteredPaths.map((path) => (
-                      <div 
-                        key={path.id} 
-                        onClick={() => navigate(`/learning-path/${path.id}`)}
-                        className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full transform-gpu"
-                      >
+                    (() => {
+                      const totalPages = Math.ceil(filteredPaths.length / ITEMS_PER_PAGE);
+                      const paginatedPaths = filteredPaths.slice(
+                        (currentPage - 1) * ITEMS_PER_PAGE,
+                        currentPage * ITEMS_PER_PAGE
+                      );
+                      
+                      return paginatedPaths.map((path) => (
+                        <div 
+                          key={path.id} 
+                          onClick={() => navigate(`/learning-path/${path.id}`)}
+                          className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full transform-gpu"
+                        >
 
-                        <div className="relative aspect-[3/2] overflow-hidden transform-gpu">
-                          <img 
-                            src={path.image} 
-                            alt={path.title} 
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                            loading="lazy"
-                          />
-                          <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${path.growth === 'High Growth'
-                            ? 'bg-growth-high-bg text-growth-high-foreground'
-                            : path.growth === 'Medium Growth'
-                               ? 'bg-growth-medium-bg text-growth-medium-foreground'
-                               : 'bg-growth-stable-bg text-growth-stable-foreground'
-                            }`}>
-                            {path.growth === 'Stable Growth' ? (
-                              <Minus size={14} strokeWidth={4} />
-                            ) : (
-                              <TrendingUp size={14} strokeWidth={3} />
-                            )} {path.growth}
-                          </div>
-                        </div>
-
-                        <div className="p-5 flex flex-col flex-grow">
-                          <span className="text-xs font-medium text-primary mb-1">
-                            {path.industry}
-                          </span>
-                          <h3 className="font-semibold text-card-foreground line-clamp-1 transition-colors">
-                            {path.title}
-                          </h3>
-
-                          <div className="mt-3 flex items-center gap-4 text-[13px] text-muted-foreground">
-                            <div className="flex items-center gap-1.5">
-                              <BookOpen size={16} className="text-gray-400" /> {path.courses} courses
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <Clock size={16} className="text-gray-400" /> {path.hours} hrs
+                          <div className="relative aspect-[3/2] overflow-hidden transform-gpu">
+                            <img 
+                              src={path.image} 
+                              alt={path.title} 
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                              loading="lazy"
+                            />
+                            <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${path.growth === 'High Growth'
+                              ? 'bg-growth-high-bg text-growth-high-foreground'
+                              : path.growth === 'Medium Growth'
+                                ? 'bg-growth-medium-bg text-growth-medium-foreground'
+                                : 'bg-growth-stable-bg text-growth-stable-foreground'
+                              }`}>
+                              {path.growth === 'Stable Growth' ? (
+                                <Minus size={14} strokeWidth={4} />
+                              ) : (
+                                <TrendingUp size={14} strokeWidth={3} />
+                              )} {path.growth}
                             </div>
                           </div>
 
-                          <div className="mt-auto pt-5 flex flex-col gap-4">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex justify-between items-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                                <span>Progress</span>
-                                <span>{path.progress}%</span>
+                          <div className="p-5 flex flex-col flex-grow">
+                            <span className="text-xs font-medium text-primary mb-1">
+                              {path.industry}
+                            </span>
+                            <h3 className="font-semibold text-card-foreground line-clamp-1 transition-colors">
+                              {path.title}
+                            </h3>
+
+                            <div className="mt-3 flex items-center gap-4 text-[13px] text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                <BookOpen size={16} className="text-gray-400" /> {path.courses} courses
                               </div>
-                              <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className="bg-[#4A5DF9] h-full rounded-full transition-all duration-500"
-                                  style={{ width: `${path.progress}%` }}
-                                />
+                              <div className="flex items-center gap-1.5">
+                                <Clock size={16} className="text-gray-400" /> {path.hours} hrs
                               </div>
                             </div>
 
-                            <div
-                              className="text-[#4A5DF9] text-[14px] font-semibold flex items-center gap-2 transition-colors group-hover:text-[#3b4cc4]"
-                            >
-                              View Path <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                            <div className="mt-auto pt-5 flex flex-col gap-4">
+                              <div className="flex flex-col gap-2">
+                                <div className="flex justify-between items-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                  <span>Progress</span>
+                                  <span>{path.progress}%</span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                  <div
+                                    className="bg-[#4A5DF9] h-full rounded-full transition-all duration-500"
+                                    style={{ width: `${path.progress}%` }}
+                                  />
+                                </div>
+                              </div>
+
+                              <div
+                                className="text-[#4A5DF9] text-[14px] font-semibold flex items-center gap-2 transition-colors group-hover:text-[#3b4cc4]"
+                              >
+                                View Path <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ));
+                    })()
                   ) : (
                     <div className="col-span-3 text-center py-20 text-gray-500 text-[18px]">
                       No learning paths match your filters.
                     </div>
                   )}
                 </div>
+
+                {/* Pagination Controls */}
+                {(() => {
+                  const totalPages = Math.ceil(filteredPaths.length / ITEMS_PER_PAGE);
+                  if (totalPages <= 1) return null;
+
+                  return (
+                    <div className="flex justify-center items-center gap-1 sm:gap-2 mt-12 px-2 flex-wrap">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm sm:text-base"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Previous</span>
+                      </button>
+
+                      <div className="flex gap-1">
+                        {(() => {
+                          const pages = [];
+                          const maxVisible = 3;
+                          const halfWindow = Math.floor(maxVisible / 2);
+
+                          let startPage = Math.max(1, currentPage - halfWindow);
+                          let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+                          if (endPage - startPage + 1 < maxVisible) {
+                            startPage = Math.max(1, endPage - maxVisible + 1);
+                          }
+
+                          if (startPage > 1) {
+                            pages.push(1);
+                            if (startPage > 2) pages.push('...');
+                          }
+
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(i);
+                          }
+
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) pages.push('...');
+                            pages.push(totalPages);
+                          }
+
+                          return pages.map((page, idx) =>
+                            page === '...' ? (
+                              <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-gray-400 self-center">...</span>
+                            ) : (
+                              <button
+                                key={page}
+                                onClick={() => setCurrentPage(page as number)}
+                                className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-all text-base ${currentPage === page
+                                  ? 'bg-[#4A5DF9] text-white shadow-md'
+                                  : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
+                                  }`}
+                              >
+                                {page}
+                              </button>
+                            )
+                          );
+                        })()}
+                      </div>
+
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm sm:text-base"
+                      >
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })()}
               </>
             )}
 

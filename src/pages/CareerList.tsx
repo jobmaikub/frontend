@@ -185,7 +185,6 @@ const CareerList = () => {
           {!loading && !error && filteredCareers.length > 0 && (
             <>
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
                 {paginatedCareers.map((career) => (
                   <CareerCard key={career.id} career={career} />
                 ))}
@@ -193,11 +192,11 @@ const CareerList = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-12">
+                <div className="flex justify-center items-center gap-1 sm:gap-2 mt-12 px-2 flex-wrap">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                    className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm sm:text-base"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     <span className="hidden sm:inline">Previous</span>
@@ -206,7 +205,7 @@ const CareerList = () => {
                   <div className="flex gap-1">
                     {(() => {
                       const pages = [];
-                      const maxVisible = 5;
+                      const maxVisible = 3; 
                       const halfWindow = Math.floor(maxVisible / 2);
 
                       let startPage = Math.max(1, currentPage - halfWindow);
@@ -230,29 +229,32 @@ const CareerList = () => {
                         pages.push(totalPages);
                       }
 
-                      return pages.map((page, idx) =>
-                        page === '...' ? (
-                          <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">...</span>
-                        ) : (
+                      return pages.map((page, idx) => {
+                        if (page === '...') {
+                          return <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-gray-400 self-center">...</span>;
+                        }
+                        
+                        const isCurrent = currentPage === page;
+                        
+                        return (
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page as number)}
-                            className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === page
-                              ? 'bg-primary text-white shadow-md'
-                              : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
-                              }`}
+                            className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-all text-base
+                              ${isCurrent ? 'bg-[#4A5DF9] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'}
+                            `}
                           >
                             {page}
                           </button>
-                        )
-                      );
+                        );
+                      });
                     })()}
                   </div>
 
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                    className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm sm:text-base"
                   >
                     <span className="hidden sm:inline">Next</span>
                     <ChevronRight className="h-4 w-4" />

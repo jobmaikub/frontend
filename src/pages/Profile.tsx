@@ -12,8 +12,6 @@ import { getEnrichedSkills, EnrichedSkill } from "@/lib/track_progress.api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/navbar and footer/Navbar";
 
-
-
 const Profile = () => {
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -208,9 +206,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
-
     </div>
-
   );
 };
 

@@ -71,7 +71,7 @@ const CompletedCoursesDialog = ({
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent 
         side="right" 
-        className="w-full sm:max-w-md p-0 flex flex-col h-full bg-[#F8FAFC] border-l border-border shadow-2xl z-[60]"
+        className="w-full sm:max-w-md p-0 flex flex-col h-[100dvh] bg-[#F8FAFC] border-l border-border shadow-2xl z-[60] overflow-hidden"
       >
         {/* Header Section - Sticky */}
         <div className="p-6 border-b border-border bg-white sticky top-0 z-10">
@@ -178,54 +178,69 @@ const CompletedCoursesDialog = ({
           </div>
         </div>
 
-        {/* Pagination Footer - Sticky */}
+         {/* Pagination Footer - Sticky */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-border bg-white flex items-center justify-center gap-2">
+          <div className="p-4 pb-16 sm:pb-4 border-t border-border bg-white flex items-center justify-center gap-1 sm:gap-2 flex-wrap shrink-0">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             
             <div className="flex items-center gap-1">
-              {[...Array(totalPages)].map((_, i) => {
-                const pageNum = i + 1;
-                // Show first, last, and pages around current
-                if (
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                ) {
-                  return (
+              {(() => {
+                const pages = [];
+                const maxVisible = 3;
+                const halfWindow = Math.floor(maxVisible / 2);
+
+                let startPage = Math.max(1, currentPage - halfWindow);
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+                if (endPage - startPage + 1 < maxVisible) {
+                  startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+
+                if (startPage > 1) {
+                  pages.push(1);
+                  if (startPage > 2) pages.push('...');
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(i);
+                }
+
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) pages.push('...');
+                  pages.push(totalPages);
+                }
+
+                return pages.map((page, idx) =>
+                  page === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-slate-300 text-xs self-center">...</span>
+                  ) : (
                     <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
+                      key={page}
+                      onClick={() => handlePageChange(page as number)}
                       className={cn(
-                        "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/20"
-                          : "text-slate-500 hover:bg-slate-50"
+                        "w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-all",
+                        currentPage === page
+                          ? "bg-primary text-white shadow-md"
+                          : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
                       )}
                     >
-                      {pageNum}
+                      {page}
                     </button>
-                  );
-                } else if (
-                  pageNum === currentPage - 2 ||
-                  pageNum === currentPage + 2
-                ) {
-                  return <span key={pageNum} className="text-slate-300 text-xs">...</span>;
-                }
-                return null;
-              })}
+                  )
+                );
+              })()}
             </div>
 
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

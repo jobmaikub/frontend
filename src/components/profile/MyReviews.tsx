@@ -1,4 +1,4 @@
-import { Star, Pencil, Trash2 } from "lucide-react";
+import { Star, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -10,6 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+
+const ITEMS_PER_PAGE = 5;
 
 export interface Review {
   id: string;
@@ -46,6 +49,13 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
   const [editText, setEditText] = useState("");
   const [editRating, setEditRating] = useState(0);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(reviews.length / ITEMS_PER_PAGE);
+  const paginatedReviews = reviews.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleStartEdit = (review: Review) => {
     setEditingReview(review);
@@ -74,8 +84,8 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
           <h3 className="text-lg font-bold text-foreground">My Reviews</h3>
         </div>
 
-        <div className="divide-y divide-border">
-          {reviews.map((review) => (
+         <div className="divide-y divide-border">
+          {paginatedReviews.map((review) => (
             <div
               key={review.id}
               className="group p-6 transition-colors hover:bg-accent/30 cursor-pointer"
@@ -130,6 +140,75 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="p-4 pb-16 sm:pb-4 border-t border-border flex items-center justify-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-slate-50 disabled:opacity-30 transition-colors border border-slate-200"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {(() => {
+                const pages = [];
+                const maxVisible = 3;
+                const halfWindow = Math.floor(maxVisible / 2);
+
+                let startPage = Math.max(1, currentPage - halfWindow);
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+                if (endPage - startPage + 1 < maxVisible) {
+                  startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+
+                if (startPage > 1) {
+                  pages.push(1);
+                  if (startPage > 2) pages.push('...');
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(i);
+                }
+
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) pages.push('...');
+                  pages.push(totalPages);
+                }
+
+                return pages.map((page, idx) =>
+                  page === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-slate-300 text-xs">...</span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page as number)}
+                      className={cn(
+                        "w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-all",
+                        currentPage === page
+                          ? "bg-primary text-white shadow-md"
+                          : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  )
+                );
+              })()}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-slate-50 disabled:opacity-30 transition-colors border border-slate-200"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {!!editingReview && (

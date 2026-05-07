@@ -468,6 +468,7 @@ interface ReviewSectionProps {
 }
 
 const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userName: propUserName }: ReviewSectionProps) => {
+  const navigate = useNavigate()
   const [reviewList, setReviewList] = useState<Review[]>(initialReviews)
   const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'popular'>('recent')
   const [isSortOpen, setIsSortOpen] = useState(false);

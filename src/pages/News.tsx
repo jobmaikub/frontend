@@ -233,11 +233,11 @@ export default function News() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-12">
+                <div className="flex justify-center items-center gap-1 sm:gap-2 mt-12 px-2 flex-wrap">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm sm:text-base"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span className="hidden sm:inline">Previous</span>
@@ -245,50 +245,48 @@ export default function News() {
 
                   {/* Smart Page Numbers */}
                   <div className="flex gap-1">
-                    {(() => {
+                                   {(() => {
                       const pages = [];
-                      const maxVisible = 5; // Show max 5 page buttons
+                      const maxVisible = 3;
                       const halfWindow = Math.floor(maxVisible / 2);
 
-                      let startPage = Math.max(1, currentPage - halfWindow);
-                      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                      if (totalPages > 0) { // Safety check
+                        let startPage = Math.max(1, currentPage - halfWindow);
+                        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
-                      // Adjust start if we're near the end
-                      if (endPage - startPage + 1 < maxVisible) {
-                        startPage = Math.max(1, endPage - maxVisible + 1);
-                      }
-
-                      // Add first page if not shown
-                      if (startPage > 1) {
-                        pages.push(1);
-                        if (startPage > 2) {
-                          pages.push('...');
+                        if (endPage - startPage + 1 < maxVisible) {
+                          startPage = Math.max(1, endPage - maxVisible + 1);
                         }
-                      }
 
-                      // Add middle pages
-                      for (let i = startPage; i <= endPage; i++) {
-                        pages.push(i);
-                      }
-
-                      // Add last page if not shown
-                      if (endPage < totalPages) {
-                        if (endPage < totalPages - 1) {
-                          pages.push('...');
+                        if (startPage > 1) {
+                          pages.push(1);
+                          if (startPage > 2) {
+                            pages.push('...');
+                          }
                         }
-                        pages.push(totalPages);
+
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(i);
+                        }
+
+                        if (endPage < totalPages) {
+                          if (endPage < totalPages - 1) {
+                            pages.push('...');
+                          }
+                          pages.push(totalPages);
+                        }
                       }
 
                       return pages.map((page, idx) =>
                         page === '...' ? (
-                          <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">...</span>
+                          <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-gray-400 self-center">...</span>
                         ) : (
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page as number)}
-                            className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page
-                              ? 'bg-[#4A5DF9] text-white'
-                              : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                            className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-all text-base ${currentPage === page
+                              ? 'bg-[#4A5DF9] text-white shadow-md'
+                              : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
                               }`}
                           >
                             {page}
@@ -301,10 +299,10 @@ export default function News() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="h-10 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm font-medium text-sm sm:text-base"
                   >
                     <span className="hidden sm:inline">Next</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               )}
