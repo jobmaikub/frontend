@@ -55,21 +55,22 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* User-facing Routes */}
+            {/* User-facing Routes - Public */}
             <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/careers" element={<ProtectedRoute><CareerList /></ProtectedRoute>} />
-            <Route path="/careers/:id" element={<ProtectedRoute><CareerDetail /></ProtectedRoute>} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/careers" element={<CareerList />} />
+            <Route path="/careers/:id" element={<CareerDetail />} />
+            <Route path="/news" element={<News />} /> 
+            <Route path="/profile/:userId" element={<PublicProfile />} />
+            
+            {/* User-facing Routes - Protected */}
             <Route path="/ai-match" element={<ProtectedRoute><AIMatch /></ProtectedRoute>} />
             <Route path="/learning-path" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
             <Route path="/learning-path/:careerId" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
             <Route path="/learning-path/:careerId/course/:courseId" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
             <Route path="/track-progress" element={<ProtectedRoute><TrackProgress /></ProtectedRoute>} /> 
-            {/* Add the user-facing News route here */}
-            <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} /> 
             <Route path="/bookmark" element={<ProtectedRoute><Bookmark /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
             <Route path="/not-found" element={<NotFound />} />
 
             {/* Admin Routes - Protected by AdminProtectedRoute */}

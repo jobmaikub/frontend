@@ -113,6 +113,10 @@ const ReviewItem = ({
   const isLiked = likedReviewIds.has(String(review.id))
 
   const handleLike = async () => {
+    if (!currentUserId) {
+      toast.error('Please login to like reviews')
+      return
+    }
     try {
       const newIsLiking = !isLiked
       // Update parent state first
@@ -263,7 +267,13 @@ const ReviewItem = ({
 
               {!isReply && (
                 <button
-                  onClick={() => setReplying(!replying)}
+                  onClick={() => {
+                    if (!currentUserId) {
+                      toast.error('Please login to reply')
+                      return
+                    }
+                    setReplying(!replying)
+                  }}
                   className="hover:text-primary"
                 >
                   Reply
@@ -701,30 +711,39 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
       </div>
 
       {/* Write Review */}
-      <div>
-        <h4 className="font-semibold mb-2">Write a Review</h4>
-
-        <StarRating
-          rating={userRating}
-          size="lg"
-          interactive
-          onRate={setUserRating}
-        />
-
-        <Textarea
-          value={reviewText}
-          onChange={(e) => setReviewText(e.target.value)}
-          placeholder="Share your experience..."
-          className="mt-3"
-        />
-
-        <Button
-          onClick={handleSubmitReview}
-          disabled={!userRating || !reviewText.trim() || loading}
-          className="mt-3"
-        >
-          {loading ? 'Submitting...' : 'Submit Review'}
-        </Button>
+      <div className="bg-muted/30 rounded-xl p-6 border border-dashed border-border">
+        {userId ? (
+          <>
+            <h4 className="font-semibold mb-2">Write a Review</h4>
+            <StarRating
+              rating={userRating}
+              size="lg"
+              interactive
+              onRate={setUserRating}
+            />
+            <Textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="Share your experience..."
+              className="mt-3 bg-card"
+            />
+            <Button
+              onClick={handleSubmitReview}
+              disabled={!userRating || !reviewText.trim() || loading}
+              className="mt-3"
+            >
+              {loading ? 'Submitting...' : 'Submit Review'}
+            </Button>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <h4 className="font-semibold mb-2">Want to share your experience?</h4>
+            <p className="text-sm text-muted-foreground mb-4">Please login to write a review, like comments, or reply.</p>
+            <Button onClick={() => navigate('/login')} variant="outline" className="gap-2">
+              Login to Review
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Review List */}

@@ -335,7 +335,7 @@ const CareerDetail = () => {
                       className="w-full gap-2 py-8 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg border-none"
                       onClick={async () => {
                         if (!user) {
-                          alert("Please login first");
+                          navigate('/login');
                           return;
                         }
                         try {
