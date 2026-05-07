@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { User, Briefcase, Star, ArrowRight, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CareerMatchesProps {
   onStartOver: () => void;
@@ -100,9 +101,9 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
 
             {/* 1. Left Image */}
             <div className="w-full md:w-[340px] shrink-0">
-              <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
+              <div className="w-full aspect-square md:aspect-auto md:h-full rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
                 {match.image_url ? (
-                  <img src={match.image_url} alt={match.title} className="w-full h-full object-cover" />
+                  <img src={match.image_url} alt={match.title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
                 ) : (
                   <span className="text-gray-400">No Image</span>
                 )}
@@ -184,13 +185,15 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
       </div>
 
       {/* Start Over Button */}
-      <button
+      <Button
+        variant="outline"
+        size="lg"
         onClick={onStartOver}
-        className="group mt-12 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-[14px] font-medium text-gray-700 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:bg-gray-50 active:scale-95 shadow-sm"
+        className="group gap-2 mt-12 w-full sm:w-auto transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-95 bg-white border-gray-200 text-gray-900 hover:text-[#4A5DF9] rounded-xl px-12"
       >
-        <ArrowLeft size={16} className="transition-transform duration-300 group-hover:-translate-x-1" />
+        <ArrowLeft size={18} className="transition-transform duration-300 group-hover:-translate-x-1" />
         Start Over
-      </button>
+      </Button>
     </div>
   );
 }

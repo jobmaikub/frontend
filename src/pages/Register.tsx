@@ -56,7 +56,6 @@ export default function Register() {
           onClose={() => setToast(null)}
         />
       )}
-
       <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
 
         {/* Header */}

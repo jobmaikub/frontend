@@ -11,6 +11,7 @@ import { GraduationCap, BookOpen, Lightbulb, Heart } from "lucide-react";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContexts";
 import { getMatchHistory, submitMatch, CareerMatch } from "@/lib/ai.api";
+import { OldThemeWrapper } from "@/components/OldThemeWrapper";
 
 
 
@@ -131,66 +132,67 @@ export default function AIMatch() {
   }
 
   return (
-    <div className="min-h-screen font-['Inter'] flex flex-col">
-      <Navbar />
+    <OldThemeWrapper>
+      <div className="min-h-screen font-['Inter'] flex flex-col">
+        <Navbar />
 
-      <main className="bg-[#F4F7FF] flex-grow flex flex-col">
+        <main className="bg-[#F4F7FF] flex-grow flex flex-col">
 
-        <QuestionnaireHeader />
+          <QuestionnaireHeader />
 
-        <section className={`pb-20 pt-12`}>
-          <div className={`mx-auto w-full px-8 font-['Inter'] transition-all duration-300 ${isComplete ? "max-w-6xl" : "max-w-4xl"}`}>
+          <section className={`pb-20 pt-12`}>
+            <div className={`mx-auto w-full px-8 font-['Inter'] transition-all duration-300 ${isComplete ? "max-w-6xl" : "max-w-4xl"}`}>
 
-              {!isComplete && (
-                <div className="mb-10 flex w-full items-center justify-between px-2 text-center">
-                  {steps.map((step, index) => {
-                    const isActive = index === currentStep;
-                    const isPast = index < currentStep;
+                {!isComplete && (
+                  <div className="mb-10 flex w-full items-center justify-between px-2 text-center">
+                    {steps.map((step, index) => {
+                      const isActive = index === currentStep;
+                      const isPast = index < currentStep;
 
-                    return (
-                      <React.Fragment key={index}>
-                        <div className="flex flex-col items-center gap-3">
-                          <div
-                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${isActive || isPast
-                              ? "bg-[#4A5DF9] text-white"
-                              : "bg-[#D5E3FF] text-[#799EFF]"
-                              }`}
-                          >
-                            {step.icon}
+                      return (
+                        <React.Fragment key={index}>
+                          <div className="flex flex-col items-center gap-3">
+                            <div
+                              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${isActive || isPast
+                                ? "bg-[#4A5DF9] text-white"
+                                : "bg-[#D5E3FF] text-[#799EFF]"
+                                }`}
+                            >
+                              {step.icon}
+                            </div>
+                            <span
+                              className={`text-[16px] font-medium ${isActive || isPast ? "text-[#4A5DF9]" : "text-[#799EFF]"
+                                }`}
+                            >
+                              {step.name}
+                            </span>
                           </div>
-                          <span
-                            className={`text-[16px] font-medium ${isActive || isPast ? "text-[#4A5DF9]" : "text-[#799EFF]"
-                              }`}
-                          >
-                            {step.name}
-                          </span>
-                        </div>
-                        {index < steps.length - 1 && (
-                          <div className={`mb-8 h-[2px] flex-1 mx-4 transition-all ${isPast ? "bg-[#4A5DF9]" : "bg-[#D5E3FF]"
-                            }`} />
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
-              )}
+                          {index < steps.length - 1 && (
+                            <div className={`mb-8 h-[2px] flex-1 mx-4 transition-all ${isPast ? "bg-[#4A5DF9]" : "bg-[#D5E3FF]"
+                              }`} />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
 
-              {!isComplete ? (
-                <>
-                  {currentStep === 0 && <FacultyForm initialFacultyId={facultyId} onNext={handleFacultyNext} />}
-                  {currentStep === 1 && <MajorForm facultyId={facultyId!} initialMajorId={majorId} onNext={handleMajorNext} onBack={handleBack} />}
-                  {currentStep === 2 && <SkillsForm initialSkillIds={skills} onNext={handleSkillsNext} onBack={handleBack} />}
-                  {currentStep === 3 && <InterestsForm initialInterestIds={interests} onSubmit={handleInterestsSubmit} onBack={handleBack} isLoading={isLoading} />}
-                </>
-              ) : (
-                <CareerMatches onStartOver={handleStartOver} matches={matchResults} />
-              )}
+                {!isComplete ? (
+                  <>
+                    {currentStep === 0 && <FacultyForm initialFacultyId={facultyId} onNext={handleFacultyNext} />}
+                    {currentStep === 1 && <MajorForm facultyId={facultyId!} initialMajorId={majorId} onNext={handleMajorNext} onBack={handleBack} />}
+                    {currentStep === 2 && <SkillsForm initialSkillIds={skills} onNext={handleSkillsNext} onBack={handleBack} />}
+                    {currentStep === 3 && <InterestsForm initialInterestIds={interests} onSubmit={handleInterestsSubmit} onBack={handleBack} isLoading={isLoading} />}
+                  </>
+                ) : (
+                  <CareerMatches onStartOver={handleStartOver} matches={matchResults} />
+                )}
 
-          </div>
-        </section>
-      </main>
+            </div>
+          </section>
+        </main>
 
-    </div>
-
+      </div>
+    </OldThemeWrapper>
   );
 }

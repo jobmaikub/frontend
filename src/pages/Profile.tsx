@@ -6,12 +6,11 @@ import StatsCard from "@/components/profile/StatsCard";
 import SkillsMastered from "@/components/profile/SkillsMastered";
 import MyReviews, { Review } from "@/components/profile/MyReviews";
 import { useAuth } from "@/contexts/AuthContexts";
-import { reviewsApi, getAllReviews, updateReview, deleteReview } from "@/lib/reviews.api";
-import { fetchCareers, Career } from "@/lib/careers.api";
-import { updateProfile } from "@/lib/users.api";
-import { getEnrichedSkills, EnrichedSkill } from "@/lib/track_progress.api";
-import { toast } from "sonner";
+import { updateReview, deleteReview } from "@/lib/reviews.api";
+import { updateProfile, fetchUserDashboard } from "@/lib/users.api";
+import { EnrichedSkill } from "@/lib/track_progress.api";
 import { Navbar } from "@/components/navbar and footer/Navbar";
+import Toast, { ToastType } from "@/components/Toast";
 
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 
@@ -20,6 +19,7 @@ const Profile = () => {
   const queryClient = useQueryClient();
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userName, setUserName] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const handleNameChange = async (newName: string) => {
     if (!user) return;
@@ -27,9 +27,9 @@ const Profile = () => {
       await updateProfile(user.id, { full_name: newName });
       setUserName(newName);
       await refreshProfile();
-      toast.success("Name updated successfully");
+      setToast({ message: "Name updated successfully", type: 'success' });
     } catch (error) {
-      toast.error("Failed to update name");
+      setToast({ message: "Failed to update name", type: 'error' });
     }
   };
 
@@ -39,129 +39,86 @@ const Profile = () => {
       await updateProfile(user.id, { avatar_url: newUrl });
       setAvatarUrl(newUrl);
       await refreshProfile();
-      toast.success("Profile picture updated successfully");
+      setToast({ message: "Profile picture updated successfully", type: 'success' });
     } catch (error) {
-      toast.error("Failed to update profile picture");
+      setToast({ message: "Failed to update profile picture", type: 'error' });
     }
   };
 
-  // Fetch Skills using React Query
-  const { data: enrichedSkills = [], isLoading: loadingSkills } = useQuery({
-    queryKey: ['user-skills', user?.id],
-    queryFn: getEnrichedSkills,
-    enabled: !!user,
+  // Fetch Dashboard Data (Parallel Backend Call)
+  const { data: dashboardData, isLoading: loadingDashboard } = useQuery({
+    queryKey: ['user-dashboard', user?.id],
+    queryFn: () => fetchUserDashboard(user!.id),
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch Reviews using React Query
-  const { data: reviews = [], isLoading: loadingReviews } = useQuery({
-    queryKey: ['user-reviews', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      try {
-        const res = await reviewsApi.get("/", { params: { user_id: user.id } });
-
-        // Handle nested data structures correctly
-        const rawData = res.data;
-        const userReviews = Array.isArray(rawData)
-          ? rawData
-          : (rawData?.data && Array.isArray(rawData.data) ? rawData.data : []);
-
-        return userReviews.map((r: any) => {
-          // Robust mapping for both snake_case and camelCase
-          const reviewId = r.review_id || r.id;
-          const careerId = r.career_id || r.careerId;
-          const careerTitle = r.career_title || r.careerTitle || `Career #${careerId}`;
-          const commentText = r.comment || r.text || r.commentText || "";
-          const reviewDate = r.date || (r.created_at ? new Date(r.created_at).toLocaleDateString('th-TH') : "");
-
-          return {
-            id: String(reviewId),
-            userId: r.user_id || r.userId,
-            rating: r.rating || 0,
-            author: r.author || userName,
-            text: commentText,
-            date: reviewDate,
-            parentReviewId: r.parent_review_id || r.parentReviewId,
-            career: careerTitle,
-            careerPath: `/careers/${careerId}#review-${reviewId}`
-          };
-        });
-      } catch (err) {
-        console.error("Error fetching reviews:", err);
-        return [];
-      }
-    },
-    enabled: !!user,
-    staleTime: 0,
-    gcTime: 0, // Force clear cache
-    refetchOnWindowFocus: true,
-    refetchOnMount: 'always'
-  });
+  const reviews = dashboardData?.reviews || [];
+  const enrichedSkills = dashboardData?.skills || [];
+  const dashboardProfile = dashboardData?.profile;
 
   useEffect(() => {
-    if (profile) {
-      setUserName(profile.full_name || profile.username || "Guest");
-      setAvatarUrl(profile.avatar_url || "");
+    if (profile || dashboardProfile) {
+      const p = profile || dashboardProfile;
+      setUserName(p.full_name || p.username || "Guest");
+      setAvatarUrl(p.avatar_url || "");
     }
-  }, [profile]);
-  // Force refetch on pageshow (BFCache) and visibility change
+  }, [profile, dashboardProfile]);
+
+  // Force refetch on pageshow (BFCache)
   useEffect(() => {
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-        queryClient.invalidateQueries({ queryKey: ['user-reviews'] });
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        queryClient.invalidateQueries({ queryKey: ['user-reviews'] });
+        queryClient.invalidateQueries({ queryKey: ['user-dashboard'] });
       }
     };
 
     window.addEventListener('pageshow', handlePageShow);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('pageshow', handlePageShow);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    return () => window.removeEventListener('pageshow', handlePageShow);
   }, [queryClient]);
 
-  if (authLoading || (user && loadingReviews && reviews.length === 0)) {
+  if (authLoading || (user && loadingDashboard && !dashboardData)) {
     return <ProfileSkeleton />;
   }
 
-  const joinedDate = profile?.joined_at
-    ? new Date(profile.joined_at).toLocaleDateString('en-US', {
+  const joinedDate = (profile?.joined_at || dashboardProfile?.joined_at)
+    ? new Date(profile?.joined_at || dashboardProfile?.joined_at).toLocaleDateString('en-US', {
       month: 'long',
       year: 'numeric'
     })
     : "N/A";
 
-  const dayStreak = profile?.current_streak || 0;
+  const dayStreak = profile?.current_streak || dashboardProfile?.current_streak || 0;
 
   const handleEditReview = async (id: string, text: string, rating: number) => {
     try {
       await updateReview(Number(id), { comment: text, rating });
-      queryClient.invalidateQueries({ queryKey: ['user-reviews', user?.id] });
-      toast.success("Review updated successfully");
+      queryClient.invalidateQueries({ queryKey: ['user-dashboard', user?.id] });
+      setToast({ message: "Review updated successfully", type: 'success' });
     } catch (error) {
-      toast.error("Failed to update review");
+      setToast({ message: "Failed to update review", type: 'error' });
     }
   };
 
   const handleDeleteReview = async (id: string) => {
     try {
       await deleteReview(Number(id));
-      queryClient.invalidateQueries({ queryKey: ['user-reviews', user?.id] });
-      toast.success("Review deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['user-dashboard', user?.id] });
+      setToast({ message: "Review deleted successfully", type: 'success' });
     } catch (error) {
-      toast.error("Failed to delete review");
+      setToast({ message: "Failed to delete review", type: 'error' });
     }
   };
 
   return (
     <div className="profile-theme">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="min-h-screen bg-background pt-16">
         <Navbar />
         {/* Header band */}
@@ -208,12 +165,21 @@ const Profile = () => {
               {/* Skills */}
               <SkillsMastered
                 skills={enrichedSkills}
-                isLoading={loadingSkills}
+                isLoading={loadingDashboard}
               />
 
               {/* Reviews */}
               <MyReviews
-                reviews={reviews.map(r => ({ ...r, author: userName }))}
+                reviews={reviews.map((r: any) => ({
+                  id: String(r.id),
+                  rating: r.rating,
+                  author: userName || r.author,
+                  text: r.comment || "",
+                  career: r.careerTitle || `Career #${r.careerId}`,
+                  careerPath: `/careers/${r.careerId}#review-${r.id}`,
+                  date: r.date,
+                  parentReviewId: r.parentReviewId
+                }))}
                 onEdit={handleEditReview}
                 onDelete={handleDeleteReview}
               />

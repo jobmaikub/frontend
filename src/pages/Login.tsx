@@ -22,10 +22,7 @@ export default function Login() {
       ? ` You can login again after ${new Date(until).toLocaleString()}.`
       : ' This ban is permanent until admin unbans your account.';
 
-    setToast({
-      message: `${reason}.${untilText}`,
-      type: 'error',
-    });
+    setToast({ message: `${reason}.${untilText}`, type: 'error' });
   }, [location.search]);
 
   useEffect(() => {
@@ -92,6 +89,7 @@ export default function Login() {
 
       if (data?.session) {
         console.log('✅ Session created, navigating...');
+        setToast({ message: "Logged in successfully!", type: 'success' });
         await new Promise(resolve => setTimeout(resolve, 500));
         navigate('/', { replace: true });
       } else {
@@ -101,10 +99,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error('💥 Unexpected error:', err);
-      setToast({
-        message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
-        type: 'error'
-      });
+      setToast({ message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`, type: 'error' });
       setLoading(false);
     }
   };
@@ -125,7 +120,6 @@ export default function Login() {
           onClose={() => setToast(null)}
         />
       )}
-
       <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
 
         {/* Header */}

@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import type { Review } from '@/types/careers.types'
-import { toast } from 'sonner'
+import Toast, { ToastType } from './Toast'
 import * as reviewsApi from '@/lib/reviews.api'
 import { cn } from "@/lib/utils";
 
@@ -83,6 +83,7 @@ const ReviewItem = ({
   onReply,
   onDelete,
   onUpdate,
+  onNotify,
   initialExpanded,
 }: {
   review: Review
@@ -93,6 +94,7 @@ const ReviewItem = ({
   onReply: (parentId: string, text: string) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string) => void
+  onNotify: (message: string, type: ToastType) => void
   initialExpanded?: boolean
 }) => {
   const navigate = useNavigate()
@@ -115,7 +117,7 @@ const ReviewItem = ({
 
   const handleLike = async () => {
     if (!currentUserId) {
-      toast.error('Please login to like reviews')
+      onNotify('Please login to like reviews', 'error')
       return
     }
     try {
@@ -131,7 +133,7 @@ const ReviewItem = ({
       // Rollback
       onLike(String(review.id), isLiked)
       setLikes(likes)
-      toast.error('Could not update like')
+      onNotify('Could not update like', 'error')
     }
   }
 
@@ -152,10 +154,10 @@ const ReviewItem = ({
   return (
     <>
       <div id={`review-${review.id}`} className={cn(
-        "transition-all duration-500 scroll-mt-24 px-4 py-2 rounded-lg",
-        isReply ? 'ml-12 mt-2' : 'border-b border-border pb-4'
+        "transition-all duration-500 scroll-mt-24 py-2 rounded-lg",
+        isReply ? 'mt-2 bg-muted/5' : 'px-2 sm:px-4 border-b border-border pb-4'
       )}>
-        <div className="flex items-start gap-3">
+        <div className={cn("flex items-start gap-2 sm:gap-3", isReply && "pl-2 pr-0 sm:pl-4")}>
           <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0"
             style={{ cursor: review.userId && String(review.userId) !== String(currentUserId) ? 'pointer' : 'default' }}
             onClick={() => {
@@ -168,9 +170,9 @@ const ReviewItem = ({
             {review.author.charAt(0)}
           </div>
 
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                 <span
                   className={cn(
                     "font-semibold text-sm",
@@ -187,25 +189,25 @@ const ReviewItem = ({
                   {review.author}
                 </span>
 
+                {isReply && (
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">
+                    {review.date}
+                  </span>
+                )}
+
                 {!isReply && (
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-2 w-full sm:w-auto mt-0.5 sm:mt-0">
                     <StarRating rating={review.rating} />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
                       {review.date}
                     </span>
                   </div>
-                )}
-
-                {isReply && (
-                  <span className="text-xs text-muted-foreground">
-                    {review.date}
-                  </span>
                 )}
               </div>
 
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <button className="p-1 hover:bg-muted rounded">
+                  <button className="p-1.5 hover:bg-muted rounded-full transition-colors shrink-0 -mr-1">
                     <MoreVertical className="h-4 w-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
@@ -235,6 +237,7 @@ const ReviewItem = ({
                 <Textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
+                  className="text-sm min-h-[80px]"
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleSaveEdit}>
@@ -250,7 +253,7 @@ const ReviewItem = ({
                 </div>
               </div>
             ) : (
-              <p className="mt-2 text-sm">{review.comment}</p>
+              <p className="mt-1.5 text-sm text-foreground/90 leading-relaxed break-words">{review.comment}</p>
             )}
 
             <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
@@ -270,7 +273,7 @@ const ReviewItem = ({
                 <button
                   onClick={() => {
                     if (!currentUserId) {
-                      toast.error('Please login to reply')
+                      onNotify('Please login to reply', 'error')
                       return
                     }
                     setReplying(!replying)
@@ -321,6 +324,7 @@ const ReviewItem = ({
                   onReply={onReply}
                   onDelete={onDelete}
                   onUpdate={onUpdate}
+                  onNotify={onNotify}
                 />
               ))}
             </div>
@@ -355,7 +359,7 @@ const ReviewItem = ({
               variant="destructive"
               onClick={() => {
                 onDelete(review.id)
-                toast.success('Comment deleted')
+                onNotify('Comment deleted', 'success')
                 setOpenDelete(false)
               }}
             >
@@ -437,7 +441,7 @@ const ReviewItem = ({
                     reportType: reportReason, // Selected reason (e.g., "Spam")
                     reason: reportOther,     // Additional details
                   })
-                  toast.success('Report submitted successfully')
+                  onNotify('Report submitted successfully', 'success')
                   setOpenReport(false)
                   setReportReason('')
                   setReportOther('')
@@ -446,7 +450,7 @@ const ReviewItem = ({
                   if (error.response?.data) {
                     console.error('Backend Error Details:', error.response.data)
                   }
-                  toast.error(error.response?.data?.message || 'Failed to submit report. Please try again.')
+                  onNotify(error.response?.data?.message || 'Failed to submit report. Please try again.', 'error')
                 }
               }}
             >
@@ -503,6 +507,12 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
     })
   }
 
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
+
+  const handleNotify = (message: string, type: ToastType) => {
+    setToast({ message, type })
+  }
+
   useEffect(() => {
     if (propUserName) {
       setUserName(propUserName)
@@ -528,7 +538,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
         setLikedReviewIds(likedIds)
       } catch (error) {
         console.error('Failed to fetch reviews:', error)
-        toast.error('Failed to load reviews')
+        handleNotify('Failed to load reviews', 'error')
       } finally {
         setLoading(false)
       }
@@ -596,10 +606,10 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
 
       setReviewList((prev) => deleteRecursive(prev))
       queryClient.invalidateQueries({ queryKey: ['user-reviews'] })
-      toast.success('Review deleted')
+      handleNotify('Review deleted', 'success')
     } catch (error) {
       console.error('Failed to delete review:', error)
-      toast.error('Failed to delete review')
+      handleNotify('Failed to delete review', 'error')
     }
   }
 
@@ -619,10 +629,10 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
         })
 
       setReviewList((prev) => updateRecursive(prev))
-      toast.success('Review updated')
+      handleNotify('Review updated', 'success')
     } catch (error) {
       console.error('Failed to update review:', error)
-      toast.error('Failed to update review')
+      handleNotify('Failed to update review', 'error')
     }
   }
 
@@ -652,10 +662,10 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
         })
 
       setReviewList((prev) => addReplyRecursive(prev))
-      toast.success('Reply sent')
+      handleNotify('Reply sent', 'success')
     } catch (error) {
       console.error('Failed to add reply:', error)
-      toast.error('Failed to add reply')
+      handleNotify('Failed to add reply', 'error')
     }
   }
 
@@ -673,53 +683,63 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
 
       setReviewList((prev) => [newReview, ...prev])
       queryClient.invalidateQueries({ queryKey: ['user-reviews'] })
-      toast.success('Review submitted successfully!')
+      handleNotify('Review submitted successfully!', 'success')
       setUserRating(0)
       setReviewText('')
     } catch (error: any) {
       console.error('Failed to submit review:', error)
       const errorMessage = error.response?.data?.message || error.message || 'Failed to submit review'
       console.error('Backend error:', errorMessage)
-      toast.error(errorMessage)
+      handleNotify(errorMessage, 'error')
     }
   }
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       {/* Rating Summary */}
-      <div className="flex gap-8">
-        <div className="text-center">
-          <div className="text-5xl font-bold">
+      <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-center sm:items-start bg-muted/20 p-6 rounded-2xl">
+        <div className="text-center shrink-0">
+          <div className="text-5xl sm:text-6xl font-bold text-primary">
             {avgRating.toFixed(1)}
           </div>
-          <StarRating rating={Math.round(avgRating)} />
-          <p className="text-sm text-muted-foreground mt-1">
+          <div className="flex justify-center mt-1">
+            <StarRating rating={Math.round(avgRating)} />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground mt-1">
             {reviewList.length} Reviews
           </p>
         </div>
 
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 w-full max-w-[300px] space-y-2">
           {[5, 4, 3, 2, 1].map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <span className="w-3 text-sm text-muted-foreground">{s}</span>
-              <div className="flex-1 h-2.5 bg-muted rounded-full">
+            <div key={s} className="flex items-center gap-3">
+              <span className="w-3 text-xs font-medium text-muted-foreground">{s}</span>
+              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-primary transition-all"
+                  className="h-full bg-primary rounded-full transition-all duration-500"
                   style={{
-                    width: `${(ratingCounts[i] / maxCount) * 100}%`,
+                    width: `${(ratingCounts[i] / (maxCount || 1)) * 100}%`,
                   }}
                 />
               </div>
+              <span className="w-6 text-[10px] text-muted-foreground text-right">{ratingCounts[i]}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Write Review */}
-      <div className="bg-muted/30 rounded-xl p-6 border border-dashed border-border">
+      <div className="bg-muted/30 rounded-2xl p-4 sm:p-6 border border-dashed border-border/60">
         {userId ? (
           <>
-            <h4 className="font-semibold mb-2">Write a Review</h4>
+            <h4 className="font-semibold text-base mb-3">Write a Review</h4>
             <StarRating
               rating={userRating}
               size="lg"
@@ -753,15 +773,15 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
 
       {/* Review List */}
       <div>
-        <div className="flex justify-between mb-4">
-          <h4 className="font-semibold">All Reviews</h4>
-          <div className="relative" ref={sortRef}>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h4 className="font-semibold text-base">All Reviews</h4>
+          <div className="relative shrink-0" ref={sortRef}>
             <button
               onClick={() => setIsSortOpen(!isSortOpen)}
-              className="flex items-center justify-between w-[130px] h-10 px-3 py-2 text-sm bg-white border border-input rounded-md hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-between min-w-[110px] h-9 px-3 py-2 text-xs font-medium bg-white border border-input rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
             >
               <span className="capitalize">{sortBy}</span>
-              <ChevronDown className={cn("h-4 w-4 text-gray-400 transition-transform", isSortOpen && "rotate-180")} />
+              <ChevronDown className={cn("h-3.5 w-3.5 text-gray-400 transition-transform duration-200", isSortOpen && "rotate-180")} />
             </button>
 
             {isSortOpen && (
@@ -810,6 +830,7 @@ const ReviewSection = ({ reviews: initialReviews = [], careerId, userId, userNam
                   onReply={handleAddReply}
                   onDelete={handleDelete}
                   onUpdate={handleUpdate}
+                  onNotify={handleNotify}
                   initialExpanded={isTargetOrHasTarget}
                 />
               );

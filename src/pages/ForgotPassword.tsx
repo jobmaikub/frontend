@@ -70,7 +70,7 @@ export default function ForgotPassword() {
       setStep('password')
     } catch (err) {
       setLoading(false)
-      setToast({ message: 'Error', type: 'error' })
+      setToast({ message: 'Error verifying OTP', type: 'error' })
     }
   }
 
@@ -109,7 +109,7 @@ export default function ForgotPassword() {
       setTimeout(() => navigate('/login', { replace: true }), 2000)
     } catch (err) {
       setLoading(false)
-      setToast({ message: 'Error', type: 'error' })
+      setToast({ message: 'Error resetting password', type: 'error' })
     }
   }
 
@@ -124,7 +124,6 @@ export default function ForgotPassword() {
             onClose={() => setToast(null)}
           />
         )}
-
         <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
           <div className="text-center">
             <div className="text-5xl mb-4">🔐</div>
@@ -184,7 +183,6 @@ export default function ForgotPassword() {
             onClose={() => setToast(null)}
           />
         )}
-
         <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
           <div className="text-center">
             <div className="text-5xl mb-4">📬</div>
@@ -250,13 +248,12 @@ export default function ForgotPassword() {
           onClose={() => setToast(null)}
         />
       )}
-
       <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
         <div className="text-center">
           <div className="text-5xl mb-4">✓</div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Job<span className="text-blue-600">maikub</span>
-          </h2>
+            </h2>
           <p className="mt-2 sm:mt-3 text-sm sm:text-base text-slate-600">Create a new password</p>
         </div>
 

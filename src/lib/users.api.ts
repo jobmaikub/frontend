@@ -14,6 +14,10 @@ const reportApi = createAuthenticatedApi(
   import.meta.env.VITE_API_URL + "/admin/user-reports"
 );
 
+const baseApi = createAuthenticatedApi(
+  import.meta.env.VITE_API_URL
+);
+
 export interface BanUserRow {
   ban_id: string;
   user_id: string;
@@ -241,4 +245,9 @@ export async function resolveAndBanReport(data: {
   });
 
   return res.data as ResolveAndBanResult;
+}
+
+export async function fetchUserDashboard(userId: string) {
+  const res = await baseApi.get(`/user-dashboard/${userId}`);
+  return res.data;
 }
