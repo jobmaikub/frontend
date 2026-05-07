@@ -143,7 +143,7 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="p-4 pb-16 sm:pb-4 border-t border-border flex items-center justify-center gap-2">
+          <div className="p-4 pb-10 sm:pb-4 border-t border-border flex items-center justify-center gap-2">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}

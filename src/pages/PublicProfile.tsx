@@ -11,6 +11,7 @@ import StatsCard from "@/components/profile/StatsCard";
 import SkillsMastered from "@/components/profile/SkillsMastered";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EnrichedSkill } from "@/lib/track_progress.api";
+import PublicProfileSkeleton from "@/components/profile/PublicProfileSkeleton";
 
 
 interface PublicProfileData {
@@ -99,25 +100,7 @@ const PublicProfile = () => {
   }, [userId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background pt-16">
-        <Navbar />
-        <div className="h-40 bg-primary/20" />
-        <div className="mx-auto -mt-20 max-w-5xl px-8 pb-24">
-          <div className="grid gap-6 md:grid-cols-[280px_1fr]">
-            <Skeleton className="h-[200px] w-full rounded-2xl" />
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-              </div>
-              <Skeleton className="h-32 w-full" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <PublicProfileSkeleton />;
   }
 
   if (notFound || !profileData) {

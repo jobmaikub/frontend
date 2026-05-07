@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import { ArrowLeft, BookOpen, Clock, Trash2, CheckCircle2, XCircle, TrendingUp, Minus, FileText } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CourseDetail } from "./CourseDetail";
+import { learningPathApi } from "@/lib/LearningPath.api";
+import { useAuth } from "@/contexts/AuthContexts";
+import IndustryNewsSidebar from "@/components/IndustryNewsDialog";
+import { fetchIndustryNewsFromDatabase } from "@/lib/news.service";
+import type { NewsArticle } from "@/types/careers.types";
+import LearningPathSkeleton from "./LearningPathSkeleton";
 
 interface PathDetailProps {
   path: any;
@@ -72,12 +78,6 @@ const LevelAccordion = ({ level, isFirst, onCourseSelect }: { level: any, isFirs
     </div>
   );
 };
-
-import { learningPathApi } from "@/lib/LearningPath.api";
-import { useAuth } from "@/contexts/AuthContexts";
-import IndustryNewsSidebar from "@/components/IndustryNewsDialog";
-import { fetchIndustryNewsFromDatabase } from "@/lib/news.service";
-import type { NewsArticle } from "@/types/careers.types";
 
 export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
   const { user } = useAuth();
@@ -176,31 +176,22 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
     return count;
   }, [dynamicLevels]);
 
-  if (courseId) {
-    if (loadingLevels) {
-      return (
-        <div className="w-full flex items-center justify-center py-40">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-4 border-[#4A5DF9] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-500 font-medium">Loading course content...</p>
-          </div>
-        </div>
-      );
-    }
+  if (loadingLevels) {
+    return <LearningPathSkeleton isDetail={true} />;
+  }
 
-    if (activeCourseData) {
-      return (
-        <CourseDetail
-          course={activeCourseData.data}
-          levelColor={activeCourseData.color}
-          levelTitle={activeCourseData.title}
-          onBack={() => navigate(`/learning-path/${careerId}`)}
-          onLessonToggled={() => {
-            if (onRefresh) onRefresh();
-          }}
-        />
-      );
-    }
+  if (courseId && activeCourseData) {
+    return (
+      <CourseDetail
+        course={activeCourseData.data}
+        levelColor={activeCourseData.color}
+        levelTitle={activeCourseData.title}
+        onBack={() => navigate(`/learning-path/${careerId}`)}
+        onLessonToggled={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+    );
   }
 
   return (

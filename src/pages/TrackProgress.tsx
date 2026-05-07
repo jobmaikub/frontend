@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, BookOpen, Clock, Flame } from "lucide-react";
 import StatCard from "@/components/track progress/StatCard";
 import ActivityHeatmap from "@/components/track progress/ActivityHeatmap";
@@ -28,77 +29,39 @@ type CompletedCourse = {
   complete?: boolean;
 };
 
+import TrackProgressSkeleton from "@/components/track progress/TrackProgressSkeleton";
+
 const TrackProgress = () => {
   const [showCourses, setShowCourses] = useState(false);
 
-  const [stats, setStats] = useState({
+  // Fetch Stats using React Query
+  const { data: stats = {
     coursesComplete: 0,
     totalLessons: 0,
     totalHours: 0,
     streak: 0,
     overallProgress: 0,
-    perYear: {},
+  }, isLoading: loadingStats } = useQuery({
+    queryKey: ['user-stats'],
+    queryFn: getUserStats,
   });
 
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [courses, setCourses] = useState<CompletedCourse[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Fetch Activity using React Query
+  const { data: activity = [], isLoading: loadingActivity } = useQuery({
+    queryKey: ['user-activity'],
+    queryFn: getActivity,
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, coursesRes, activityRes] = await Promise.allSettled([
-          getUserStats(),
-          getCompletedCourses(),
-          getActivity(),
-        ]);
+  // Fetch Completed Courses using React Query
+  const { data: courses = [], isLoading: loadingCourses } = useQuery({
+    queryKey: ['user-completed-courses'],
+    queryFn: getCompletedCourses,
+  });
 
-        if (statsRes.status === "fulfilled" && statsRes.value) {
-          setStats((prev) => ({ ...prev, ...statsRes.value }));
-        } else {
-          console.error("Failed to load stats:", statsRes.status === "rejected" ? statsRes.reason : "Unknown error");
-        }
-
-        if (coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value)) {
-          setCourses(coursesRes.value);
-        } else {
-          console.error("Failed to load completed courses:", coursesRes.status === "rejected" ? coursesRes.reason : "Unknown error");
-        }
-
-        if (activityRes.status === "fulfilled" && Array.isArray(activityRes.value)) {
-          setActivity(activityRes.value);
-        } else {
-          console.error("Failed to load activity:", activityRes.status === "rejected" ? activityRes.reason : "Unknown error");
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const loading = loadingStats || loadingActivity || loadingCourses;
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background pt-16">
-        <Navbar />
-        <div className="bg-card border-b border-border py-12 text-center">
-          <div className="h-6 w-32 bg-muted rounded-full mx-auto mb-4 animate-pulse" />
-          <div className="h-10 w-64 bg-muted rounded-lg mx-auto mb-2 animate-pulse" />
-          <div className="h-4 w-40 bg-muted rounded mx-auto animate-pulse" />
-        </div>
-        <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl border bg-card p-6 h-32 animate-pulse bg-muted/30" />
-            ))}
-          </div>
-          <div className="rounded-xl border bg-card p-6 h-52 animate-pulse bg-muted/30" />
-        </div>
-      </div>
-    );
+    return <TrackProgressSkeleton />;
   }
 
   return (

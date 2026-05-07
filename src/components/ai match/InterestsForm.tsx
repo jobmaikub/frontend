@@ -90,12 +90,12 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
                 onClick={() => toggleInterest(interest.interest_id)}
                 // Disabled styling if limit reached and item not selected
                 disabled={selectedInterestIds.length >= 3 && !selectedInterestIds.includes(interest.interest_id)}
-                className={`flex w-full items-center justify-start text-left rounded-xl border px-4 py-3 sm:px-6 sm:py-4 text-[15px] sm:text-[18px] font-medium transition-all break-words leading-tight ${
+                className={`flex w-full items-center justify-start text-left rounded-xl border px-4 py-3 sm:px-6 sm:py-4 text-[15px] sm:text-[18px] font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] break-words leading-tight ${
                   selectedInterestIds.includes(interest.interest_id)
-                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
+                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9] shadow-sm ring-1 ring-[#4A5DF9]/30"
                     : selectedInterestIds.length >= 3 
                       ? "border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed" // Disabled state
-                      : "border-gray-200 text-gray-700 bg-white hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
+                      : "border-gray-200 text-gray-700 bg-white shadow-sm hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
                 }`}
               >
                 <span className="w-full text-left">{interest.interest_name || interest.name}</span>
@@ -127,23 +127,28 @@ export function InterestsForm({ initialInterestIds, onSubmit, onBack, isLoading 
       <div className="mt-8 flex justify-between">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-3 text-[16px] font-medium text-gray-600 transition-colors hover:bg-gray-50 shadow-sm"
+          className="group flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-3 text-[16px] font-medium text-gray-600 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:bg-gray-50 active:scale-95 shadow-sm"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} className="transition-transform duration-300 group-hover:-translate-x-1" />
           Back
         </button>
         <button 
           onClick={() => selectedInterestIds.length > 0 && onSubmit(selectedInterestIds)}
           disabled={selectedInterestIds.length === 0 || isLoading}
-          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
-            selectedInterestIds.length > 0 && !isLoading ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          className={`group flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-all duration-300 shadow-sm ${
+            selectedInterestIds.length > 0 && !isLoading 
+              ? "bg-[#4A5DF9] hover:scale-[1.03] hover:shadow-lg hover:shadow-blue-200 active:scale-95" 
+              : "bg-gray-300 cursor-not-allowed opacity-70"
           }`}
         >
           {isLoading ? (
-            "Matching..."
+            <span className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Matching...
+            </span>
           ) : (
             <>
-              <Sparkles size={16} />
+              <Sparkles size={16} className="transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
               Get Career Match
             </>
           )}

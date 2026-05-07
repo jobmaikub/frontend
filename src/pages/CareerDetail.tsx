@@ -57,6 +57,8 @@ const skillIconColors: Record<string, string> = {
   Analytical: 'bg-growth-medium-bg text-growth-medium',
 };
 
+import CareerDetailSkeleton from "@/components/careers/CareerDetailSkeleton";
+
 const CareerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -162,11 +164,7 @@ const CareerDetail = () => {
   }, [career, id]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading career details...</p>
-      </div>
-    );
+    return <CareerDetailSkeleton />;
   }
 
   if (error) {

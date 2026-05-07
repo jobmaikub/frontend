@@ -113,54 +113,44 @@ interface SupabaseCareerData {
   duration_hrs: number;
 }
 
-// Fetch Supabase career data
-async function fetchCareerDataFromSupabase(): Promise<SupabaseCareerData[]> {
+export let careers: Career[] = [];
+export const careersMockBase: Career[] = [];
+
+// Fetch and transform careers from the database
+export async function initializeCareers(limit = 100, offset = 0): Promise<Career[]> {
   try {
     const apiUrl = import.meta.env.VITE_API_URL;
-    const response = await fetch(`${apiUrl}/home/all-careers`);
+    const response = await fetch(`${apiUrl}/home/all-careers?limit=${limit}&offset=${offset}`);
     if (!response.ok) return [];
-    const data = await response.json();
-    if (!Array.isArray(data)) return [];
-    return data as SupabaseCareerData[];
+    const supabaseData = await response.json();
+    if (!Array.isArray(supabaseData)) return [];
+
+    careers = (supabaseData as SupabaseCareerData[]).map((supabaseCareer) => {
+      const growthRate = mapGrowthRate(supabaseCareer.growth_rate);
+      const requiredSkills = parseRequiredSkills(supabaseCareer.required_skills);
+
+      return {
+        id: supabaseCareer.career_id,
+        title: supabaseCareer.title || '',
+        image: supabaseCareer.image_url || careerTech,
+        track: supabaseCareer.industry || 'Technology',
+        description: supabaseCareer.description || '',
+        salaryMin: supabaseCareer.min_salary || 0,
+        salaryMax: supabaseCareer.max_salary || 0,
+        growthRate,
+        growth_rate: supabaseCareer.growth_rate,
+        keyResponsibilities: supabaseCareer.responsibilities || [],
+        requiredSkills,
+        learningPath: [] as LearningLevel[],
+        totalCourses: supabaseCareer.course_count || 0,
+        totalHours: supabaseCareer.duration_hrs || 0,
+        reviews: [],
+      } as Career;
+    });
+
+    return careers;
   } catch (error) {
     console.warn('[careers.service] Failed to fetch careers data:', error);
     return [];
   }
 }
-
-// Initialize careers from database
-export let careers: Career[] = [];
-export const careersMockBase: Career[] = [];
-
-// Fetch and transform careers from the database
-export async function initializeCareers(): Promise<Career[]> {
-  const supabaseData = await fetchCareerDataFromSupabase();
-
-  careers = supabaseData.map((supabaseCareer) => {
-    const growthRate = mapGrowthRate(supabaseCareer.growth_rate);
-    const requiredSkills = parseRequiredSkills(supabaseCareer.required_skills);
-
-    return {
-      id: supabaseCareer.career_id,
-      title: supabaseCareer.title || '',
-      image: supabaseCareer.image_url || careerTech,
-      track: supabaseCareer.industry || 'Technology',
-      description: supabaseCareer.description || '',
-      salaryMin: supabaseCareer.min_salary || 0,
-      salaryMax: supabaseCareer.max_salary || 0,
-      growthRate,
-      growth_rate: supabaseCareer.growth_rate,
-      keyResponsibilities: supabaseCareer.responsibilities || [],
-      requiredSkills,
-      learningPath: [] as LearningLevel[],
-      totalCourses: supabaseCareer.course_count || 0,
-      totalHours: supabaseCareer.duration_hrs || 0,
-      reviews: [],
-    } as Career;
-  });
-
-  return careers;
-}
-
-// Initialize careers on module load
-initializeCareers().catch((error) => console.error('[careers.service] Failed to initialize careers:', error));

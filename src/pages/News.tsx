@@ -1,5 +1,5 @@
 // src/pages/News.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Navbar } from "@/components/navbar and footer/Navbar";
 import { Footer } from "@/components/navbar and footer/Footer";
 import { Search, Filter, ChevronDown, Loader, ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,125 +10,85 @@ import { getBookmarkedNews } from "@/lib/newsBookmarks.api";
 
 import { useAuth } from "@/contexts/AuthContexts";
 
+import { useQuery } from "@tanstack/react-query";
+
 const ITEMS_PER_PAGE = 12;
+
+import NewsSkeleton from "@/components/news/NewsSkeleton";
 
 export default function News() {
   const { user } = useAuth();
-  // Application States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("All Industries");
-  const [newsArticles, setNewsArticles] = useState<News[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [industries, setIndustries] = useState<string[]>([]);
-  const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
-
-  // Dropdown UI States
   const [isIndustryOpen, setIsIndustryOpen] = useState(false);
 
   useEffect(() => {
     document.title = "ข่าวสารวงการอาชีพ | Jobmaikub";
   }, []);
 
-  // Fetch News Data from Backend
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch news first
-        const newsData = await getNews();
-        setNewsArticles(newsData);
+  // Fetch News Data using React Query
+  const { data: newsArticles = [], isLoading: loading, error: fetchError } = useQuery({
+    queryKey: ['news'],
+    queryFn: getNews,
+  });
 
-        // Fetch bookmarks only if user is logged in
-        if (user) {
-          try {
-            const bookmarkedNews = await getBookmarkedNews();
-            setBookmarkedIds(new Set(bookmarkedNews.map((article) => article.news_id)));
-          } catch (err) {
-            console.error('Failed to load bookmarked news:', err);
-          }
-        }
+  // Fetch Bookmarks using React Query
+  const { data: bookmarkedNews = [] } = useQuery({
+    queryKey: ['news-bookmarks', user?.id],
+    queryFn: getBookmarkedNews,
+    enabled: !!user,
+  });
 
-        // Extract unique industries from news data
-        const industriesSet = new Set<string>();
-        newsData.forEach((article) => {
-          if (article.industries?.name) {
-            industriesSet.add(article.industries.name);
-          }
-        });
+  const bookmarkedIds = new Set(bookmarkedNews.map((article: any) => article.news_id));
 
-        // Convert to sorted array and add "All Industries" at the start
-        const sortedIndustries = Array.from(industriesSet).sort();
-        setIndustries(["All Industries", ...sortedIndustries]);
-
-        console.log('Industries extracted:', sortedIndustries); // Debug
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load news articles');
-      } finally {
-        setLoading(false);
+  // Extract industries from cached news data
+  const industries = useMemo(() => {
+    const industriesSet = new Set<string>();
+    newsArticles.forEach((article) => {
+      if (article.industries?.name) {
+        industriesSet.add(article.industries.name);
       }
-    };
+    });
+    const sortedIndustries = Array.from(industriesSet).sort();
+    return ["All Industries", ...sortedIndustries];
+  }, [newsArticles]);
 
-    fetchData();
-  }, []);
+  // Client-side filtering and sorting
+  const filteredArticles = useMemo(() => {
+    let results = newsArticles;
 
-  // Search and Filter with Backend
-  const [filteredArticles, setFilteredArticles] = useState<News[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      results = results.filter(article => 
+        article.title.toLowerCase().includes(query) || 
+        article.description.toLowerCase().includes(query)
+      );
+    }
 
-  useEffect(() => {
-    const performSearch = async () => {
-      try {
-        setSearchLoading(true);
-        let results: News[];
+    if (selectedIndustry !== "All Industries") {
+      results = results.filter(
+        (article) => article.industries?.name === selectedIndustry
+      );
+    }
 
-        if (searchQuery.trim()) {
-          // Call backend search API
-          results = await searchNews(searchQuery, selectedIndustry);
-
-          if (selectedIndustry !== "All Industries") {
-            // Filter by industry if selected
-            results = results.filter(
-              (article) => article.industries?.name === selectedIndustry
-            );
-          }
-        } else {
-          // If no search query, use all articles
-          results = newsArticles;
-
-          if (selectedIndustry !== "All Industries") {
-            results = results.filter(
-              (article) => article.industries?.name === selectedIndustry
-            );
-          }
-        }
-
-        results = [...results].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-
-        setFilteredArticles(results);
-        setCurrentPage(1); // Reset to first page when search/filter changes
-      } catch (err) {
-        console.error('Error performing search:', err);
-        setFilteredArticles([]);
-      } finally {
-        setSearchLoading(false);
-      }
-    };
-
-    performSearch();
+    return [...results].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
   }, [searchQuery, selectedIndustry, newsArticles]);
+
+  const error = fetchError ? 'Failed to load news articles' : null;
+  const searchLoading = false; // No longer needed for client-side search
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredArticles.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedArticles = filteredArticles.slice(startIndex, endIndex);
+
+  if (loading || searchLoading) {
+    return <NewsSkeleton />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white font-['Inter']">
@@ -207,15 +167,7 @@ export default function News() {
         {/* News Grid */}
         <div className="max-w-6xl mx-auto px-8 w-full">
 
-
-          {loading || searchLoading ? (
-            <div className="text-center py-20">
-              <div className="flex justify-center items-center mb-4">
-                <Loader className="w-8 h-8 text-[#4A5DF9] animate-spin" />
-              </div>
-              <p className="text-gray-500">{loading ? 'Loading news articles...' : 'Searching...'}</p>
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="text-center py-20 text-red-500 bg-white rounded-xl border border-red-200">
               {error}
             </div>

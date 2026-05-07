@@ -39,7 +39,7 @@ const DialogContent = React.forwardRef<
         // Mobile: bottom sheet — ชนขอบซ้ายขวา ด้านล่าง, มุมโค้งบน
         "fixed z-50 grid w-full gap-4 border bg-background p-6 shadow-lg",
         "bottom-0 left-0 right-0 rounded-t-2xl max-h-[90dvh] overflow-y-auto",
-        "pb-[calc(5rem_+_env(safe-area-inset-bottom))] sm:pb-6",
+        "pb-[calc(2.5rem_+_env(safe-area-inset-bottom))] sm:pb-6",
         // Desktop: centered modal
         "sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:w-full sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-xl sm:max-h-[85dvh]",
         className,

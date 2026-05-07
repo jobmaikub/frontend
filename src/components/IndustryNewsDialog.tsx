@@ -149,7 +149,7 @@ const IndustryNewsSidebar = ({ open, onOpenChange, news: industryNews }: Industr
 
         {/* Pagination Footer - Sticky */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-border bg-white flex items-center justify-center gap-2">
+          <div className="p-4 pb-10 sm:pb-4 border-t border-border bg-white flex items-center justify-center gap-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}

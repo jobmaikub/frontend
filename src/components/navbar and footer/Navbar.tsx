@@ -13,22 +13,51 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
+import { useQueryClient } from "@tanstack/react-query";
+import { fetchCareers } from "@/lib/careers.api";
+import { getNews } from "@/lib/news.api";
+import { getEnrichedSkills } from "@/lib/track_progress.api";
+import { reviewsApi } from "@/lib/reviews.api";
+
 const navItems = [
   { name: "Home", path: "/home", icon: Home },
-  { name: "Career", path: "/careers", icon: Briefcase },
-  { name: "News", path: "/news", icon: Newspaper },
+  { name: "Career", path: "/careers", icon: Briefcase, queryKey: ['careers'], prefetchFn: fetchCareers },
+  { name: "News", path: "/news", icon: Newspaper, queryKey: ['news'], prefetchFn: getNews },
   { name: "AI Match", path: "/ai-match", icon: Sparkles },
   { name: "Learning Path", path: "/learning-path", icon: Map },
-  { name: "Track Progress", path: "/track-progress", icon: LineChart },
+  { name: "Track Progress", path: "/track-progress", icon: LineChart, queryKey: ['user-skills'], prefetchFn: (userId: string) => getEnrichedSkills() },
 ];
 
 export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, profile, signOut } = useAuth();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handlePrefetch = (item: any) => {
+    if (item.prefetchFn && item.queryKey) {
+      const key = item.name === "Track Progress" ? [...item.queryKey, user?.id] : item.queryKey;
+      queryClient.prefetchQuery({
+        queryKey: key,
+        queryFn: () => item.name === "Track Progress" ? getEnrichedSkills() : item.prefetchFn(),
+      });
+    }
+  };
+
+  const prefetchUserReviews = () => {
+    if (user?.id) {
+      queryClient.prefetchQuery({
+        queryKey: ['user-reviews', user.id],
+        queryFn: async () => {
+          const res = await reviewsApi.get("/", { params: { user_id: user.id } });
+          return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        },
+      });
+    }
+  };
 
   const getStyle = (id: string) => ({
     backgroundColor: hoveredItem === id ? "rgba(213, 227, 255, 0.2)" : "transparent",
@@ -112,6 +141,7 @@ export function Navbar() {
             <Link
               key={item.name}
               to={item.path}
+              onMouseEnter={() => handlePrefetch(item)}
               className={`group relative flex h-full items-center text-[15px] font-medium transition-colors hover:text-[#4A5DF9] ${isActive ? "text-[#4A5DF9]" : "text-muted-foreground"
                 }`}
             >
@@ -177,7 +207,10 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link
                       to="/profile"
-                      onMouseEnter={() => setHoveredItem('profile')}
+                      onMouseEnter={() => {
+                        setHoveredItem('profile');
+                        prefetchUserReviews();
+                      }}
                       onMouseLeave={() => setHoveredItem(null)}
                       style={getStyle('profile')}
                       className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"

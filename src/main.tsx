@@ -4,7 +4,5 @@ import "./index.css";
 import { AuthProvider } from "./contexts/AuthContexts";
 
 createRoot(document.getElementById("root")!).render(
-	<AuthProvider>
-		<App />
-	</AuthProvider>
+  <App />
 );

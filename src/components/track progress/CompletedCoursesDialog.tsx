@@ -180,7 +180,7 @@ const CompletedCoursesDialog = ({
 
          {/* Pagination Footer - Sticky */}
         {totalPages > 1 && (
-          <div className="p-4 pb-16 sm:pb-4 border-t border-border bg-white flex items-center justify-center gap-1 sm:gap-2 flex-wrap shrink-0">
+          <div className="p-4 pb-10 sm:pb-4 border-t border-border bg-white flex items-center justify-center gap-1 sm:gap-2 flex-wrap shrink-0">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}

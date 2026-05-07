@@ -6,6 +6,7 @@ import { MajorForm } from "@/components/ai match/MajorForm";
 import { SkillsForm } from "@/components/ai match/SkillsForm";
 import { InterestsForm } from "@/components/ai match/InterestsForm";
 import { CareerMatches } from "@/components/ai match/CareerMatches";
+import { AIMatchSkeleton } from "@/components/ai match/AIMatchSkeleton";
 import { GraduationCap, BookOpen, Lightbulb, Heart } from "lucide-react";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContexts";
@@ -20,7 +21,7 @@ const sortMatchesByScoreDesc = (matches: CareerMatch[]): CareerMatch[] => {
 };
 
 export default function AIMatch() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [facultyId, setFacultyId] = useState<number | null>(null);
   const [majorId, setMajorId] = useState<number | null>(null);
@@ -39,11 +40,23 @@ export default function AIMatch() {
       return;
     }
 
+    // If already checked for this user, don't check again
+    if (isHistoryChecked) return;
+
     const checkHistory = async () => {
       try {
         const data = await getMatchHistory(currentUserId);
-        if (data && Array.isArray(data) && data.length > 0) {
-          setMatchResults(sortMatchesByScoreDesc(data));
+        if (data && data.matches && data.matches.length > 0) {
+          setMatchResults(sortMatchesByScoreDesc(data.matches));
+
+          // Pre-fill selection so if they go back or start over, they have context
+          if (data.userSelection) {
+            setFacultyId(data.userSelection.faculty_id);
+            setMajorId(data.userSelection.major_id);
+            setSkills(data.userSelection.skill_ids || []);
+            setInterests(data.userSelection.interest_ids || []);
+          }
+
           setCurrentStep(4);
         }
       } catch (error) {
@@ -54,7 +67,7 @@ export default function AIMatch() {
     };
 
     checkHistory();
-  }, [isHistoryChecked, user?.id]);
+  }, [user?.id, isHistoryChecked]);
 
   const handleBack = () => setCurrentStep((prev) => prev - 1);
   const handleStartOver = () => {
@@ -113,6 +126,10 @@ export default function AIMatch() {
 
   const isComplete = currentStep >= steps.length;
 
+  if (authLoading || (!isHistoryChecked && user)) {
+    return <AIMatchSkeleton />;
+  }
+
   return (
     <div className="min-h-screen font-['Inter'] flex flex-col">
       <Navbar />
@@ -121,11 +138,8 @@ export default function AIMatch() {
 
         <QuestionnaireHeader />
 
-        <section className={`pb-20 flex justify-center pt-12`}>
-          <div className="container mx-auto px-8 flex justify-center">
-
-            {/* THE FIX: Dynamically switch from max-w-4xl to max-w-[1300px] when complete */}
-            <div className={`w-full font-['Inter'] transition-all duration-300 ${isComplete ? "max-w-[1300px]" : "max-w-4xl"}`}>
+        <section className={`pb-20 pt-12`}>
+          <div className={`mx-auto w-full px-8 font-['Inter'] transition-all duration-300 ${isComplete ? "max-w-6xl" : "max-w-4xl"}`}>
 
               {!isComplete && (
                 <div className="mb-10 flex w-full items-center justify-between px-2 text-center">
@@ -138,8 +152,8 @@ export default function AIMatch() {
                         <div className="flex flex-col items-center gap-3">
                           <div
                             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all ${isActive || isPast
-                                ? "bg-[#4A5DF9] text-white"
-                                : "bg-[#D5E3FF] text-[#799EFF]"
+                              ? "bg-[#4A5DF9] text-white"
+                              : "bg-[#D5E3FF] text-[#799EFF]"
                               }`}
                           >
                             {step.icon}
@@ -172,7 +186,6 @@ export default function AIMatch() {
                 <CareerMatches onStartOver={handleStartOver} matches={matchResults} />
               )}
 
-            </div>
           </div>
         </section>
       </main>

@@ -22,6 +22,8 @@ const growthRates = [
   { label: 'Stable Growth', value: '1' }
 ];
 
+import CareerListSkeleton from "@/components/careers/CareerListSkeleton";
+
 const CareerList = () => {
   const { careers, loading, error } = useCareers();
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,11 +69,13 @@ const CareerList = () => {
 
   const totalPages = Math.ceil(filteredCareers.length / ITEMS_PER_PAGE);
 
+  if (loading) {
+    return <CareerListSkeleton />;
+  }
+
   return (
     <OldThemeWrapper>
       <div className="min-h-screen bg-[#F4F7FF] font-['Inter']">
-
-
 
         <Navbar />
 
@@ -167,14 +171,6 @@ const CareerList = () => {
               </div>
             </div>
           </div>
-
-
-          {/* Grid */}
-          {loading && (
-            <div className="mt-8 text-center text-muted-foreground">
-              Loading careers...
-            </div>
-          )}
 
           {error && (
             <div className="mt-8 text-center text-red-500">

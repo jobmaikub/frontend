@@ -5,6 +5,7 @@ import NewsCard from "@/components/news/NewsCard";
 import type { News } from "@/lib/news.api";
 import { getBookmarkedNews } from "@/lib/newsBookmarks.api";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import NewsSkeleton from "@/components/news/NewsSkeleton";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -159,12 +160,7 @@ export default function Bookmark() {
 				{/* News Grid */}
 				<div className="max-w-6xl mx-auto px-8 w-full">
 					{loading ? (
-						<div className="text-center py-20">
-							<div className="flex justify-center items-center mb-4">
-								<Loader className="w-8 h-8 text-[#4A5DF9] animate-spin" />
-							</div>
-							<p className="text-gray-500">Loading bookmarked news...</p>
-						</div>
+						<NewsSkeleton />
 					) : error ? (
 						<div className="text-center py-20 text-red-500 bg-white rounded-xl border border-red-200">
 							{error}

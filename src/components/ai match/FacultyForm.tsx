@@ -72,10 +72,10 @@ export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
               <button 
                 key={f.faculty_id}
                 onClick={() => setSelectedFacultyId(f.faculty_id)}
-                className={`flex w-full items-center justify-start text-left rounded-xl border px-4 py-3 sm:px-6 sm:py-4 text-[15px] sm:text-[18px] font-medium transition-all hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] break-words leading-tight ${
+                className={`flex w-full items-center justify-start text-left rounded-xl border px-4 py-3 sm:px-6 sm:py-4 text-[15px] sm:text-[18px] font-medium transition-all duration-200 hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9] hover:scale-[1.02] active:scale-[0.98] break-words leading-tight ${
                   selectedFacultyId === f.faculty_id 
-                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]" // Active state styling
-                    : "border-gray-200 text-gray-700 bg-white"      // Default state styling
+                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9] shadow-sm ring-1 ring-[#4A5DF9]/30" // Active state styling
+                    : "border-gray-200 text-gray-700 bg-white shadow-sm"      // Default state styling
                 }`}
               >
                 <span className="w-full text-left">{f.eng_name || f.th_name}</span>
@@ -95,12 +95,14 @@ export function FacultyForm({ initialFacultyId, onNext }: FacultyFormProps) {
         <button 
           onClick={() => selectedFacultyId && onNext(selectedFacultyId)}
           disabled={!selectedFacultyId}
-          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
-            selectedFacultyId ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          className={`group flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-all duration-300 shadow-sm ${
+            selectedFacultyId 
+              ? "bg-[#4A5DF9] hover:scale-[1.03] hover:shadow-lg hover:shadow-blue-200 active:scale-95" 
+              : "bg-gray-300 cursor-not-allowed opacity-70"
           }`}
         >
           Continue
-          <ArrowRight size={16} />
+          <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
         </button>
       </div>
     </>

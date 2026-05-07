@@ -1,46 +1,25 @@
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Flame, TrendingUp, Loader2 } from "lucide-react";
 import ProfileCard from "@/components/profile/ProfileCard";
 import StatsCard from "@/components/profile/StatsCard";
 import SkillsMastered from "@/components/profile/SkillsMastered";
 import MyReviews, { Review } from "@/components/profile/MyReviews";
 import { useAuth } from "@/contexts/AuthContexts";
-import { getAllReviews, updateReview, deleteReview } from "@/lib/reviews.api";
+import { reviewsApi, getAllReviews, updateReview, deleteReview } from "@/lib/reviews.api";
 import { fetchCareers, Career } from "@/lib/careers.api";
 import { updateProfile } from "@/lib/users.api";
 import { getEnrichedSkills, EnrichedSkill } from "@/lib/track_progress.api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/navbar and footer/Navbar";
 
+import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
+
 const Profile = () => {
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
+  const queryClient = useQueryClient();
   const [avatarUrl, setAvatarUrl] = useState("");
   const [userName, setUserName] = useState("");
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const [enrichedSkills, setEnrichedSkills] = useState<EnrichedSkill[]>([]);
-  const [loadingSkills, setLoadingSkills] = useState(true);
-
-  useEffect(() => {
-    if (profile) {
-      setUserName(profile.full_name || profile.username || "Guest");
-      setAvatarUrl(profile.avatar_url || "");
-      loadUserReviews();
-      loadSkills();
-    }
-  }, [profile]);
-
-  const loadSkills = async () => {
-    try {
-      setLoadingSkills(true);
-      const skills = await getEnrichedSkills();
-      setEnrichedSkills(skills);
-    } catch (err) {
-      console.error("Failed to load skills:", err);
-    } finally {
-      setLoadingSkills(false);
-    }
-  };
 
   const handleNameChange = async (newName: string) => {
     if (!user) return;
@@ -66,46 +45,64 @@ const Profile = () => {
     }
   };
 
-  const loadUserReviews = async () => {
-    if (!user) return;
-    try {
-      setLoadingReviews(true);
-      const [allReviews, allCareers] = await Promise.all([
-        getAllReviews(),
-        fetchCareers()
-      ]);
+  // Fetch Skills using React Query
+  const { data: enrichedSkills = [], isLoading: loadingSkills } = useQuery({
+    queryKey: ['user-skills', user?.id],
+    queryFn: getEnrichedSkills,
+    enabled: !!user,
+  });
 
-      const careerMap = new Map((allCareers as Career[]).map(c => [c.career_id, c.title]));
+  // Fetch Reviews using React Query
+  const { data: reviews = [], isLoading: loadingReviews } = useQuery({
+    queryKey: ['user-reviews', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      try {
+        const res = await reviewsApi.get("/", { params: { user_id: user.id } });
+        
+        // Handle nested data structures correctly
+        const rawData = res.data;
+        const userReviews = Array.isArray(rawData) 
+          ? rawData 
+          : (rawData?.data && Array.isArray(rawData.data) ? rawData.data : []);
+        
+        return userReviews.map((r: any) => {
+          // Robust mapping for both snake_case and camelCase
+          const reviewId = r.review_id || r.id;
+          const careerId = r.career_id || r.careerId;
+          const careerTitle = r.career_title || r.careerTitle || `Career #${careerId}`;
+          const commentText = r.comment || r.text || r.commentText || "";
+          const reviewDate = r.date || (r.created_at ? new Date(r.created_at).toLocaleDateString('th-TH') : "");
 
-      const userReviews = allReviews
-        .filter((r: any) => r.userId === user.id)
-        .map((r: any) => ({
-          id: String(r.id),
-          userId: r.userId,
-          rating: r.rating,
-          author: r.author,
-          text: r.comment,
-          date: r.date,
-          parentReviewId: r.parentReviewId,
-          career: careerMap.get(r.careerId) || `Career #${r.careerId}`,
-          careerPath: `/careers/${r.careerId}#review-${r.id}`
-        }));
+          return {
+            id: String(reviewId),
+            userId: r.user_id || r.userId,
+            rating: r.rating || 0,
+            author: r.author || userName,
+            text: commentText,
+            date: reviewDate,
+            parentReviewId: r.parent_review_id || r.parentReviewId,
+            career: careerTitle,
+            careerPath: `/careers/${careerId}#review-${reviewId}`
+          };
+        });
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
 
-      setReviews(userReviews);
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-      toast.error("Failed to load reviews");
-    } finally {
-      setLoadingReviews(false);
+  useEffect(() => {
+    if (profile) {
+      setUserName(profile.full_name || profile.username || "Guest");
+      setAvatarUrl(profile.avatar_url || "");
     }
-  };
+  }, [profile]);
 
-  if (authLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+  if (authLoading || (user && loadingReviews && reviews.length === 0)) {
+    return <ProfileSkeleton />;
   }
 
   const joinedDate = profile?.joined_at
@@ -120,9 +117,7 @@ const Profile = () => {
   const handleEditReview = async (id: string, text: string, rating: number) => {
     try {
       await updateReview(Number(id), { comment: text, rating });
-      setReviews((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, text, rating } : r))
-      );
+      queryClient.invalidateQueries({ queryKey: ['user-reviews', user?.id] });
       toast.success("Review updated successfully");
     } catch (error) {
       toast.error("Failed to update review");
@@ -132,7 +127,7 @@ const Profile = () => {
   const handleDeleteReview = async (id: string) => {
     try {
       await deleteReview(Number(id));
-      setReviews((prev) => prev.filter((r) => r.id !== id));
+      queryClient.invalidateQueries({ queryKey: ['user-reviews', user?.id] });
       toast.success("Review deleted successfully");
     } catch (error) {
       toast.error("Failed to delete review");
@@ -191,17 +186,11 @@ const Profile = () => {
               />
 
               {/* Reviews */}
-              {loadingReviews ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <MyReviews
-                  reviews={reviews.map(r => ({ ...r, author: userName }))}
-                  onEdit={handleEditReview}
-                  onDelete={handleDeleteReview}
-                />
-              )}
+              <MyReviews
+                reviews={reviews.map(r => ({ ...r, author: userName }))}
+                onEdit={handleEditReview}
+                onDelete={handleDeleteReview}
+              />
             </div>
           </div>
         </div>

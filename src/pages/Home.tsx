@@ -61,8 +61,6 @@ const Home = () => {
     });
   }, []);
 
-  const displayCareers = trendingCareers.length > 0 ? trendingCareers : careers.slice(0, 3);
-
   return (
     <OldThemeWrapper>
       <div className="min-h-screen bg-background pt-16">
@@ -183,9 +181,28 @@ const Home = () => {
             </button>
           </div>
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayCareers.map((career) => (
-              <CareerCard key={career.id} career={career} />
-            ))}
+            {trendingCareers.length > 0 ? (
+              trendingCareers.map((career) => (
+                <CareerCard key={career.id} career={career} />
+              ))
+            ) : (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm h-[400px]">
+                  <div className="aspect-[3/2] bg-muted animate-pulse" />
+                  <div className="p-5 space-y-4">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+                      <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                    </div>
+                    <div className="h-7 w-full bg-muted animate-pulse rounded" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                      <div className="h-4 w-2/3 bg-muted animate-pulse rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
 

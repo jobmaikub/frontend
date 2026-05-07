@@ -85,12 +85,12 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
                 key={skill.skill_id} 
                 onClick={() => toggleSkill(skill.skill_id)}
                 disabled={selectedSkillIds.length >= MAX_SKILLS && !selectedSkillIds.includes(skill.skill_id)}
-                className={`rounded-full border px-5 py-2.5 text-[16px] font-medium transition-all ${
+                className={`rounded-full border px-5 py-2.5 text-[16px] font-medium transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] ${
                   selectedSkillIds.includes(skill.skill_id)
-                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9]"
+                    ? "border-[#4A5DF9] bg-[#F0F4FF] text-[#4A5DF9] shadow-sm ring-1 ring-[#4A5DF9]/30"
                     : selectedSkillIds.length >= MAX_SKILLS
                       ? "border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed"
-                      : "border-gray-200 text-gray-700 bg-white hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
+                      : "border-gray-200 text-gray-700 bg-white shadow-sm hover:border-[#4A5DF9] hover:bg-[#F0F4FF] hover:text-[#4A5DF9]"
                 }`}
               >
                 {skill.name || skill.name_th}
@@ -121,20 +121,22 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
       <div className="mt-8 flex justify-between">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-3 text-[16px] font-medium text-gray-600 transition-colors hover:bg-gray-50 shadow-sm"
+          className="group flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-3 text-[16px] font-medium text-gray-600 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:bg-gray-50 active:scale-95 shadow-sm"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} className="transition-transform duration-300 group-hover:-translate-x-1" />
           Back
         </button>
         <button 
           onClick={() => selectedSkillIds.length > 0 && onNext(selectedSkillIds)}
           disabled={selectedSkillIds.length === 0}
-          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-opacity shadow-sm ${
-            selectedSkillIds.length > 0 ? "bg-[#4A5DF9] hover:opacity-90" : "bg-gray-300 cursor-not-allowed"
+          className={`group flex items-center gap-2 rounded-xl px-8 py-3 text-[16px] font-medium text-white transition-all duration-300 shadow-sm ${
+            selectedSkillIds.length > 0 
+              ? "bg-[#4A5DF9] hover:scale-[1.03] hover:shadow-lg hover:shadow-blue-200 active:scale-95" 
+              : "bg-gray-300 cursor-not-allowed opacity-70"
           }`}
         >
           Continue
-          <ArrowRight size={16} />
+          <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
         </button>
       </div>
     </>

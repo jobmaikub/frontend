@@ -12,9 +12,13 @@ import { fetchIndustriesFromDatabase } from "@/lib/news.service";
 
 
 
+import LearningPathSkeleton from "@/components/learning path/LearningPathSkeleton";
+
 export default function LearningPath() {
   const { user } = useAuth();
   const { careers } = useCareers();
+  const { careerId } = useParams();
+  const navigate = useNavigate();
 
   // Application States
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,9 +36,6 @@ export default function LearningPath() {
   const [isGrowthOpen, setIsGrowthOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
-
-  const { careerId } = useParams();
-  const navigate = useNavigate();
 
   // Fetch industries on mount
   useEffect(() => {
@@ -99,17 +100,7 @@ export default function LearningPath() {
   }, [user, careers]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen font-['Inter'] flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center bg-[#D5E3FF]/20">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-4 border-[#4A5DF9] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-500 font-medium">Loading your journey...</p>
-          </div>
-        </main>
-      </div>
-    );
+    return <LearningPathSkeleton isDetail={!!careerId} />;
   }
 
   return (
