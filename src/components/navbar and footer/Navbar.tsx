@@ -127,93 +127,106 @@ export function Navbar() {
 
       {/* Right Actions Section */}
       <div className="flex items-center gap-2 sm:gap-4">
-        <Link
-          to="/bookmark"
-          className={`p-2 rounded-md transition-colors ${location.pathname === "/bookmark"
-            ? "text-[#4A5DF9] bg-[#D5E3FF]/30"
-            : "text-muted-foreground hover:text-[#4A5DF9]"
-            }`}
-          aria-label="Bookmarks"
-        >
-          <Bookmark className="h-5 w-5" />
-        </Link>
+        {user ? (
+          <>
+            <Link
+              to="/bookmark"
+              className={`p-2 rounded-md transition-colors ${location.pathname === "/bookmark"
+                ? "text-[#4A5DF9] bg-[#D5E3FF]/30"
+                : "text-muted-foreground hover:text-[#4A5DF9]"
+                }`}
+              aria-label="Bookmarks"
+            >
+              <Bookmark className="h-5 w-5" />
+            </Link>
 
-        <DropdownMenu modal={false} onOpenChange={setIsDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-1 ml-2 cursor-pointer group outline-none">
-              <div className="h-9 w-9 rounded-full border border-[#D5E3FF] overflow-hidden bg-[#D5E3FF] flex items-center justify-center">
-                {profile?.avatar_url ? (
-                  <img
-                    key={profile.avatar_url}
-                    src={profile.avatar_url}
-                    alt={fullName}
-                    className="h-full w-full object-cover"
+            <DropdownMenu modal={false} onOpenChange={setIsDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-1 ml-2 cursor-pointer group outline-none">
+                  <div className="h-9 w-9 rounded-full border border-[#D5E3FF] overflow-hidden bg-[#D5E3FF] flex items-center justify-center">
+                    {profile?.avatar_url ? (
+                      <img
+                        key={profile.avatar_url}
+                        src={profile.avatar_url}
+                        alt={fullName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[#4A5DF9] font-bold text-sm">
+                        {userInitial}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
                   />
-                ) : (
-                  <span className="text-[#4A5DF9] font-bold text-sm">
-                    {userInitial}
-                  </span>
-                )}
-              </div>
-              <ChevronDown 
-                className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} 
-              />
-            </div>
-          </DropdownMenuTrigger>
+                </div>
+              </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-72 mt-2 bg-white" align="end">
-            <DropdownMenuLabel className="font-normal p-4">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-semibold text-black tracking-tight">{fullName}</p>
-                {userEmail && <p className="text-xs text-muted-foreground">{userEmail}</p>}
-              </div>
-            </DropdownMenuLabel>
+              <DropdownMenuContent className="w-72 mt-2 bg-white" align="end">
+                <DropdownMenuLabel className="font-normal p-4">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-semibold text-black tracking-tight">{fullName}</p>
+                    {userEmail && <p className="text-xs text-muted-foreground">{userEmail}</p>}
+                  </div>
+                </DropdownMenuLabel>
 
-            <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-            <div className="p-1 space-y-1">
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/profile"
-                  onMouseEnter={() => setHoveredItem('profile')}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  style={getStyle('profile')}
-                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
-                >
-                  <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
-                  <span className="text-sm font-medium">My Profile</span>
-                </Link>
-              </DropdownMenuItem>
-
-              {isAdmin && (
-                <>
+                <div className="p-1 space-y-1">
                   <DropdownMenuItem asChild>
                     <Link
-                      to="/admin/dashboard"
-                      onMouseEnter={() => setHoveredItem('admin')}
+                      to="/profile"
+                      onMouseEnter={() => setHoveredItem('profile')}
                       onMouseLeave={() => setHoveredItem(null)}
-                      style={getStyle('admin')}
+                      style={getStyle('profile')}
                       className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
                     >
-                      <Settings size={16} color={hoveredItem === 'admin' ? "#4A5DF9" : "#000000"} />
-                      <span className="text-sm font-medium">Admin Panel</span>
+                      <User size={16} color={hoveredItem === 'profile' ? "#4A5DF9" : "#000000"} />
+                      <span className="text-sm font-medium">My Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                </>
-              )}
 
-              <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to="/admin/dashboard"
+                          onMouseEnter={() => setHoveredItem('admin')}
+                          onMouseLeave={() => setHoveredItem(null)}
+                          style={getStyle('admin')}
+                          className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all outline-none"
+                        >
+                          <Settings size={16} color={hoveredItem === 'admin' ? "#4A5DF9" : "#000000"} />
+                          <span className="text-sm font-medium">Admin Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
 
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer text-[#EF4444] focus:bg-[#FEF2F2] hover:bg-[#FEF2F2] focus:text-[#EF4444] rounded-md transition-colors"
-              >
-                <LogOut size={16} />
-                <span className="text-sm font-medium">Logout</span>
-              </DropdownMenuItem>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer text-[#EF4444] focus:bg-[#FEF2F2] hover:bg-[#FEF2F2] focus:text-[#EF4444] rounded-md transition-colors"
+                  >
+                    <LogOut size={16} />
+                    <span className="text-sm font-medium">Logout</span>
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Link
+              to="/login"
+              className="px-6 py-2 rounded-xl text-sm font-bold bg-[#4A5DF9] text-white hover:bg-[#4A5DF9]/90 transition-all shadow-md shadow-[#4A5DF9]/10"
+            >
+              Login
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );
