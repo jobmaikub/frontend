@@ -18,7 +18,7 @@ import { fetchCareers } from "@/lib/careers.api";
 import { getNews } from "@/lib/news.api";
 import { getEnrichedSkills } from "@/lib/track_progress.api";
 import { reviewsApi } from "@/lib/reviews.api";
-import { useToast } from "@/hooks/use-toast";
+import Toast, { ToastType } from "../Toast";
 
 const navItems = [
   { name: "Home", path: "/home", icon: Home },
@@ -34,8 +34,7 @@ export function Navbar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile, signOut } = useAuth();
-  const { toast } = useToast();
-
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -43,14 +42,14 @@ export function Navbar() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('verified') === 'true') {
-      toast({
-        title: "Welcome! 🎉",
-        description: "Your email has been verified successfully. You are now logged in.",
+      setToast({
+        message: "Your email has been verified successfully. You are now logged in.",
+        type: "success"
       });
       // Clear URL params but keep the user on the current page
       navigate(location.pathname, { replace: true });
     }
-  }, [location.search, location.pathname, navigate, toast]);
+  }, [location.search, location.pathname, navigate]);
 
   const handlePrefetch = (item: any) => {
     if (item.prefetchFn && item.queryKey) {
@@ -92,6 +91,13 @@ export function Navbar() {
 
   return (
     <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-4 sm:px-8 lg:px-12 font-['Inter']">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       {/* Brand Section */}
       <div className="flex items-center gap-3">
         {/* Mobile Menu - Now Before Logo */}
