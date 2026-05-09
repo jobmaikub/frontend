@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, Bookmark, Settings, User, LogOut, Menu, Home, Briefcase, Newspaper, Sparkles, Map, LineChart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +18,7 @@ import { fetchCareers } from "@/lib/careers.api";
 import { getNews } from "@/lib/news.api";
 import { getEnrichedSkills } from "@/lib/track_progress.api";
 import { reviewsApi } from "@/lib/reviews.api";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { name: "Home", path: "/home", icon: Home },
@@ -33,9 +34,23 @@ export function Navbar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile, signOut } = useAuth();
+  const { toast } = useToast();
+
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('verified') === 'true') {
+      toast({
+        title: "Welcome! 🎉",
+        description: "Your email has been verified successfully. You are now logged in.",
+      });
+      // Clear URL params but keep the user on the current page
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.search, location.pathname, navigate, toast]);
 
   const handlePrefetch = (item: any) => {
     if (item.prefetchFn && item.queryKey) {
