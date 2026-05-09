@@ -52,7 +52,11 @@ export default function Login() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
+      // Check if we are in verification flow
+      const params = new URLSearchParams(window.location.search);
+      const isVerifiedFlow = params.get('verified') === 'true';
+
+      if (session?.user && !isVerifiedFlow) {
         navigate('/home', { replace: true });
       }
     });
