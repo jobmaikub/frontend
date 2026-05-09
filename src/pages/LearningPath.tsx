@@ -300,8 +300,9 @@ export default function LearningPath() {
                       ));
                     })()
                   ) : (
-                    <div className="col-span-3 text-center py-20 text-gray-500 text-[18px]">
-                      No learning paths match your filters.
+                    <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-20 text-gray-500 bg-white rounded-xl border border-gray-200 flex flex-col items-center gap-3">
+                      <BookOpen className="w-7 h-7 text-gray-400" />
+                      <p>No learning paths match your filters.</p>
                     </div>
                   )}
                 </div>

@@ -206,7 +206,7 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
             onClick={onBack}
             className="flex items-center gap-2 text-[14px] font-medium text-gray-600 hover:text-[#4A5DF9] transition-colors mb-6"
           >
-            <ArrowLeft size={16} /> Change Career
+            <ArrowLeft size={18} /> Back to Learning Paths
           </button>
 
           {/* Top Summary Content layout */}
@@ -278,7 +278,7 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
       {/* Interactive Timeline Section */}
       <div className="w-full max-w-[1000px] mx-auto px-6 pb-20">
         <div className="relative pl-4 md:pl-8">
-          <div className="absolute left-[2.4rem] md:left-[3.4rem] top-6 bottom-12 w-0.5 bg-gray-200 -z-10" />
+          <div className="absolute left-[2.45rem] md:left-[3.45rem] top-6 bottom-12 w-0.5 bg-white z-0" />
 
           {dynamicLevels.length > 0 ? dynamicLevels.map((level: any, index: number) => (
             <LevelAccordion

@@ -190,11 +190,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         console.log('📝 Creating new profile for user:', userId);
         const todayKey = toLocalDateKey(new Date());
+        
+        // Get full name from user metadata if available
+        const { data: sessionData } = await supabase.auth.getSession();
+        const fullName = sessionData.session?.user?.user_metadata?.full_name || '';
+
         const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
           .insert({
             id: userId,
             email,
+            full_name: fullName,
             current_streak: 1,
             last_streak_date: todayKey,
           })
@@ -212,6 +218,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         } else if (newProfile) {
           console.log('✅ New profile created:', newProfile);
+          
+          // Trigger welcome email via backend for first-time login (Manual or OAuth)
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+          fetch(`${API_URL}/otp/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, type: 'welcome' }),
+          }).catch(err => console.error('Error sending welcome email:', err));
+
           setProfile(newProfile);
         }
       }

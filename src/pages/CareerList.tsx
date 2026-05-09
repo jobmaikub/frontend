@@ -261,8 +261,9 @@ const CareerList = () => {
           )}
 
           {!loading && !error && filteredCareers.length === 0 && (
-            <div className="mt-12 text-center text-muted-foreground">
-              No careers found matching your criteria.
+            <div className="mt-12 text-center py-20 text-gray-500 bg-white rounded-xl border border-gray-200 flex flex-col items-center gap-3">
+              <Search className="w-7 h-7 text-gray-400" />
+              <p>No careers found matching your criteria.</p>
             </div>
           )}
         </div>

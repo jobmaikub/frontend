@@ -27,23 +27,35 @@ export default function Register() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email, 
+          password, 
           full_name: fullName,
-          role: 'user'
-        }
-      }
-    });
+          type: 'signup' 
+        }),
+      });
 
-    setLoading(false);
-    if (error) {
-      setToast({ message: `Error: ${error.message}`, type: 'error' });
-    } else if (data.user) {
-      setToast({ message: 'Account created! Please check your email to verify.', type: 'success' });
+      const data = await response.json();
+      setLoading(false);
+
+      if (!data.success) {
+        setToast({ message: data.error || 'Failed to create account', type: 'error' });
+        return;
+      }
+
+      setToast({ message: 'Account created! Please check your email for the verification link.', type: 'success' });
       setTimeout(() => navigate('/login'), 2000);
+    } catch (err) {
+      setLoading(false);
+      setToast({ 
+        message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`, 
+        type: 'error' 
+      });
     }
   };
 

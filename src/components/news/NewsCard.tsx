@@ -111,6 +111,19 @@ export default function NewsCard({
               {article.industries?.name || "News"}
             </span>
           </div>
+
+          {/* Bookmark Button Overlay */}
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); handleBookmarkClick(); }}
+              className={`flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all hover:scale-110 active:scale-95 ${isBookmarked ? "text-[#4A5DF9]" : "text-gray-400"} hover:text-[#4A5DF9]`}
+              aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+              disabled={isMutating}
+            >
+              <Bookmark className="w-5 h-5" fill={isBookmarked ? "currentColor" : "none"} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -119,15 +132,6 @@ export default function NewsCard({
             <h3 className="text-lg font-bold text-gray-900 line-clamp-2 transition-colors">
               {article.title}
             </h3>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); handleBookmarkClick(); }}
-              className={`${isBookmarked ? "text-[#4A5DF9]" : "text-gray-400"} hover:text-[#4A5DF9] transition-colors mt-1 flex-shrink-0`}
-              aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-              disabled={isMutating}
-            >
-              <Bookmark className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} />
-            </button>
           </div>
 
           <div className="flex-grow mb-6 overflow-hidden">

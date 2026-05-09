@@ -157,9 +157,9 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
         {/* Back Button - Now positioned directly above the cards so it stays close! */}
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-[15px] font-medium text-white hover:text-gray-200 transition-colors mb-6"
+          className="flex items-center gap-2 text-[14px] font-medium text-white hover:text-gray-200 transition-colors mb-6"
         >
-          <ArrowLeft size={18} /> Back To Learning Path
+          <ArrowLeft size={18} /> Back to Roadmap
         </button>
 
         <div className="flex flex-col lg:flex-row gap-8">
