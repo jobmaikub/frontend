@@ -52,11 +52,7 @@ export default function Login() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      // Check if we are in verification flow
-      const params = new URLSearchParams(window.location.search);
-      const isVerifiedFlow = params.get('verified') === 'true';
-
-      if (session?.user && !isVerifiedFlow) {
+      if (session?.user) {
         navigate('/home', { replace: true });
       }
     });
@@ -66,16 +62,6 @@ export default function Login() {
     };
   }, [location.search, navigate]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('verified') === 'true') {
-      setToast({ message: 'Email verified successfully! You can now sign in.', type: 'success' });
-      // Sign out to ensure they stay on login page for manual entry
-      supabase.auth.signOut();
-      // Clear URL params
-      navigate('/login', { replace: true });
-    }
-  }, [location.search, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -15,6 +15,8 @@ import { useCareers } from '@/hooks/useCareers';
 import heroImage from '@/assets/hero-career.jpg';
 import { Navbar } from '@/components/navbar and footer/Navbar';
 import { Footer } from '@/components/navbar and footer/Footer';
+import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
 
 const journeySteps = [
   {
@@ -51,6 +53,8 @@ const journeySteps = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
   const { careers } = useCareers();
   const [trendingCareers, setTrendingCareers] = useState<Career[]>([]);
 
@@ -60,6 +64,18 @@ const Home = () => {
       fetchTrendingCareers().then(setTrendingCareers);
     });
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('verified') === 'true') {
+      toast({
+        title: "Welcome! 🎉",
+        description: "Your email has been verified successfully. You are now logged in.",
+      });
+      // Clear URL params
+      navigate('/home', { replace: true });
+    }
+  }, [location.search, navigate, toast]);
 
   return (
     <OldThemeWrapper>

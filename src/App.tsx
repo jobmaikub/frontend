@@ -35,6 +35,7 @@ const CareerDetail = lazy(() => import("./pages/CareerDetail"));
 const Profile = lazy(() => import("./pages/Profile"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
               {/* User-facing Routes - Public */}
               <Route path="/" element={<Navigate to="/home" replace />} />
