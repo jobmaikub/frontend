@@ -114,8 +114,8 @@ export function AddCareerSheet({
     !formData.growth_rate;
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent aria-describedby={undefined} className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader>
           <SheetTitle>Add Career</SheetTitle>
         </SheetHeader>
@@ -147,7 +147,7 @@ export function AddCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="industry_id">Industry <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.industry_id ? formData.industry_id.toString() : ""}
               onValueChange={(value) =>
                 setFormData({ ...formData, industry_id: Number(value) })
@@ -168,7 +168,7 @@ export function AddCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="major_id">Major <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.major_id ? formData.major_id.toString() : ""}
               onValueChange={(value) =>
                 setFormData({
@@ -217,7 +217,7 @@ export function AddCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="growth_rate">Growth Rate <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.growth_rate}
               onValueChange={(value) =>
                 setFormData({ ...formData, growth_rate: value as "1" | "2" | "3" })
@@ -330,7 +330,7 @@ export function AddCareerSheet({
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white border-none shadow-sm">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white shadow-sm">
               Create
             </Button>
           </div>

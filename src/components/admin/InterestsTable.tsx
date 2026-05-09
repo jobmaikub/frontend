@@ -172,7 +172,7 @@ export function InterestsTable() {
       <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Interest Name</TableHead>
               <TableHead className="text-white font-semibold text-center w-[100px]">
                 Edit
@@ -264,17 +264,8 @@ export function InterestsTable() {
           </div>
         )}
       </div>
-
-      {/* Custom Backdrop Overlay */}
-      {interestToDelete !== null && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={() => setInterestToDelete(null)}
-        />
-      )}
-
-      <Dialog modal={false} open={interestToDelete !== null} onOpenChange={(open) => !open && setInterestToDelete(null)}>
-        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog open={interestToDelete !== null} onOpenChange={(open) => !open && setInterestToDelete(null)}>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -302,4 +293,8 @@ export function InterestsTable() {
     </div>
   );
 }
+
+
+
+
 

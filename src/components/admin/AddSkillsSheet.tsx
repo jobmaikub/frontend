@@ -54,8 +54,8 @@ export function AddSkillsSheet({
   };
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">Add New Skill</SheetTitle>
         </SheetHeader>

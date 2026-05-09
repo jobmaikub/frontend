@@ -228,11 +228,11 @@ export function CareersTable() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Career</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Career</h1>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative w-full sm:w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search..."
@@ -241,11 +241,11 @@ export function CareersTable() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-[200px] pl-9 bg-[#FFFFFF]"
+              className="w-full pl-9 bg-[#FFFFFF]"
             />
           </div>
           <Button
-            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
+            className="w-full sm:w-auto gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white shadow-sm"
             onClick={() => setIsAddSheetOpen(true)}
           >
             <Plus className="h-4 w-4" />
@@ -275,10 +275,10 @@ export function CareersTable() {
         interests={interests}
       />
 
-      <div className="overflow-hidden rounded-lg border bg-white">
-        <Table>
+      <div className="overflow-x-auto rounded-lg border bg-white">
+        <Table className="min-w-[900px] lg:min-w-full">
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Image</TableHead>
               <TableHead className="text-white font-semibold">Career Name</TableHead>
               <TableHead className="text-white font-semibold">Industry</TableHead>
@@ -404,16 +404,8 @@ export function CareersTable() {
         )}
       </div>
 
-      {/* Custom Backdrop Overlay */}
-      {careerToDelete !== null && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={() => setCareerToDelete(null)}
-        />
-      )}
-
-      <Dialog modal={false} open={careerToDelete !== null} onOpenChange={(open) => !open && setCareerToDelete(null)}>
-        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog open={careerToDelete !== null} onOpenChange={(open) => !open && setCareerToDelete(null)}>
+        <DialogContent className="z-50 bg-white">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -441,4 +433,8 @@ export function CareersTable() {
     </div>
   );
 }
+
+
+
+
 

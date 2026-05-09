@@ -174,7 +174,7 @@ export function SkillsTable() {
       <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Skill Name</TableHead>
               <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
               <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
@@ -262,17 +262,8 @@ export function SkillsTable() {
           </div>
         )}
       </div>
-
-      {/* Custom Backdrop Overlay */}
-      {skillToDelete !== null && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={() => setSkillToDelete(null)}
-        />
-      )}
-
-      <Dialog modal={false} open={skillToDelete !== null} onOpenChange={(open) => !open && setSkillToDelete(null)}>
-        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog open={skillToDelete !== null} onOpenChange={(open) => !open && setSkillToDelete(null)}>
+        <DialogContent className="z-50 bg-white">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -300,4 +291,8 @@ export function SkillsTable() {
     </div>
   );
 }
+
+
+
+
 

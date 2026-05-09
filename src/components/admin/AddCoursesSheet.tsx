@@ -88,8 +88,8 @@ export function AddCoursesSheet({
   };
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">Add New Course</SheetTitle>
         </SheetHeader>
@@ -121,7 +121,7 @@ export function AddCoursesSheet({
 
           <div className="space-y-2">
             <Label htmlFor="career_id">Career Path <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.career_id ? formData.career_id.toString() : ""}
               onValueChange={(v) => {
                 const selectedCareer = careers.find((career) => career.career_id === Number(v));
@@ -159,7 +159,7 @@ export function AddCoursesSheet({
 
           <div className="space-y-2">
             <Label>Level <span className="text-destructive">*</span></Label>
-            <Select modal={false} value={formData.level} onValueChange={(v: any) => setFormData({ ...formData, level: v })}>
+            <Select value={formData.level} onValueChange={(v: any) => setFormData({ ...formData, level: v })}>
               <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select Level" />
               </SelectTrigger>

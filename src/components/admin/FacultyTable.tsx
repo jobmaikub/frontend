@@ -163,7 +163,7 @@ export function FacultyTable() {
       <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Faculty Name</TableHead>
               <TableHead className="text-white font-semibold text-center w-[100px]">Edit</TableHead>
               <TableHead className="text-white font-semibold text-center w-[100px]">Delete</TableHead>
@@ -250,17 +250,8 @@ export function FacultyTable() {
           </div>
         )}
       </div>
-
-      {/* Custom Backdrop Overlay */}
-      {facultyToDelete !== null && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={() => setFacultyToDelete(null)}
-        />
-      )}
-
-      <Dialog modal={false} open={facultyToDelete !== null} onOpenChange={(open) => !open && setFacultyToDelete(null)}>
-        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog open={facultyToDelete !== null} onOpenChange={(open) => !open && setFacultyToDelete(null)}>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -288,4 +279,8 @@ export function FacultyTable() {
     </div>
   );
 }
+
+
+
+
 

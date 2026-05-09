@@ -63,7 +63,7 @@ export function NewsTable() {
     (item) => {
       const searchLower = searchQuery.toLowerCase();
       const itemDate = (item.created_at || item.date || "").split("T")[0]; // Extract YYYY-MM-DD
-      
+
       return (
         item.title.toLowerCase().includes(searchLower) ||
         item.industries?.name?.toLowerCase().includes(searchLower) ||
@@ -125,9 +125,9 @@ export function NewsTable() {
       ...created,
       industries: created.industries || (createdIndustryName
         ? {
-            industry_id: created.industry_id ?? data.industry_id ?? 0,
-            name: createdIndustryName,
-          }
+          industry_id: created.industry_id ?? data.industry_id ?? 0,
+          name: createdIndustryName,
+        }
         : undefined),
     };
 
@@ -151,14 +151,14 @@ export function NewsTable() {
       prev.map((n) =>
         n.news_id === result.news_id
           ? {
-              ...result,
-              industries: result.industries || (updatedIndustryName
-                ? {
-                    industry_id: result.industry_id ?? data.industry_id ?? 0,
-                    name: updatedIndustryName,
-                  }
-                : n.industries),
-            }
+            ...result,
+            industries: result.industries || (updatedIndustryName
+              ? {
+                industry_id: result.industry_id ?? data.industry_id ?? 0,
+                name: updatedIndustryName,
+              }
+              : n.industries),
+          }
           : n
       )
     );
@@ -219,7 +219,7 @@ export function NewsTable() {
       <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Image</TableHead>
               <TableHead className="text-white font-semibold">News Name</TableHead>
               <TableHead className="text-white font-semibold">Industry</TableHead>
@@ -252,53 +252,53 @@ export function NewsTable() {
               </TableRow>
             ) : (
               paginatedNews.map((item) => (
-              <TableRow key={item.news_id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
-                <TableCell>
-                  <img
-                    src={item.image_url}
-                    className="h-12 w-20 rounded object-cover"
-                  />
-                </TableCell>
+                <TableRow key={item.news_id} className="bg-[#FFFFFF] hover:bg-[#F9FAFB] transition-colors border-b">
+                  <TableCell>
+                    <img
+                      src={item.image_url}
+                      className="h-12 w-20 rounded object-cover"
+                    />
+                  </TableCell>
 
-                <TableCell className="font-medium text-foreground">
-                  {item.title}
-                </TableCell>
+                  <TableCell className="font-medium text-foreground">
+                    {item.title}
+                  </TableCell>
 
-                <TableCell className="text-muted-foreground font-medium">
-                  {item.industries?.name || "N/A"}
-                </TableCell>
+                  <TableCell className="text-muted-foreground font-medium">
+                    {item.industries?.name || "N/A"}
+                  </TableCell>
 
-                <TableCell className="text-foreground min-w-[120px]">
-                  {(item.created_at || item.date) ? new Date(item.created_at || item.date || "").toLocaleDateString('sv-SE') : "N/A"}
-                </TableCell>
+                  <TableCell className="text-foreground min-w-[120px]">
+                    {(item.created_at || item.date) ? new Date(item.created_at || item.date || "").toLocaleDateString('sv-SE') : "N/A"}
+                  </TableCell>
 
-                <TableCell className="text-muted-foreground">
-                  {item.source_name}
-                </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {item.source_name}
+                  </TableCell>
 
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
-                    onClick={() => handleEditClick(item)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-slate-600 hover:text-[#4A5DF9] hover:bg-transparent"
+                      onClick={() => handleEditClick(item)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
 
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:bg-transparent hover:text-destructive"
-                    onClick={() => setNewsToDelete(item.news_id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:bg-transparent hover:text-destructive"
+                      onClick={() => setNewsToDelete(item.news_id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
@@ -337,17 +337,8 @@ export function NewsTable() {
           </div>
         )}
       </div>
-
-      {/* Custom Backdrop Overlay */}
-      {newsToDelete !== null && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={() => setNewsToDelete(null)}
-        />
-      )}
-
-      <Dialog modal={false} open={newsToDelete !== null} onOpenChange={(open) => !open && setNewsToDelete(null)}>
-        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog open={newsToDelete !== null} onOpenChange={(open) => !open && setNewsToDelete(null)}>
+        <DialogContent className="z-50 bg-white">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -375,4 +366,8 @@ export function NewsTable() {
     </div>
   );
 }
+
+
+
+
 

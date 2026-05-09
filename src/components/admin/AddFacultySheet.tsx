@@ -34,8 +34,8 @@ export function AddFacultySheet({ open, onOpenChange, onSubmit }: AddFacultyShee
   };
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">Add New Faculty</SheetTitle>
         </SheetHeader>
@@ -73,7 +73,7 @@ export function AddFacultySheet({ open, onOpenChange, onSubmit }: AddFacultyShee
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white border-none">
+            <Button type="submit" className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white">
               Create
             </Button>
           </div>

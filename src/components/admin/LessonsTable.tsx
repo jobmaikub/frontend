@@ -143,7 +143,7 @@ export function LessonsTable() {
             />
           </div>
           <Button
-            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white border-none shadow-sm"
+            className="gap-2 bg-[#4A5DF9] hover:bg-[#4A5DF9]/90 text-white shadow-sm"
             onClick={() => setIsAddSheetOpen(true)}
           >
             <Plus className="h-4 w-4" />
@@ -168,7 +168,7 @@ export function LessonsTable() {
       <div className="overflow-hidden rounded-lg border bg-white">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Lesson Name</TableHead>
               <TableHead className="text-white font-semibold">Course</TableHead>
               <TableHead className="text-white font-semibold text-center">Order</TableHead>
@@ -266,17 +266,8 @@ export function LessonsTable() {
           </div>
         )}
       </div>
-
-      {/* Custom Backdrop Overlay */}
-      {lessonToDelete !== null && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={() => setLessonToDelete(null)}
-        />
-      )}
-
-      <Dialog modal={false} open={lessonToDelete !== null} onOpenChange={(open) => !open && setLessonToDelete(null)}>
-        <DialogContent className="z-50 bg-white" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog open={lessonToDelete !== null} onOpenChange={(open) => !open && setLessonToDelete(null)}>
+        <DialogContent className="z-50 bg-white">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -304,4 +295,8 @@ export function LessonsTable() {
     </div>
   );
 }
+
+
+
+
 

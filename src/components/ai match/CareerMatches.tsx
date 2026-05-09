@@ -11,29 +11,29 @@ const HeaderScene = ({ opacity = 1, isZoomed = false }: { opacity?: number; isZo
   <div className="relative w-full max-w-lg flex items-center justify-center h-48" style={{ opacity }}>
     {/* Side Node 1 - The User */}
     <div className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2">
-       <div className={`${!isZoomed ? "animate-float" : ""}`}>
-          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-100 opacity-60 ${!isZoomed ? "shadow-md" : ""}`}>
-             <User size={28} className="text-[#4A5DF9]" />
-          </div>
-       </div>
+      <div className={`${!isZoomed ? "animate-float" : ""}`}>
+        <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-100 opacity-60 ${!isZoomed ? "shadow-md" : ""}`}>
+          <User size={28} className="text-[#4A5DF9]" />
+        </div>
+      </div>
     </div>
 
     {/* Main Visual: Central Career Card */}
     <div className="relative z-10">
-       <div className={`${!isZoomed ? "animate-float" : ""}`} style={{ animationDelay: '0.5s' }}>
-          <div className={`flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white border border-gray-100 ${!isZoomed ? "shadow-xl" : ""}`}>
-             <Briefcase size={48} className="text-[#4A5DF9]" />
-          </div>
-       </div>
+      <div className={`${!isZoomed ? "animate-float" : ""}`} style={{ animationDelay: '0.5s' }}>
+        <div className={`flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white border border-gray-100 ${!isZoomed ? "shadow-xl" : ""}`}>
+          <Briefcase size={48} className="text-[#4A5DF9]" />
+        </div>
+      </div>
     </div>
 
     {/* Side Node 2 - The Result */}
     <div className="absolute right-8 md:right-16 top-1/2 -translate-y-1/2">
-       <div className={`${!isZoomed ? "animate-float" : ""}`} style={{ animationDelay: '2s' }}>
-          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-100 opacity-60 ${!isZoomed ? "shadow-md" : ""}`}>
-             <Star size={28} className="text-yellow-400" />
-          </div>
-       </div>
+      <div className={`${!isZoomed ? "animate-float" : ""}`} style={{ animationDelay: '2s' }}>
+        <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-100 opacity-60 ${!isZoomed ? "shadow-md" : ""}`}>
+          <Star size={28} className="text-yellow-400" />
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -55,41 +55,41 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
         <div className="relative w-full max-w-2xl h-48 mt-4 flex items-center justify-center">
           {/* Layer 1: The Background Scene */}
           <div className="absolute inset-0 flex items-center justify-center">
-             <HeaderScene />
+            <HeaderScene />
           </div>
 
           {/* Layer 2: The Magnifier Frame & Zoom */}
           <div className="absolute inset-0 z-30 animate-scan-wide pointer-events-none flex items-center justify-center">
-             <div className="relative flex flex-col items-center">
-                {/* The Lens Rim */}
-                <div className="w-24 h-24 rounded-full border-[6px] border-gray-900 shadow-2xl relative flex items-center justify-center overflow-hidden bg-[#f8faff]">
-                   
-                   {/* The Internal Zoomed Scene - Perfectly aligned at 2.0x */}
-                   <div className="absolute inset-0 animate-scan-reverse flex items-center justify-center">
-                      <div className="scale-[2.0] w-[512px] flex items-center justify-center">
-                         <HeaderScene isZoomed={true} />
-                      </div>
-                   </div>
+            <div className="relative flex flex-col items-center">
+              {/* The Lens Rim */}
+              <div className="w-24 h-24 rounded-full border-[6px] border-gray-900 shadow-2xl relative flex items-center justify-center overflow-hidden bg-[#f8faff]">
+
+                {/* The Internal Zoomed Scene - Perfectly aligned at 2.0x */}
+                <div className="absolute inset-0 animate-scan-reverse flex items-center justify-center">
+                  <div className="scale-[2.0] w-[512px] flex items-center justify-center">
+                    <HeaderScene isZoomed={true} />
+                  </div>
                 </div>
-                
-                {/* Realistic Handle */}
-                <div className="relative flex flex-col items-center -mt-1">
-                   <div className="w-6 h-2 bg-gray-700 rounded-full shadow-sm z-10"></div>
-                   <div className="w-4 h-12 bg-gray-900 rounded-b-2xl shadow-xl -mt-1"></div>
-                </div>
-             </div>
+              </div>
+
+              {/* Realistic Handle */}
+              <div className="relative flex flex-col items-center -mt-1">
+                <div className="w-6 h-2 bg-gray-700 rounded-full shadow-sm z-10"></div>
+                <div className="w-4 h-12 bg-gray-900 rounded-b-2xl shadow-xl -mt-1"></div>
+              </div>
+            </div>
           </div>
         </div>
-          
+
         {/* Atmosphere Glow */}
         <div className="absolute inset-0 bg-[#4A5DF9]/5 blur-[80px] animate-pulse -z-10"></div>
 
         <div className="mt-8">
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">
-             Found Your Matches
+            Found Your Matches
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl font-medium leading-relaxed px-6">
-             Our AI has scanned the industry to identify the perfect career paths for your unique profile.
+            Our AI has scanned the industry to identify the perfect career paths for your unique profile.
           </p>
         </div>
       </div>
@@ -97,15 +97,18 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
       {/* Career Cards List */}
       <div className="w-full flex flex-col gap-8">
         {matches && Array.isArray(matches) && matches.map((match, index) => (
-          <div key={index} className="flex flex-col md:flex-row w-full rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm gap-8">
+          <div key={index} className="flex flex-col md:flex-row items-start w-full rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm gap-8">
 
-            {/* 1. Left Image */}
-            <div className="w-full md:w-[340px] shrink-0">
-              <div className="w-full aspect-square md:aspect-auto md:h-full rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
+            {/* 1. Left Image - Compact & Cropped */}
+            <div className="w-full md:w-[320px] flex-shrink-0">
+              <div className="w-full aspect-[4/3] md:h-[280px] rounded-2xl overflow-hidden bg-gray-50 border border-gray-50">
                 {match.image_url ? (
                   <img src={match.image_url} alt={match.title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
                 ) : (
-                  <span className="text-gray-400">No Image</span>
+                  <div className="flex h-full flex-col items-center justify-center gap-2">
+                    <Briefcase size={40} className="text-gray-200" />
+                    <span className="text-gray-400 text-xs font-medium">No Career Image</span>
+                  </div>
                 )}
               </div>
             </div>

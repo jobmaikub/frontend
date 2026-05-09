@@ -52,8 +52,10 @@ export function UsersTable() {
   const [, setError] = useState<string | null>(null);
 
   // State for side sheets
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isRoleSelectOpen, setIsRoleSelectOpen] = useState(false);
+  const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusSort, setStatusSort] = useState<"" | "active-first" | "banned-first">("");
   const [roleSort, setRoleSort] = useState<"" | "admin-first" | "user-first">("");
@@ -205,11 +207,11 @@ export function UsersTable() {
   return (
     <div className="space-y-6">
       {/* Header section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Users</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Users</h1>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative w-full sm:w-[250px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search..."
@@ -218,40 +220,47 @@ export function UsersTable() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-[250px] pl-9 bg-[#FFFFFF]"
+              className="w-full h-11 pl-10 bg-white rounded-xl border-gray-200 shadow-sm focus-visible:ring-1 focus-visible:ring-[#4A5DF9] focus-visible:border-[#4A5DF9]"
             />
           </div>
-          <Select modal={false}
-            value={roleSort}
-            onValueChange={(value: "admin-first" | "user-first") => {
-              setRoleSort(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[170px] bg-[#FFFFFF]">
-              <SelectValue placeholder="Select Role" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#FFFFFF]">
-              <SelectItem value="admin-first">Admin First</SelectItem>
-              <SelectItem value="user-first">User First</SelectItem>
-            </SelectContent>
-          </Select>
 
-          <Select modal={false}
-            value={statusSort}
-            onValueChange={(value: "active-first" | "banned-first") => {
-              setStatusSort(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[180px] bg-[#FFFFFF]">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#FFFFFF]">
-              <SelectItem value="banned-first">Banned First</SelectItem>
-              <SelectItem value="active-first">Active First</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Select
+              open={isRoleSelectOpen}
+              onOpenChange={setIsRoleSelectOpen}
+              value={roleSort}
+              onValueChange={(value: "admin-first" | "user-first") => {
+                setRoleSort(value);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="flex-1 sm:w-[140px] bg-[#FFFFFF]">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#FFFFFF]">
+                <SelectItem value="admin-first">Admin First</SelectItem>
+                <SelectItem value="user-first">User First</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              open={isStatusSelectOpen}
+              onOpenChange={setIsStatusSelectOpen}
+              value={statusSort}
+              onValueChange={(value: "active-first" | "banned-first") => {
+                setStatusSort(value);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="flex-1 sm:w-[150px] bg-[#FFFFFF]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#FFFFFF]">
+                <SelectItem value="banned-first">Banned First</SelectItem>
+                <SelectItem value="active-first">Active First</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -264,10 +273,10 @@ export function UsersTable() {
       />
 
       {/* Main Table section */}
-      <div className="overflow-hidden rounded-lg border border-border shadow-sm">
-        <Table>
+      <div className="overflow-x-auto rounded-lg border border-border shadow-sm">
+        <Table className="min-w-[800px] lg:min-w-full">
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">User ID</TableHead>
               <TableHead className="text-white font-semibold">Fullname</TableHead>
               <TableHead className="text-white font-semibold">Email</TableHead>
@@ -369,3 +378,6 @@ export function UsersTable() {
     </div>
   );
 }
+
+
+

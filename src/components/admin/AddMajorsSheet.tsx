@@ -60,8 +60,8 @@ export function AddMajorsSheet({
   };
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-semibold">
             Add New Major
@@ -105,7 +105,7 @@ export function AddMajorsSheet({
             <Label>
               Faculty <span className="text-destructive">*</span>
             </Label>
-            <Select modal={false}
+            <Select
               value={
                 formData.faculty_id
                   ? formData.faculty_id.toString()
@@ -147,7 +147,7 @@ export function AddMajorsSheet({
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white border-none shadow-sm"
+              className="flex-1 bg-[#4A5DF9] hover:bg-[#3945CC] text-white shadow-sm"
             >
               Create
             </Button>

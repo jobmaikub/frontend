@@ -164,8 +164,8 @@ export function EditCareerSheet({
     !formData.growth_rate;
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent aria-describedby={undefined} className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent aria-describedby={undefined} className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader>
           <SheetTitle>Edit Career</SheetTitle>
         </SheetHeader>
@@ -195,7 +195,7 @@ export function EditCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-industry_id">Industry <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.industry_id ? formData.industry_id.toString() : ""}
               onValueChange={(value) =>
                 setFormData({ ...formData, industry_id: Number(value) })
@@ -216,7 +216,7 @@ export function EditCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-major_id">Major <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.major_id ? formData.major_id.toString() : ""}
               onValueChange={(value) =>
                 setFormData({
@@ -265,7 +265,7 @@ export function EditCareerSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-growth_rate">Growth Rate <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.growth_rate ? String(formData.growth_rate) : ""}
               onValueChange={(value) => setFormData({ ...formData, growth_rate: value })}
               required

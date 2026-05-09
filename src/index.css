@@ -183,12 +183,14 @@ All colors MUST be HSL.
 */
 html {
   overflow-y: scroll !important;
+  scrollbar-gutter: stable !important;
 }
 
 body {
   /* Prevent Radix from adding padding to the body */
   padding-right: 0 !important;
   margin-right: 0 !important;
+  width: 100% !important;
 }
 
 /* Neutralize Radix internal scrollbar size calculation */
@@ -196,8 +198,39 @@ body {
   --removed-body-scroll-bar-size: 0px !important;
 }
 
+/* Force body to keep scrollbar even when Radix tries to hide it */
+body[data-scroll-locked] {
+  overflow-y: scroll !important;
+  padding-right: 0 !important;
+}
 
+/* Admin Table Header Fix - Aggressively remove vertical lines */
+.admin-table-header {
+  background-color: #4A5DF9 !important;
+  border: 0 !important;
+  border-spacing: 0 !important;
+  border-collapse: collapse !important;
+}
 
+.admin-table-header th {
+  border: 0 !important;
+  border-width: 0 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px #4A5DF9 !important; /* Fills sub-pixel gaps */
+  background-color: #4A5DF9 !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* Force all tables to collapse to prevent gaps */
+table {
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+}
+
+thead, tbody, tr, th, td {
+  border-color: inherit;
+}
 
 .profile-theme {
   --background: 230 25% 95%;

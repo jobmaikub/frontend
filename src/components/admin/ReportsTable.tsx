@@ -44,6 +44,7 @@ export function ReportsTable() {
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
   const { user: authUser } = useAuth();
   const itemsPerPage = 10;
 
@@ -226,11 +227,11 @@ export function ReportsTable() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Reports</h1>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative w-full sm:w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search..."
@@ -239,25 +240,33 @@ export function ReportsTable() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-[200px] pl-9 bg-[#FFFFFF]"
+              className="w-full h-11 pl-10 bg-white rounded-xl border-gray-200 shadow-sm focus-visible:ring-1 focus-visible:ring-[#4A5DF9] focus-visible:border-[#4A5DF9]"
             />
           </div>
-          <Select modal={false} value={statusSort === "all" ? undefined : statusSort} onValueChange={(value: "all" | "pending-first" | "resolved-first") => setStatusSort(value)}>
-            <SelectTrigger className="w-[170px] bg-[#FFFFFF]">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#FFFFFF]">
-              <SelectItem value="pending-first">Pending First</SelectItem>
-              <SelectItem value="resolved-first">Resolved First</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Select
+              open={isStatusSelectOpen}
+              onOpenChange={setIsStatusSelectOpen}
+              value={statusSort === "all" ? undefined : statusSort}
+              onValueChange={(value: "all" | "pending-first" | "resolved-first") => setStatusSort(value)}
+            >
+              <SelectTrigger className="w-full sm:w-[170px] bg-[#FFFFFF]">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#FFFFFF]">
+                <SelectItem value="pending-first">Pending First</SelectItem>
+                <SelectItem value="resolved-first">Resolved First</SelectItem>
+                <SelectItem value="all">All Reports</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border bg-white">
-        <Table>
+      <div className="overflow-x-auto rounded-lg border bg-white">
+        <Table className="min-w-[1000px] lg:min-w-full">
           <TableHeader>
-            <TableRow className="bg-[#4A5DF9] hover:bg-[#4A5DF9]">
+            <TableRow className="admin-table-header hover:bg-[#4A5DF9]">
               <TableHead className="text-white font-semibold">Report ID</TableHead>
               <TableHead className="text-white font-semibold">Reporter ID</TableHead>
               <TableHead className="text-white font-semibold">Offender ID</TableHead>
@@ -355,8 +364,9 @@ export function ReportsTable() {
         )}
       </div>
 
-      <Sheet modal={false} open={isResolveSheetOpen} onOpenChange={handleCloseResolveSheet}>
-        <SheetContent className="w-[420px] sm:w-[560px] overflow-y-auto bg-white border-l shadow-xl">
+      {/* Side Sheet Components */}
+      <Sheet open={isResolveSheetOpen} onOpenChange={handleCloseResolveSheet}>
+        <SheetContent className="w-full sm:w-[560px] overflow-y-auto bg-white border-l shadow-xl">
           <SheetHeader className="mb-6">
             <SheetTitle className="text-xl font-semibold">Resolve Report + Ban User</SheetTitle>
           </SheetHeader>
@@ -484,6 +494,7 @@ export function ReportsTable() {
                 </div>
               </div>
 
+
               <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
@@ -508,3 +519,7 @@ export function ReportsTable() {
     </div>
   );
 }
+
+
+
+

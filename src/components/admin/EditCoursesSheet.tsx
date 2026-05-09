@@ -102,8 +102,8 @@ export function EditCoursesSheet({
   };
 
   return (
-    <Sheet modal={false} open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto bg-white">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:w-[540px] overflow-y-auto bg-white">
         <SheetHeader className="mb-6">
           <SheetTitle>Edit Course</SheetTitle>
           <SheetDescription className="sr-only">
@@ -140,7 +140,7 @@ export function EditCoursesSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-career_id">Career Path <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.career_id ? String(formData.career_id) : ""}
               onValueChange={(v) => {
                 const selectedCareer = careers.find((career) => career.career_id === Number(v));
@@ -182,7 +182,7 @@ export function EditCoursesSheet({
 
           <div className="space-y-2">
             <Label htmlFor="edit-level">Level <span className="text-destructive">*</span></Label>
-            <Select modal={false}
+            <Select
               value={formData.level ?? "beginner"}
               onValueChange={(v: CourseLevel) =>
                 setFormData({ ...formData, level: v })
