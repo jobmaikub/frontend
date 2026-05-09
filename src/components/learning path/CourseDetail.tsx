@@ -42,7 +42,7 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
         setCheckedLessons(initialCheckedState);
       })
       .catch(console.error);
-  }, [course]);
+  }, [course?.id, user?.id]);
 
   const allLessonsExist = lessons && lessons.length > 0;
   const isCourseFinished = allLessonsExist &&

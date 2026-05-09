@@ -95,7 +95,10 @@ const CareerDetail = () => {
         setCheckingPath(false);
         return;
       }
-      setCheckingPath(true);
+      
+      // Only show pulse if we don't know the status yet
+      if (!hasStarted && progress === 0) setCheckingPath(true);
+      
       try {
         const res = await learningPathApi.getAll(user.id);
         const matchedPath = res.data.find((path: any) => String(path.id) === String(career.id) || String(path.career_id) === String(career.id));
@@ -113,7 +116,7 @@ const CareerDetail = () => {
       }
     };
     checkPathStatus();
-  }, [user, career]);
+  }, [user?.id, career?.id]);
 
   // Fetch industry news from database
   useEffect(() => {

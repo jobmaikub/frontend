@@ -62,7 +62,9 @@ export default function LearningPath() {
   const fetchPaths = (showLoading = true) => {
     if (!user || careers.length === 0) return;
 
-    if (showLoading) setLoading(true);
+    // Only show loading if explicitly requested or if we don't have data yet
+    if (showLoading && learningPaths.length === 0) setLoading(true);
+    
     learningPathApi.getAll(user.id)
       .then((res) => {
         const mapped = res.data.map((item: any) => {
@@ -91,13 +93,14 @@ export default function LearningPath() {
       })
       .catch(console.error)
       .finally(() => {
-        if (showLoading) setLoading(false);
+        setLoading(false);
       });
   };
 
   useEffect(() => {
-    fetchPaths();
-  }, [user, careers]);
+    // Only show skeleton on initial load when learningPaths is empty
+    fetchPaths(learningPaths.length === 0);
+  }, [user?.id, careers]);
 
   if (loading) {
     return <LearningPathSkeleton isDetail={!!careerId} />;
