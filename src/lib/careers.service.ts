@@ -116,16 +116,26 @@ interface SupabaseCareerData {
 export let careers: Career[] = [];
 export const careersMockBase: Career[] = [];
 
+let cachedCareers: Career[] | null = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 // Fetch and transform careers from the database
 export async function initializeCareers(limit = 100, offset = 0): Promise<Career[]> {
+  const now = Date.now();
+  if (cachedCareers && (now - lastFetchTime < CACHE_TTL)) {
+    return cachedCareers;
+  }
+
   try {
+    console.log('[careers.service] Fetching careers from API...');
     const apiUrl = import.meta.env.VITE_API_URL;
     const response = await fetch(`${apiUrl}/home/all-careers?limit=${limit}&offset=${offset}`);
     if (!response.ok) return [];
     const supabaseData = await response.json();
     if (!Array.isArray(supabaseData)) return [];
 
-    careers = (supabaseData as SupabaseCareerData[]).map((supabaseCareer) => {
+    const mappedCareers = (supabaseData as SupabaseCareerData[]).map((supabaseCareer) => {
       const growthRate = mapGrowthRate(supabaseCareer.growth_rate);
       const requiredSkills = parseRequiredSkills(supabaseCareer.required_skills);
 
@@ -148,9 +158,13 @@ export async function initializeCareers(limit = 100, offset = 0): Promise<Career
       } as Career;
     });
 
-    return careers;
+    console.log('[careers.service] Careers loaded and cached:', mappedCareers.length);
+    cachedCareers = mappedCareers;
+    lastFetchTime = now;
+    careers = mappedCareers;
+    return mappedCareers;
   } catch (error) {
     console.warn('[careers.service] Failed to fetch careers data:', error);
-    return [];
+    return cachedCareers || [];
   }
 }

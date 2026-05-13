@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BookOpen, Clock, Trash2, CheckCircle2, XCircle, TrendingUp, Minus, FileText } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CourseDetail } from "./CourseDetail";
@@ -15,36 +16,34 @@ interface PathDetailProps {
   onRefresh?: () => void;
 }
 
-const LevelAccordion = ({ level, isFirst, onCourseSelect }: { level: any, isFirst: boolean, onCourseSelect: (course: any, color: string, title: string) => void }) => {
-  const [isOpen, setIsOpen] = useState(isFirst);
-
+const LevelAccordion = ({ level, isOpen, onToggle, onCourseSelect }: { level: any, isOpen: boolean, onToggle: () => void, onCourseSelect: (course: any, color: string, title: string) => void }) => {
   const safeLevelColor = level.color.includes('#22C55E') ? 'bg-[#1FAA52]' : level.color;
 
   return (
     <div className="relative mb-12 last:mb-0">
       <div
         className="flex items-center gap-6 cursor-pointer group"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
       >
-        <div className={`z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-md transition-transform group-hover:scale-105 ${safeLevelColor}`}>
-          <BookOpen size={20} />
+        <div className={`z-10 flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full text-white shadow-md transition-transform group-hover:scale-105 ${safeLevelColor}`}>
+          <BookOpen size={20} className="sm:w-6 sm:h-6" />
         </div>
         <div>
-          <h3 className="text-[20px] font-bold text-gray-900 group-hover:text-[#4A5DF9] transition-colors">{level.title}</h3>
-          <p className="text-[14px] text-gray-500 font-medium">{level.courseCount} course{level.courseCount > 1 ? 's' : ''}</p>
+          <h3 className="text-[19px] sm:text-[22px] font-bold text-gray-900 group-hover:text-[#4A5DF9] transition-colors leading-tight">{level.title}</h3>
+          <p className="text-[13px] sm:text-[14px] text-gray-500 font-medium mt-0.5">{level.courseCount} course{level.courseCount > 1 ? 's' : ''}</p>
         </div>
       </div>
 
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out pl-[4.5rem] mt-6 ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 mt-0"}`}>
-        <div className="flex flex-col gap-5">
-          {level?.courses?.map((course: any, idx: number) => (
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out pl-11 sm:pl-[5rem] mt-6 ${isOpen ? "max-h-[3000px] opacity-100" : "max-h-0 opacity-0 mt-0"}`}>
+        <div className="flex flex-col gap-4 sm:gap-5">
+          {level?.courses?.map((course: any) => (
             <div
-              key={idx}
+              key={`course-${course.id}`}
               onClick={() => onCourseSelect(course, safeLevelColor, level.title)}
-              className="flex flex-col sm:flex-row bg-white border border-gray-200 rounded-2xl p-5 gap-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+              className="flex flex-col sm:flex-row bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 gap-4 sm:gap-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
 
-              <div className="w-full sm:w-[140px] h-[100px] rounded-xl overflow-hidden shrink-0">
+              <div className="w-full sm:w-[140px] aspect-video sm:h-[100px] rounded-xl overflow-hidden shrink-0">
                 <img src={course.image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
 
@@ -85,63 +84,94 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isNewsSidebarOpen, setIsNewsSidebarOpen] = useState(false);
-  const [dynamicLevels, setDynamicLevels] = useState<any[]>([]);
-  const [loadingLevels, setLoadingLevels] = useState(true);
-  const [industryNews, setIndustryNews] = useState<NewsArticle[]>([]);
+  const [expandedLevels, setExpandedLevels] = useState<Record<string, boolean>>({});
 
+  // Initialize expanded levels from localStorage
   React.useEffect(() => {
-    if (!path?.id || !user) return;
-    const userId = user.id;
-    // Only show loading if we don't have data yet to prevent UI flashes
-    if (dynamicLevels.length === 0) setLoadingLevels(true);
-    learningPathApi.getCourses(userId, path.id)
-      .then(res => {
-        const courses = res.data.courses;
-        // Group by level
-        const levelsMap: Record<string, any[]> = {
-          beginner: [],
-          intermediate: [],
-          advanced: []
-        };
+    if (!path?.id) return;
+    const cacheKey = `lp_expanded_${path.id}`;
+    const saved = localStorage.getItem(cacheKey);
+    if (saved) {
+      try {
+        setExpandedLevels(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse expanded levels cache", e);
+      }
+    } else {
+      // Default: First level open
+      setExpandedLevels({ "Level 1: Fundamentals": true });
+    }
+  }, [path?.id]);
 
-        courses.forEach((c: any) => {
-          const levelKey = c.course_details?.level || 'beginner';
-          if (levelsMap[levelKey]) {
-            levelsMap[levelKey].push({
-              id: c.course_id,
-              title: c.course_details?.title,
-              description: c.course_details?.description,
-              image: c.course_details?.image_url || "https://via.placeholder.com/150",
-              status: c.complete ? "Complete" : "Incomplete",
-              hours: c.course_details?.duration_mins ? Math.round(c.course_details.duration_mins / 60) : 0,
-              skills: c.course_details?.skills_taught || [],
-              outcomes: c.course_details?.learning_outcome || [],
-            });
-          }
+  const toggleLevel = (levelTitle: string) => {
+    const newState = {
+      ...expandedLevels,
+      [levelTitle]: !expandedLevels[levelTitle]
+    };
+    setExpandedLevels(newState);
+    
+    // Save to cache
+    if (path?.id) {
+      localStorage.setItem(`lp_expanded_${path.id}`, JSON.stringify(newState));
+    }
+  };
+
+  const { data: coursesResponse, isLoading: loadingCourses } = useQuery({
+    queryKey: ['path-courses', path?.id, user?.id],
+    queryFn: () => learningPathApi.getCourses(user!.id, path.id),
+    enabled: !!path?.id && !!user,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+
+  const { data: newsResponse, isLoading: loadingNews } = useQuery({
+    queryKey: ['industry-news', path?.industry],
+    queryFn: () => fetchIndustryNewsFromDatabase(path.industry),
+    enabled: !!path?.industry,
+    staleTime: 1000 * 60 * 10, // News cache 10 minutes
+  });
+
+  const dynamicLevels = React.useMemo(() => {
+    if (!coursesResponse?.data?.courses) return [];
+    
+    const courses = coursesResponse.data.courses;
+    const levelsMap: Record<string, any[]> = {
+      beginner: [],
+      intermediate: [],
+      advanced: []
+    };
+
+    courses.forEach((c: any) => {
+      const levelKey = c.course_details?.level || 'beginner';
+      if (levelsMap[levelKey]) {
+        levelsMap[levelKey].push({
+          id: c.course_id,
+          title: c.course_details?.title || 'Untitled Course',
+          description: c.course_details?.description || 'No description available.',
+          image: c.course_details?.image_url || "https://via.placeholder.com/150",
+          status: c.complete ? "Complete" : "Incomplete",
+          hours: c.course_details?.duration_mins ? Math.round(c.course_details.duration_mins / 60) : 0,
+          skills: c.course_details?.skills_taught || [],
+          outcomes: c.course_details?.learning_outcome || [],
         });
+      }
+    });
 
-        const newLevels = [];
-        let idCounter = 1;
-        if (levelsMap.beginner.length > 0) {
-          newLevels.push({ id: idCounter++, title: "Level 1: Fundamentals", color: "bg-[#1FAA52]", courseCount: levelsMap.beginner.length, courses: levelsMap.beginner });
-        }
-        if (levelsMap.intermediate.length > 0) {
-          newLevels.push({ id: idCounter++, title: "Level 2: Intermediate", color: "bg-[#F97316]", courseCount: levelsMap.intermediate.length, courses: levelsMap.intermediate });
-        }
-        if (levelsMap.advanced.length > 0) {
-          newLevels.push({ id: idCounter++, title: "Level 3: Advanced", color: "bg-[#EAB308]", courseCount: levelsMap.advanced.length, courses: levelsMap.advanced });
-        }
+    const newLevels = [];
+    let idCounter = 1;
+    if (levelsMap.beginner.length > 0) {
+      newLevels.push({ id: idCounter++, title: "Level 1: Fundamentals", color: "bg-[#1FAA52]", courseCount: levelsMap.beginner.length, courses: levelsMap.beginner });
+    }
+    if (levelsMap.intermediate.length > 0) {
+      newLevels.push({ id: idCounter++, title: "Level 2: Intermediate", color: "bg-[#F97316]", courseCount: levelsMap.intermediate.length, courses: levelsMap.intermediate });
+    }
+    if (levelsMap.advanced.length > 0) {
+      newLevels.push({ id: idCounter++, title: "Level 3: Advanced", color: "bg-[#EAB308]", courseCount: levelsMap.advanced.length, courses: levelsMap.advanced });
+    }
+    return newLevels;
+  }, [coursesResponse]);
 
-        setDynamicLevels(newLevels);
-      })
-      .catch(console.error)
-      .finally(() => setLoadingLevels(false));
-
-    // Fetch industry news
-    fetchIndustryNewsFromDatabase(path.industry)
-      .then(setIndustryNews)
-      .catch(console.error);
-  }, [path?.id, courseId, user?.id]); // Re-fetch when entering or leaving a course to ensure statuses are fresh
+  const industryNews = newsResponse || [];
+  const loadingLevels = loadingCourses;
 
   const handleDeleteConfirm = async () => {
     if (!user || !path?.id) return;
@@ -199,7 +229,7 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
 
       {/* Top Summary Section - Full-bleed white background without a card box */}
       <div className="relative w-[100vw] left-1/2 right-1/2 -mx-[50vw] bg-white border-b border-gray-100 pt-8 pb-10 -mt-4 mb-12">
-        <div className="w-full max-w-[1000px] mx-auto px-6">
+        <div className="w-full max-w-6xl mx-auto px-8">
 
           {/* Back Button */}
           <button
@@ -276,15 +306,16 @@ export function PathDetail({ path, onBack, onRefresh }: PathDetailProps) {
       </div>
 
       {/* Interactive Timeline Section */}
-      <div className="w-full max-w-[1000px] mx-auto px-6 pb-20">
-        <div className="relative pl-4 md:pl-8">
-          <div className="absolute left-[2.45rem] md:left-[3.45rem] top-6 bottom-12 w-0.5 bg-white z-0" />
+      <div className="pb-20">
+        <div className="relative pl-0 sm:pl-8">
+          <div className="absolute left-[1.35rem] sm:left-[3.7rem] top-6 bottom-12 w-0.5 bg-gray-200 z-0" />
 
-          {dynamicLevels.length > 0 ? dynamicLevels.map((level: any, index: number) => (
+          {dynamicLevels.length > 0 ? dynamicLevels.map((level: any) => (
             <LevelAccordion
               key={level.id}
               level={level}
-              isFirst={index === 0}
+              isOpen={!!expandedLevels[level.title]}
+              onToggle={() => toggleLevel(level.title)}
               onCourseSelect={(courseData) => navigate(`/learning-path/${careerId}/course/${courseData.id}`)}
             />
           )) : (

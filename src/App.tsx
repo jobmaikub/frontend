@@ -48,8 +48,8 @@ const queryClient = new QueryClient({
 });
 
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-background">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  <div className="flex items-center justify-center min-h-screen bg-[#F4F7FF]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4A5DF9]"></div>
   </div>
 );
 
@@ -78,15 +78,15 @@ const App = () => (
               <Route path="/home" element={<Home />} />
               <Route path="/careers" element={<CareerList />} />
               <Route path="/careers/:id" element={<CareerDetail />} />
-              <Route path="/news" element={<News />} /> 
+              <Route path="/news" element={<News />} />
               <Route path="/profile/:userId" element={<PublicProfile />} />
-              
+
               {/* User-facing Routes - Protected */}
               <Route path="/ai-match" element={<ProtectedRoute><AIMatch /></ProtectedRoute>} />
               <Route path="/learning-path" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
               <Route path="/learning-path/:careerId" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
               <Route path="/learning-path/:careerId/course/:courseId" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
-              <Route path="/track-progress" element={<ProtectedRoute><TrackProgress /></ProtectedRoute>} /> 
+              <Route path="/track-progress" element={<ProtectedRoute><TrackProgress /></ProtectedRoute>} />
               <Route path="/bookmark" element={<ProtectedRoute><Bookmark /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/not-found" element={<NotFound />} />

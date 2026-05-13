@@ -82,7 +82,7 @@ const TrackProgress = () => {
       </div>
 
 
-      <div className="max-w-6xl mx-auto px-8 pt-12 pb-24 space-y-8">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 pt-12 pb-24 space-y-8">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -219,9 +220,12 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
       )}
 
       <Dialog modal={false} open={!!editingReview} onOpenChange={() => setEditingReview(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Edit Review</DialogTitle>
+            <DialogDescription className="sr-only">
+              Edit your career review text and rating.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!editingReview?.parentReviewId && (
@@ -251,11 +255,13 @@ const MyReviews = ({ reviews, onEdit, onDelete }: MyReviewsProps) => {
       )}
 
       <Dialog modal={false} open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto z-50" onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this review? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Are you sure you want to delete this review?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>Delete</Button>

@@ -91,7 +91,7 @@ export default function NewsCard({
 
   return (
     <>
-      <div 
+      <div
         onClick={() => article.source_url && window.open(article.source_url, '_blank')}
         className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full font-['Inter'] transform-gpu"
       >
@@ -156,14 +156,14 @@ export default function NewsCard({
       </div>
 
       {isRemoveConfirmOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/60"
           onClick={() => setIsRemoveConfirmOpen(false)}
         />
       )}
 
       <Dialog modal={false} open={isRemoveConfirmOpen} onOpenChange={setIsRemoveConfirmOpen}>
-        <DialogContent 
+        <DialogContent
           className="z-50"
           onInteractOutside={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}

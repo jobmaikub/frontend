@@ -90,7 +90,7 @@ export function Navbar() {
   const isAdmin = String(profile?.role || "").toLowerCase() === "admin";
 
   return (
-    <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-4 sm:px-8 lg:px-12 font-['Inter']">
+    <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-gray-100 bg-[#FFFFFF] px-6 sm:px-8 lg:px-12 font-['Inter']">
       {toast && (
         <Toast
           message={toast.message}

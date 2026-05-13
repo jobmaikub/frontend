@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Career, initializeCareers, careersMockBase } from '@/lib/careers.service';
+import { Career, initializeCareers, careersMockBase, careers as globalCareers } from '@/lib/careers.service';
 
 export function useCareers() {
-  const [careers, setCareers] = useState<Career[]>(careersMockBase as Career[]);
-  const [loading, setLoading] = useState(true);
+  const [careers, setCareers] = useState<Career[]>(globalCareers.length > 0 ? globalCareers : (careersMockBase as Career[]));
+  const [loading, setLoading] = useState(globalCareers.length === 0);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const loadCareers = async () => {
       try {
-        setLoading(true);
-        console.log('[useCareers] Loading careers...');
+        if (careers.length === 0) setLoading(true);
         const data = await initializeCareers();
-        console.log('[useCareers] Loaded careers:', data);
         setCareers(data);
       } catch (err) {
         console.error('[useCareers] Error:', err);

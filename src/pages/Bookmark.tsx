@@ -92,7 +92,7 @@ export default function Bookmark() {
 			<Navbar />
 
 			{/* Header Section */}
-			<div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-8 shadow-sm z-10 relative">
+			<div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-6 sm:px-8 shadow-sm z-10 relative">
 				<div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
 					<span className="text-[14px] font-medium text-[#4A5DF9]">Saved News</span>
 				</div>
@@ -107,7 +107,7 @@ export default function Bookmark() {
 			{/* --- CONTENT SECTION (Light Blue Background) --- */}
 			<section className="flex-grow flex flex-col items-center bg-[#F4F7FF] pt-12 pb-24 w-full">
 				{/* Search and Filters Bar */}
-				<div className="flex flex-col lg:flex-row gap-4 mb-10 w-full max-w-6xl px-8">
+				<div className="flex flex-col lg:flex-row gap-4 mb-10 w-full max-w-6xl px-6 sm:px-8">
 					{/* 1. Search Input */}
 					<div className="flex-grow flex items-center bg-white rounded-xl border border-gray-200 px-5 py-3.5 shadow-sm transition-all focus-within:border-[#4A5DF9] focus-within:ring-1 focus-within:ring-[#4A5DF9]">
 						<Search className="text-gray-400 mr-3" size={20} />
@@ -158,7 +158,7 @@ export default function Bookmark() {
 				</div>
 
 				{/* News Grid */}
-				<div className="max-w-6xl mx-auto px-8 w-full">
+				<div className="max-w-6xl mx-auto px-6 sm:px-8 w-full">
 					{loading ? (
 						<NewsSkeleton />
 					) : error ? (

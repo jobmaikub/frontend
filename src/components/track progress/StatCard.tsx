@@ -11,14 +11,14 @@ interface StatCardProps {
   colorScheme?: "purple" | "orange" | "green" | "blue" | "default";
 }
 
-const StatCard = ({ 
-  icon: Icon, 
-  value, 
-  label, 
-  highlighted, 
-  onClick, 
+const StatCard = ({
+  icon: Icon,
+  value,
+  label,
+  highlighted,
+  onClick,
   clickable,
-  colorScheme = "default" 
+  colorScheme = "default"
 }: StatCardProps) => {
   const getColors = () => {
     if (highlighted) {
@@ -29,13 +29,13 @@ const StatCard = ({
         default: return "bg-primary text-white border-primary";
       }
     }
-    
+
     return "bg-white border-border";
   };
 
   const getIconColors = () => {
     if (highlighted) return "bg-white/20 text-white";
-    
+
     switch (colorScheme) {
       case "purple": return "bg-brand-light text-primary";
       case "orange": return "bg-warning-light text-warning";
@@ -49,9 +49,8 @@ const StatCard = ({
   return (
     <div
       onClick={onClick}
-      className={`rounded-xl border p-6 flex flex-col gap-3 transition-all ${
-        clickable ? "cursor-pointer hover:shadow-md hover:scale-[1.02]" : ""
-      } ${getColors()}`}
+      className={`rounded-xl border p-6 flex flex-col gap-3 transition-all ${clickable ? "cursor-pointer hover:shadow-md hover:scale-[1.02]" : ""
+        } ${getColors()}`}
     >
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getIconColors()}`}>
         <Icon className="w-5 h-5" />

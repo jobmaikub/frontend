@@ -8,10 +8,9 @@ import MyReviews, { Review } from "@/components/profile/MyReviews";
 import { useAuth } from "@/contexts/AuthContexts";
 import { updateReview, deleteReview } from "@/lib/reviews.api";
 import { updateProfile, fetchUserDashboard } from "@/lib/users.api";
-import { EnrichedSkill } from "@/lib/track_progress.api";
+import { getUserStats, getEnrichedSkills } from "@/lib/track_progress.api";
 import { Navbar } from "@/components/navbar and footer/Navbar";
 import Toast, { ToastType } from "@/components/Toast";
-
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 
 const Profile = () => {
@@ -45,7 +44,23 @@ const Profile = () => {
     }
   };
 
-  // Fetch Dashboard Data (Parallel Backend Call)
+  // 1. Fetch Stats (Shared with Track Progress)
+  const { data: statsData, isLoading: loadingStats } = useQuery({
+    queryKey: ['user-stats', user?.id],
+    queryFn: () => getUserStats(user!.id),
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 2. Fetch Skills (Shared with Track Progress)
+  const { data: skillsData, isLoading: loadingSkills } = useQuery({
+    queryKey: ['user-skills', user?.id],
+    queryFn: () => getEnrichedSkills(),
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 3. Fetch Dashboard (Remaining data: Reviews)
   const { data: dashboardData, isLoading: loadingDashboard } = useQuery({
     queryKey: ['user-dashboard', user?.id],
     queryFn: () => fetchUserDashboard(user!.id),
@@ -54,14 +69,15 @@ const Profile = () => {
   });
 
   const reviews = dashboardData?.reviews || [];
-  const enrichedSkills = dashboardData?.skills || [];
+  const enrichedSkills = skillsData || [];
   const dashboardProfile = dashboardData?.profile;
 
+  // Sync state with profile updates
   useEffect(() => {
-    if (profile || dashboardProfile) {
-      const p = profile || dashboardProfile;
-      setUserName(p.full_name || p.username || "Guest");
-      setAvatarUrl(p.avatar_url || "");
+    const currentProfile = profile || dashboardProfile;
+    if (currentProfile) {
+      setUserName(currentProfile.full_name || currentProfile.username || "Guest");
+      setAvatarUrl(currentProfile.avatar_url || "");
     }
   }, [profile, dashboardProfile]);
 
@@ -87,8 +103,6 @@ const Profile = () => {
       year: 'numeric'
     })
     : "N/A";
-
-  const dayStreak = profile?.current_streak || dashboardProfile?.current_streak || 0;
 
   const handleEditReview = async (id: string, text: string, rating: number) => {
     try {
@@ -144,19 +158,19 @@ const Profile = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <StatsCard
                   icon={BookOpen}
-                  value={profile?.courses_completed || 0}
+                  value={statsData?.coursesComplete || profile?.courses_completed || 0}
                   label="Courses Completed"
                   colorClass="bg-brand-light text-primary"
                 />
                 <StatsCard
                   icon={Flame}
-                  value={dayStreak}
+                  value={statsData?.streak || profile?.current_streak || 0}
                   label="Day Streak"
                   colorClass="bg-warning-light text-warning"
                 />
                 <StatsCard
                   icon={TrendingUp}
-                  value={`${profile?.total_learning_hours || 0}h`}
+                  value={`${statsData?.totalHours || profile?.total_learning_hours || 0}h`}
                   label="Learning Hours"
                   colorClass="bg-success-light text-success"
                 />

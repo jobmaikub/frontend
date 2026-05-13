@@ -71,11 +71,21 @@ export default function Register() {
       <div className="w-full max-w-md space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100">
 
         {/* Header */}
-        <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Job<span className="text-blue-600">maikub</span>
-          </h2>
-          <p className="mt-2 sm:mt-3 text-sm sm:text-base text-slate-600">
+        <div className="text-center flex flex-col items-center">
+          <Link 
+            to="/home" 
+            className="group flex flex-col items-center gap-3 mb-2 transition-transform hover:scale-105 active:scale-95"
+          >
+            <img 
+              src="/jobmaikub-logo.png" 
+              alt="Jobmaikub Logo" 
+              className="h-16 w-auto object-contain"
+            />
+            <h2 className="text-2xl font-black text-[#4A5DF9] tracking-tighter uppercase">
+              Jobmaikub
+            </h2>
+          </Link>
+          <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">
             Create your account
           </p>
         </div>

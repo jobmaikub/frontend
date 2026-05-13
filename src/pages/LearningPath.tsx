@@ -64,7 +64,7 @@ export default function LearningPath() {
 
     // Only show loading if explicitly requested or if we don't have data yet
     if (showLoading && learningPaths.length === 0) setLoading(true);
-    
+
     learningPathApi.getAll(user.id)
       .then((res) => {
         const mapped = res.data.map((item: any) => {
@@ -114,7 +114,7 @@ export default function LearningPath() {
 
         {/* Render Header only if we are on the main grid view */}
         {!careerId && (
-          <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-8 shadow-sm z-10 relative">
+          <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-6 sm:px-8 shadow-sm z-10 relative">
 
             <div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
               <span className="text-[14px] font-medium text-[#4A5DF9]">Learning Path</span>
@@ -130,7 +130,7 @@ export default function LearningPath() {
 
 
         <section className={`pb-24 ${careerId ? "pt-20" : "pt-12"}`}>
-          <div className="container mx-auto px-8 max-w-6xl">
+          <div className="container mx-auto px-6 sm:px-8 max-w-6xl">
 
             {/* Conditional Rendering: Main Grid vs Detailed Path */}
             {careerId ? (
@@ -223,7 +223,7 @@ export default function LearningPath() {
                   </div>
                 </div>
 
-                 {/* Cards Grid */}
+                {/* Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredPaths.length > 0 ? (
                     (() => {
@@ -232,19 +232,19 @@ export default function LearningPath() {
                         (currentPage - 1) * ITEMS_PER_PAGE,
                         currentPage * ITEMS_PER_PAGE
                       );
-                      
+
                       return paginatedPaths.map((path) => (
-                        <div 
-                          key={path.id} 
+                        <div
+                          key={path.id}
                           onClick={() => navigate(`/learning-path/${path.id}`)}
                           className="group cursor-pointer rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 flex flex-col h-full transform-gpu"
                         >
 
                           <div className="relative aspect-[3/2] overflow-hidden transform-gpu">
-                            <img 
-                              src={path.image} 
-                              alt={path.title} 
-                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                            <img
+                              src={path.image}
+                              alt={path.title}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                               loading="lazy"
                             />
                             <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase shadow-sm ${path.growth === 'High Growth'

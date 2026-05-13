@@ -66,7 +66,7 @@ const Home = () => {
       <div className="min-h-screen bg-background pt-16">
         <Navbar />
         {/* ── Hero ── */}
-        <section className="max-w-6xl mx-auto px-8 pt-10 pb-16 lg:pt-16 lg:pb-20">
+        <section className="max-w-6xl mx-auto px-6 sm:px-8 pt-10 pb-16 lg:pt-16 lg:pb-20">
           <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-12">
             <div className="flex-1 text-center lg:text-left">
               <h1 className="text-4xl lg:text-5xl font-bold text-foreground flex flex-col gap-4 items-center lg:items-start">
@@ -114,7 +114,7 @@ const Home = () => {
 
         {/* ── Journey to Success ── */}
         <section className="bg-[#F4F7FF] py-20">
-          <div className="max-w-6xl mx-auto px-8">
+          <div className="max-w-6xl mx-auto px-6 sm:px-8">
             <div className="text-center flex flex-col items-center">
               <div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
                 <span className="text-[14px] font-medium text-[#4A5DF9]">Take It Steps</span>
@@ -159,7 +159,7 @@ const Home = () => {
         </section>
 
         {/* ── Trending Career Paths ── */}
-        <section className="max-w-6xl mx-auto px-8 py-20">
+        <section className="max-w-6xl mx-auto px-6 sm:px-8 py-20">
           <div className="flex items-end justify-between">
             <div className="flex flex-col items-start">
               <div className="mb-4 flex items-center justify-center rounded-full bg-[#D5E3FF]/50 px-4 py-1.5">
@@ -208,7 +208,7 @@ const Home = () => {
 
         {/* ── CTA ── */}
         <section className="bg-cta py-20">
-          <div className="max-w-6xl mx-auto px-8 text-center">
+          <div className="max-w-6xl mx-auto px-6 sm:px-8 text-center">
             <span className="inline-block rounded-full bg-primary/20 px-4 py-1.5 text-xs font-medium text-cta-foreground">
               Start Your Journey Today
             </span>

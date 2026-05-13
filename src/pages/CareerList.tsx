@@ -201,7 +201,7 @@ const CareerList = () => {
                   <div className="flex gap-1">
                     {(() => {
                       const pages = [];
-                      const maxVisible = 3; 
+                      const maxVisible = 3;
                       const halfWindow = Math.floor(maxVisible / 2);
 
                       let startPage = Math.max(1, currentPage - halfWindow);
@@ -229,9 +229,9 @@ const CareerList = () => {
                         if (page === '...') {
                           return <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-gray-400 self-center">...</span>;
                         }
-                        
+
                         const isCurrent = currentPage === page;
-                        
+
                         return (
                           <button
                             key={page}

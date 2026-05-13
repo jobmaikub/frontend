@@ -60,8 +60,8 @@ export default function News() {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      results = results.filter(article => 
-        article.title.toLowerCase().includes(query) || 
+      results = results.filter(article =>
+        article.title.toLowerCase().includes(query) ||
         article.description.toLowerCase().includes(query)
       );
     }
@@ -197,7 +197,7 @@ export default function News() {
 
                   {/* Smart Page Numbers */}
                   <div className="flex gap-1">
-                                   {(() => {
+                    {(() => {
                       const pages = [];
                       const maxVisible = 3;
                       const halfWindow = Math.floor(maxVisible / 2);

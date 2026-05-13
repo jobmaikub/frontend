@@ -207,7 +207,7 @@ const CareerDetail = () => {
     <OldThemeWrapper>
       <div className="min-h-screen bg-background pt-16">
         <Navbar />
-        <div className="max-w-6xl mx-auto px-8 py-8">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-8">
           {/* Back */}
           <button
             onClick={() => navigate(-1)}
@@ -391,8 +391,8 @@ const CareerDetail = () => {
                         Key Responsibilities
                       </h3>
                       <div className="space-y-3">
-                        {career.keyResponsibilities.map((resp) => (
-                          <div key={resp} className="flex items-start gap-3">
+                        {career.keyResponsibilities.map((resp, idx) => (
+                          <div key={`resp-${idx}`} className="flex items-start gap-3">
                             <CheckCircle2 className="h-5 w-5 text-growth-high mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-muted-foreground">
                               {resp}
@@ -408,8 +408,8 @@ const CareerDetail = () => {
                     <div className="bg-card rounded-xl p-6 border border-border">
                       <h3 className="text-lg font-bold mb-4">Required Skills</h3>
                       <div className="grid grid-cols-2 gap-4">
-                        {career.requiredSkills.map((skill) => (
-                          <div key={`${skill.name}-${skill.type}`} className="flex items-center gap-3">
+                        {career.requiredSkills.map((skill, idx) => (
+                          <div key={`skill-${idx}`} className="flex items-center gap-3">
                             <div
                               className={`h-10 w-10 rounded-xl flex items-center justify-center ${skillIconColors[skill.type] ||
                                 'bg-accent text-primary'

@@ -76,7 +76,7 @@ export function SkillsForm({ initialSkillIds, onNext, onBack }: SkillsFormProps)
         </div>
 
         {/* Skills Flex Wrap with Custom Scrollbar */}
-        <div className="flex flex-wrap gap-3 max-h-[220px] overflow-y-auto pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
+        <div className="flex flex-wrap gap-3 max-h-[220px] overflow-y-auto p-1 pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#F0F4FF] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#A3C0FF] [&::-webkit-scrollbar-thumb]:rounded-full">
           {isLoading ? (
             <div className="w-full text-center text-gray-500 py-4">Loading skills...</div>
           ) : filteredSkills.length > 0 ? (

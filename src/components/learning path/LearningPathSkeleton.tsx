@@ -13,7 +13,7 @@ const LearningPathSkeleton = ({ isDetail = false }: LearningPathSkeletonProps) =
         <main className="bg-[#F4F7FF] flex-grow flex flex-col">
           {/* Top Summary Section Skeleton */}
           <div className="relative w-[100vw] left-1/2 right-1/2 -mx-[50vw] bg-white border-b border-gray-100 pt-8 pb-10 -mt-4 mb-12">
-            <div className="w-full max-w-[1000px] mx-auto px-6">
+            <div className="w-full max-w-[1000px] mx-auto px-6 sm:px-8">
               <Skeleton className="h-4 w-32 mb-6" />
               <div className="flex flex-col md:flex-row gap-6">
                 <Skeleton className="w-full md:w-[240px] h-[190px] rounded-2xl" />
@@ -37,7 +37,7 @@ const LearningPathSkeleton = ({ isDetail = false }: LearningPathSkeletonProps) =
           </div>
 
           {/* Timeline Section Skeleton */}
-          <div className="w-full max-w-[1000px] mx-auto px-6 pb-20">
+          <div className="w-full max-w-[1000px] mx-auto px-6 sm:px-8 pb-20">
             <div className="relative pl-4 md:pl-8 space-y-12">
               <div className="absolute left-[2.4rem] md:left-[3.4rem] top-6 bottom-12 w-0.5 bg-gray-200 -z-10" />
               {[...Array(3)].map((_, i) => (
@@ -75,14 +75,14 @@ const LearningPathSkeleton = ({ isDetail = false }: LearningPathSkeletonProps) =
       <Navbar />
       <main className="bg-[#F4F7FF] flex-grow flex flex-col">
         {/* Header Skeleton */}
-        <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-8 shadow-sm">
+        <div className="w-full bg-white pt-24 pb-10 flex flex-col items-center text-center px-6 sm:px-8 shadow-sm">
           <Skeleton className="h-8 w-32 rounded-full mb-4 bg-[#D5E3FF]/30" />
           <Skeleton className="h-10 w-64 mb-3" />
           <Skeleton className="h-5 w-80" />
         </div>
 
         <section className="pt-12 pb-24">
-          <div className="container mx-auto px-8 max-w-6xl">
+          <div className="container mx-auto px-6 sm:px-8 max-w-6xl">
             {/* Search/Filter Bar Skeleton */}
             <div className="flex flex-col lg:flex-row gap-4 mb-10">
               <Skeleton className="flex-grow h-[54px] rounded-xl" />

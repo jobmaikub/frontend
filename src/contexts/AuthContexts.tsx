@@ -130,26 +130,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!mounted) return;
 
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setLoading(false);
 
-      if (session?.user) {
-        loadProfile(session.user.id, session.user.email);
+      if (currentUser) {
+        // Use a timeout to ensure state is stable or just call directly if not already loading
+        loadProfile(currentUser.id, currentUser.email);
       }
     };
 
     init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          loadProfile(session.user.id, session.user.email);
-        } else {
+        const newUser = session?.user ?? null;
+        
+        // Only trigger profile load if the user actually changed or explicitly signed in
+        if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && !user)) {
+          setUser(newUser);
+          if (newUser) loadProfile(newUser.id, newUser.email);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
           setProfile(null);
+        } else {
+          // For other events like TOKEN_REFRESHED, just update the user object if it exists
+          if (newUser) setUser(newUser);
         }
       }
     );
@@ -161,6 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProfile = async (userId: string, email?: string) => {
+    // Prevent redundant loads if already loading or loaded for this user
+    if (profile?.id === userId) return;
+
     try {
       let activeBan: Awaited<ReturnType<typeof fetchActiveBanByUser>> = null;
       try {

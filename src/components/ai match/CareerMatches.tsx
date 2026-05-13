@@ -85,10 +85,10 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
         <div className="absolute inset-0 bg-[#4A5DF9]/5 blur-[80px] animate-pulse -z-10"></div>
 
         <div className="mt-8">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">
-            Found Your Matches
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">
+            Found {matches?.length || 0} Matches
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl font-medium leading-relaxed px-6">
+          <p className="text-[17px] md:text-[18px] text-gray-500 max-w-2xl font-medium leading-relaxed px-6">
             Our AI has scanned the industry to identify the perfect career paths for your unique profile.
           </p>
         </div>
@@ -97,7 +97,7 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
       {/* Career Cards List */}
       <div className="w-full flex flex-col gap-8">
         {matches && Array.isArray(matches) && matches.map((match, index) => (
-          <div key={index} className="flex flex-col md:flex-row items-start w-full rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm gap-8">
+          <div key={match.career_id || match.id || index} className="flex flex-col md:flex-row items-start w-full rounded-[32px] border border-gray-100 bg-white p-6 sm:p-8 shadow-sm gap-6 sm:gap-8">
 
             {/* 1. Left Image - Compact & Cropped */}
             <div className="w-full md:w-[320px] flex-shrink-0">
@@ -118,14 +118,14 @@ export function CareerMatches({ onStartOver, matches }: CareerMatchesProps) {
               <div>
 
                 {/* Header Row */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
+                <div className="flex justify-between items-start mb-4 gap-4">
+                  <div className="flex-1">
                     {/* 2. Job Title - Font Size 20 */}
                     <h2 className="text-[20px] font-bold text-gray-900 leading-tight">{match.title}</h2>
                     {/* 3. Technology text - Font Size 16 */}
                     <span className="text-[16px] font-medium text-[#4A5DF9] block mt-1">{match.industry}</span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <span className="text-[32px] font-bold text-[#4A5DF9] leading-none">{match.match_score ?? match.score ?? "N/A"}%</span>
                   </div>
                 </div>

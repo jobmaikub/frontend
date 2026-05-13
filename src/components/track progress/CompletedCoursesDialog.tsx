@@ -121,8 +121,15 @@ const CompletedCoursesDialog = ({
           </div>
         </div>
 
-        {/* Content Area - Scrollable */}
-        <div id="course-scroll-container" className="flex-1 overflow-y-auto p-6 scrollbar-hide bg-[#F8FAFC]">
+        {/* Content Area - Scrollable with Fade Effects */}
+        <div className="relative flex-1 overflow-hidden flex flex-col bg-[#F8FAFC]">
+          {/* Top Fade Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#F8FAFC] to-transparent z-20 pointer-events-none" />
+          
+          <div 
+            id="course-scroll-container" 
+            className="flex-1 overflow-y-auto px-6 py-4 scrollbar-hide"
+          >
           <div className="space-y-4">
             {paginatedCourses.length === 0 ? (
               <div className="text-center py-20">
@@ -176,6 +183,10 @@ const CompletedCoursesDialog = ({
               ))
             )}
           </div>
+          </div>
+          
+          {/* Bottom Fade Gradient */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#F8FAFC] to-transparent z-20 pointer-events-none" />
         </div>
 
          {/* Pagination Footer - Sticky */}
