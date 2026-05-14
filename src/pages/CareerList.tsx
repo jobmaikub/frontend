@@ -42,19 +42,21 @@ const CareerList = () => {
   }, []);
 
   const filteredCareers = useMemo(() => {
-    return careers.filter((career) => {
-      const matchesSearch = career.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesIndustry =
-        selectedIndustry === 'All Industries' ||
-        career.track === selectedIndustry;
-      const matchesGrowth =
-        selectedGrowth === 'all' ||
-        String(career.growth_rate) === selectedGrowth ||
-        String(career.growthRate) === selectedGrowth;
-      return matchesSearch && matchesIndustry && matchesGrowth;
-    });
+    return careers
+      .filter((career) => {
+        const matchesSearch = career.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+        const matchesIndustry =
+          selectedIndustry === 'All Industries' ||
+          career.track === selectedIndustry;
+        const matchesGrowth =
+          selectedGrowth === 'all' ||
+          String(career.growth_rate) === selectedGrowth ||
+          String(career.growthRate) === selectedGrowth;
+        return matchesSearch && matchesIndustry && matchesGrowth;
+      })
+      .sort((a, b) => (b.growth_rate || 0) - (a.growth_rate || 0));
   }, [careers, searchQuery, selectedIndustry, selectedGrowth]);
 
   // Reset to first page when filters change

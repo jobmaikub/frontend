@@ -71,6 +71,8 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
       queryClient.invalidateQueries({ queryKey: ['user-activity'] });
       queryClient.invalidateQueries({ queryKey: ['user-completed-courses'] });
       queryClient.invalidateQueries({ queryKey: ['user-skills'] });
+      queryClient.invalidateQueries({ queryKey: ['course-lessons'] });
+      queryClient.invalidateQueries({ queryKey: ['path-courses'] });
 
       if (onLessonToggled) onLessonToggled();
     } catch (err) {
@@ -108,6 +110,8 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
         queryClient.invalidateQueries({ queryKey: ['user-activity'] });
         queryClient.invalidateQueries({ queryKey: ['user-completed-courses'] });
         queryClient.invalidateQueries({ queryKey: ['user-skills'] });
+        queryClient.invalidateQueries({ queryKey: ['course-lessons'] });
+        queryClient.invalidateQueries({ queryKey: ['path-courses'] });
 
         if (onLessonToggled) onLessonToggled();
       } catch (err) {
@@ -132,6 +136,8 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
           queryClient.invalidateQueries({ queryKey: ['user-activity'] });
           queryClient.invalidateQueries({ queryKey: ['user-completed-courses'] });
           queryClient.invalidateQueries({ queryKey: ['user-skills'] });
+          queryClient.invalidateQueries({ queryKey: ['course-lessons'] });
+          queryClient.invalidateQueries({ queryKey: ['path-courses'] });
 
           setPreviousCheckedState(null); // Clear after revert
           if (onLessonToggled) onLessonToggled();
@@ -155,6 +161,8 @@ export function CourseDetail({ course, levelColor, levelTitle, onBack, onLessonT
           queryClient.invalidateQueries({ queryKey: ['user-activity'] });
           queryClient.invalidateQueries({ queryKey: ['user-completed-courses'] });
           queryClient.invalidateQueries({ queryKey: ['user-skills'] });
+          queryClient.invalidateQueries({ queryKey: ['course-lessons'] });
+          queryClient.invalidateQueries({ queryKey: ['path-courses'] });
 
           if (onLessonToggled) onLessonToggled();
         } catch (err) {
