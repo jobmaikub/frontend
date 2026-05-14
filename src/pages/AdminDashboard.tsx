@@ -16,16 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import StatCard from "@/components/admin/StatCard";
-import { fetchUsers } from "@/lib/users.api";
-import { getFaculties } from "@/lib/faculties.api";
-import { getMajors } from "@/lib/majors.api";
-import { getSkills } from "@/lib/skills.api";
-import { fetchCareers } from "@/lib/careers.api";
-import { getCourses } from "@/lib/courses.api";
-import { getLessons } from "@/lib/lessons.api";
-import { getNews } from "@/lib/news.api";
-import { getInterests } from "@/lib/interests.api";
-import { fetchReports } from "@/lib/users.api";
+import { getDashboardStats } from "@/lib/stats.api";
 
 interface StatItem {
   icon: LucideIcon;
@@ -53,42 +44,22 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const [
-          users,
-          faculties,
-          majors,
-          skills,
-          careers,
-          courses,
-          lessons,
-          news,
-          interests,
-          reports,
-        ] = await Promise.all([
-          fetchUsers().catch(() => []),
-          getFaculties().catch(() => []),
-          getMajors().catch(() => []),
-          getSkills().catch(() => []),
-          fetchCareers().catch(() => []),
-          getCourses().catch(() => []),
-          getLessons().catch(() => []),
-          getNews().catch(() => []),
-          getInterests().catch(() => []),
-          fetchReports().catch(() => []),
-        ]);
+        const dashboardStats = await getDashboardStats().catch(() => null);
 
-        setStats([
-          { icon: Users, value: users?.length || 0, label: "Users", variant: "blue", path: "/admin/users" },
-          { icon: ClipboardList, value: reports?.length || 0, label: "Reports", variant: "cyan", path: "/admin/reports" },
-          { icon: GraduationCap, value: faculties?.length || 0, label: "Faculties", variant: "pink", path: "/admin/faculties" },
-          { icon: BookOpen, value: majors?.length || 0, label: "Majors", variant: "purple", path: "/admin/majors" },
-          { icon: Lightbulb, value: skills?.length || 0, label: "Skills", variant: "green", path: "/admin/skills" },
-          { icon: Heart, value: interests?.length || 0, label: "Interests", variant: "mint", path: "/admin/interests" },
-          { icon: Briefcase, value: careers?.length || 0, label: "Careers", variant: "coral", path: "/admin/careers" },
-          { icon: BookMarked, value: courses?.length || 0, label: "Courses", variant: "pink", path: "/admin/courses" },
-          { icon: FileText, value: lessons?.length || 0, label: "Lessons", variant: "cyan", path: "/admin/lessons" },
-          { icon: Newspaper, value: news?.length || 0, label: "News", variant: "mint", path: "/admin/news" },
-        ]);
+        if (dashboardStats) {
+          setStats([
+            { icon: Users, value: dashboardStats.users, label: "Users", variant: "blue", path: "/admin/users" },
+            { icon: ClipboardList, value: dashboardStats.reports, label: "Reports", variant: "cyan", path: "/admin/reports" },
+            { icon: GraduationCap, value: dashboardStats.faculties, label: "Faculties", variant: "pink", path: "/admin/faculties" },
+            { icon: BookOpen, value: dashboardStats.majors, label: "Majors", variant: "purple", path: "/admin/majors" },
+            { icon: Lightbulb, value: dashboardStats.skills, label: "Skills", variant: "green", path: "/admin/skills" },
+            { icon: Heart, value: dashboardStats.interests, label: "Interests", variant: "mint", path: "/admin/interests" },
+            { icon: Briefcase, value: dashboardStats.careers, variant: "coral", label: "Careers", path: "/admin/careers" },
+            { icon: BookMarked, value: dashboardStats.courses, label: "Courses", variant: "pink", path: "/admin/courses" },
+            { icon: FileText, value: dashboardStats.lessons, label: "Lessons", variant: "cyan", path: "/admin/lessons" },
+            { icon: Newspaper, value: dashboardStats.news, label: "News", variant: "mint", path: "/admin/news" },
+          ]);
+        }
       } catch (err) {
         console.error("Failed to fetch dashboard counts:", err);
       }
